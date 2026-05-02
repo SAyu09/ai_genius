@@ -1,0 +1,72 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getUser } from "@/lib/auth";
+import { db } from "@/db";
+import { agents, purchases, users } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
+
+/**
+ * GET /api/sellers/dashboard
+ * Returns the seller's listed agents, total revenue, and sales stats.
+ */
+export async function GET(req: NextRequest) {
+  const currentUser = await getUser();
+  if (!currentUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const role = currentUser.user_metadata?.role;
+  if (role !== "seller" && role !== "admin") {
+    return NextResponse.json(
+      { error: "Only sellers can access the dashboard" },
+      { status: 403 }
+    );
+  }
+
+  // Fetch seller's agents
+  const sellerAgents = await db
+    .select()
+    .from(agents)
+    .where(eq(agents.sellerId, currentUser.id))
+    .orderBy(sql`${agents.createdAt} DESC`);
+
+  // Calculate total revenue from all their agent purchases
+  const revenueResult = await db
+    .select({
+      totalRevenue: sql<number>`COALESCE(SUM(${purchases.sellerPayout}), 0)`,
+      totalSales: sql<number>`COUNT(${purchases.id})`,
+    })
+    .from(purchases)
+    .innerJoin(agents, eq(purchases.agentId, agents.id))
+    .where(eq(agents.sellerId, currentUser.id));
+
+  const { totalRevenue, totalSales } = revenueResult[0] || {
+    totalRevenue: 0,
+    totalSales: 0,
+  };
+
+  // Check Stripe onboarding status
+  const [user] = await db
+    .select({
+      stripeAccountId: users.stripeAccountId,
+      stripeOnboarded: users.stripeOnboarded,
+    })
+    .from(users)
+    .where(eq(users.id, currentUser.id))
+    .limit(1);
+
+  return NextResponse.json({
+    agents: sellerAgents.map((a) => ({
+      ...a,
+      price: a.price / 100,
+    })),
+    stats: {
+      totalRevenue: totalRevenue / 100, // cents → dollars
+      totalSales,
+      agentCount: sellerAgents.length,
+    },
+    stripe: {
+      connected: !!user?.stripeAccountId,
+      onboarded: user?.stripeOnboarded || false,
+    },
+  });
+}
