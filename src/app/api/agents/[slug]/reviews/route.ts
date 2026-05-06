@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUser } from "@/lib/auth";
-import { db } from "@/db";
-import { reviews, agents, purchases } from "@/db/schema";
+import { auth } from "@/backend/lib/auth";
+import { db } from "@/backend/db";
+import { reviews, agents, purchases } from "@/backend/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -11,7 +11,8 @@ type Props = { params: Promise<{ slug: string }> };
  * Submit a review. Only buyers who purchased the agent can review.
  */
 export async function POST(req: NextRequest, { params }: Props) {
-  const user = await getUser();
+  const session = await auth();
+  const user = session?.user;
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest, { params }: Props) {
     .from(purchases)
     .where(
       and(
-        eq(purchases.buyerId, user.id),
+        eq(purchases.buyerId, user.id!),
         eq(purchases.agentId, agent.id)
       )
     )
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest, { params }: Props) {
     .from(reviews)
     .where(
       and(
-        eq(reviews.buyerId, user.id),
+        eq(reviews.buyerId, user.id!),
         eq(reviews.agentId, agent.id)
       )
     )
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest, { params }: Props) {
   const [review] = await db
     .insert(reviews)
     .values({
-      buyerId: user.id,
+      buyerId: user.id!,
       agentId: agent.id,
       stars,
       comment: comment || null,

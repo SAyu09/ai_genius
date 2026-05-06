@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { agents, users, reviews } from "@/db/schema";
+import { db } from "@/backend/db";
+import { agents, users, reviews } from "@/backend/db/schema";
 import { eq } from "drizzle-orm";
 
 type Props = { params: Promise<{ slug: string }> };

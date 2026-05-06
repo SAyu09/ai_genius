@@ -1,20 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUser } from "@/lib/auth";
-import { stripe, calculateSplit } from "@/lib/stripe";
-import { db } from "@/db";
-import { agents, purchases, users } from "@/db/schema";
+import { auth } from "@/backend/lib/auth";
+import { stripe } from "@/backend/lib/stripe";
+import { db } from "@/backend/db";
+import { agents, users, subscriptions } from "@/backend/db/schema";
 import { eq, and } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.redirect(new URL("/sign-in", req.url));
     }
 
-    const { agentId } = await req.json();
+    // Support both FormData and JSON
+    let agentId: string | undefined;
+    let planType: "monthly" | "annual" = "monthly";
+
+    const contentType = req.headers.get("content-type") || "";
+    if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
+      const formData = await req.formData();
+      agentId = formData.get("agentId") as string;
+      planType = (formData.get("planType") as "monthly" | "annual") || "monthly";
+    } else {
+      const body = await req.json();
+      agentId = body.agentId;
+      planType = body.planType || "monthly";
+    }
+
     if (!agentId) {
-      return NextResponse.json({ error: "agentId is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: { code: "MISSING_AGENT", message: "agentId is required" } },
+        { status: 400 }
+      );
     }
 
     const [agent] = await db
@@ -23,19 +40,28 @@ export async function POST(req: NextRequest) {
       .where(eq(agents.id, agentId))
       .limit(1);
 
-    if (!agent || !agent.isApproved) {
-      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+    if (!agent || agent.status !== "approved") {
+      return NextResponse.json(
+        { error: { code: "NOT_FOUND", message: "Agent not found" } },
+        { status: 404 }
+      );
     }
 
-    // Check already purchased
+    // Check already subscribed
     const [existing] = await db
       .select()
-      .from(purchases)
-      .where(and(eq(purchases.buyerId, user.id), eq(purchases.agentId, agentId)))
+      .from(subscriptions)
+      .where(
+        and(
+          eq(subscriptions.buyerId, session.user.id),
+          eq(subscriptions.agentId, agentId),
+          eq(subscriptions.status, "active")
+        )
+      )
       .limit(1);
 
     if (existing) {
-      return NextResponse.json({ error: "You already own this agent" }, { status: 409 });
+      return NextResponse.redirect(new URL(`/tools/${agent.id}`, req.url));
     }
 
     // Get seller Stripe account
@@ -46,36 +72,58 @@ export async function POST(req: NextRequest) {
       .limit(1);
 
     if (!seller?.stripeAccountId) {
-      return NextResponse.json({ error: "Seller has not connected Stripe" }, { status: 400 });
+      return NextResponse.json(
+        { error: { code: "SELLER_NOT_CONNECTED", message: "Seller has not connected Stripe" } },
+        { status: 400 }
+      );
     }
 
-    const { platformFee } = calculateSplit(agent.price);
+    // Calculate price based on plan type
+    // Annual = 20% discount (monthly * 12 * 0.8)
+    const interval: "month" | "year" = planType === "annual" ? "year" : "month";
+    const unitAmount = planType === "annual"
+      ? Math.round(agent.price * 12 * 0.8) // 20% annual discount
+      : agent.price;
 
     const checkoutSession = await stripe.checkout.sessions.create({
-      mode: "payment",
-      customer_email: user.email!,
+      mode: "subscription",
+      customer_email: session.user.email!,
       line_items: [
         {
           price_data: {
             currency: "usd",
-            product_data: { name: agent.name, description: agent.desc },
-            unit_amount: agent.price,
+            product_data: { name: agent.name, description: agent.description },
+            unit_amount: unitAmount,
+            recurring: { interval },
           },
           quantity: 1,
         },
       ],
-      payment_intent_data: {
-        application_fee_amount: platformFee,
-        transfer_data: { destination: seller.stripeAccountId },
+      subscription_data: {
+        transfer_data: {
+          destination: seller.stripeAccountId,
+          amount_percent: 85, // Seller gets 85%, Platform keeps 15%
+        },
       },
-      metadata: { buyerId: user.id, agentId: agent.id },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/agents/${agent.slug}?purchased=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/agents/${agent.slug}`,
+      metadata: {
+        buyerId: session.user.id,
+        agentId: agent.id,
+        planType,
+      },
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/tools/${agent.id}?purchased=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/marketplace/${agent.id}`,
     });
+
+    if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
+      return NextResponse.redirect(checkoutSession.url!, { status: 303 });
+    }
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
     console.error("Checkout error:", error);
-    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
+    return NextResponse.json(
+      { error: { code: "CHECKOUT_ERROR", message: "Failed to create checkout session" } },
+      { status: 500 }
+    );
   }
 }

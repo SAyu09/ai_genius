@@ -1,61 +1,64 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { auth } from "@/backend/lib/auth";
+import { NextResponse } from "next/server";
+import type { UserRole } from "@/types/auth.types";
 
-/**
- * Middleware refreshes expired Supabase sessions on every request
- * and protects routes that require authentication.
- */
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+const PROTECTED_PATHS = [
+  "/dashboard",
+  "/tools",
+  "/billing",
+  "/settings",
+  "/admin",
+  "/api/checkout",
+  "/api/upload",
+  "/api/sellers",
+  "/api/purchases",
+  "/api/subscriptions",
+  "/api/tools",
+];
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+const AUTH_ROUTES = ["/sign-in", "/sign-up"];
 
-  // Refresh session if expired
-  const { data: { user } } = await supabase.auth.getUser();
+const SELLER_ROUTES = ["/dashboard/seller", "/dashboard/list-agent"];
 
-  // Protected routes — redirect to sign-in if not authenticated
-  const { pathname } = request.nextUrl;
-  const protectedPaths = [
-    "/dashboard",
-    "/api/checkout",
-    "/api/upload",
-    "/api/sellers",
-    "/api/purchases",
-  ];
+const ADMIN_ROUTES = ["/admin"];
 
-  const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
+export default auth((req) => {
+  const isLoggedIn = !!req.auth;
+  const { pathname } = req.nextUrl;
 
-  if (isProtected && !user) {
-    const signInUrl = request.nextUrl.clone();
-    signInUrl.pathname = "/sign-in";
+  const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
+  const role = (req.auth?.user?.role as UserRole) || null;
+
+  // 1. Protected routes — redirect unauthenticated to sign-in
+  if (isProtected && !isLoggedIn) {
+    const signInUrl = new URL("/sign-in", req.url);
     signInUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(signInUrl);
   }
 
-  return supabaseResponse;
-}
+  // 2. Auth routes — redirect authenticated users to dashboard
+  if (isAuthRoute && isLoggedIn) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  // 3. Seller routes — redirect non-sellers to buyer dashboard
+  if (SELLER_ROUTES.some((r) => pathname.startsWith(r)) && role !== "seller" && role !== "admin") {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  // 4. Admin routes — strict role check
+  if (ADMIN_ROUTES.some((r) => pathname.startsWith(r)) && role !== "admin") {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  // 5. Subscription check for /tools/[agentId] happens at page level, not middleware
+
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!api/auth|api/webhooks|api/agents|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

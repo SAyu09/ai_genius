@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { agents } from "@/db/schema";
-import { eq, ilike, and, sql } from "drizzle-orm";
-import { getUser } from "@/lib/auth";
+import { db } from "@/backend/db";
+import { agents } from "@/backend/db/schema";
+import { eq, and, sql } from "drizzle-orm";
+import { auth } from "@/backend/lib/auth";
 
 /**
  * GET /api/agents
@@ -18,14 +18,14 @@ export async function GET(req: NextRequest) {
   const offset = (page - 1) * limit;
 
   // Build WHERE conditions
-  const conditions = [eq(agents.isApproved, true)];
+  const conditions = [eq(agents.status, "approved")];
 
   if (tag && tag !== "All") {
     conditions.push(eq(agents.tag, tag));
   }
   if (q) {
     conditions.push(
-      sql`(${agents.name} ILIKE ${"%" + q + "%"} OR ${agents.desc} ILIKE ${"%" + q + "%"})`
+      sql`(${agents.name} ILIKE ${"%" + q + "%"} OR ${agents.description} ILIKE ${"%" + q + "%"})`
     );
   }
 
@@ -63,12 +63,12 @@ export async function GET(req: NextRequest) {
  * Sellers create a new agent listing (pending admin approval).
  */
 export async function POST(req: NextRequest) {
-  const user = await getUser();
-  if (!user) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const role = user.user_metadata?.role;
+  const role = session.user.role;
   if (role !== "seller" && role !== "admin") {
     return NextResponse.json(
       { error: "Only sellers can create agents" },
@@ -77,9 +77,9 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, tag, desc, long, price, assetKey, features, integrations, useCases } = body;
+  const { name, tag, category, description, longDesc, price, assetKey, embedUrl, features, integrations, useCases } = body;
 
-  if (!name || !tag || !desc || !long || !price || !assetKey) {
+  if (!name || !tag || !description || !longDesc || !price || (!assetKey && !embedUrl)) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 }
@@ -95,19 +95,55 @@ export async function POST(req: NextRequest) {
   const [agent] = await db
     .insert(agents)
     .values({
-      sellerId: user.id,
+      sellerId: session.user.id,
       slug,
       name,
       tag,
-      desc,
-      long,
+      category,
+      description,
+      longDesc,
       price: Math.round(price * 100), // Convert dollars to cents
-      assetKey,
+      assetKey: assetKey || "",
+      embedUrl,
+      status: "testing", // Set to testing while we simulate performance
       features: features || [],
       integrations: integrations || [],
       useCases: useCases || [],
     })
     .returning();
+
+  // Simulate Performance Test (Background Job)
+  // We'll do a simple synchronous simulation for the demo
+  const runPerformanceTest = async () => {
+    try {
+      // Simulate checking the URL
+      // If the embed URL contains 'fail' or 'slow', we'll simulate a failure.
+      // Otherwise, we simulate a pass with random ms under 2s.
+      const isSlow = embedUrl.toLowerCase().includes('slow') || embedUrl.toLowerCase().includes('fail');
+      
+      const avgMs = isSlow ? 4200 + Math.random() * 500 : 800 + Math.random() * 400;
+      const errorRate = isSlow ? 12 + Math.random() * 5 : 0 + Math.random() * 2;
+      const p95Ms = avgMs * 1.2;
+      
+      const passed = avgMs < 2000 && errorRate < 5;
+      
+      await db.update(agents).set({
+        status: passed ? "pending_review" : "rejected_performance",
+        performanceTestedAt: new Date(),
+        performanceAvgMs: avgMs,
+        performanceP95Ms: p95Ms,
+        performanceErrorRate: errorRate,
+        performancePass: passed
+      }).where(eq(agents.id, agent.id));
+      
+      // In a real system, we'd email the seller here
+    } catch (e) {
+      console.error("Performance test failed to run:", e);
+    }
+  };
+
+  // Run the test in background (not blocking the response)
+  runPerformanceTest();
 
   return NextResponse.json({ agent }, { status: 201 });
 }

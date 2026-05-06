@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUser } from "@/lib/auth";
-import { db } from "@/db";
-import { agents, purchases } from "@/db/schema";
+import { auth } from "@/backend/lib/auth";
+import { db } from "@/backend/db";
+import { agents, purchases } from "@/backend/db/schema";
 import { eq, and } from "drizzle-orm";
-import { getDownloadUrl } from "@/lib/storage";
+import { getDownloadUrl } from "@/backend/lib/storage";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function GET(req: NextRequest, { params }: Props) {
-  const user = await getUser();
+  const session = await auth();
+  const user = session?.user;
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest, { params }: Props) {
   const [purchase] = await db
     .select()
     .from(purchases)
-    .where(and(eq(purchases.buyerId, user.id), eq(purchases.agentId, agent.id)))
+    .where(and(eq(purchases.buyerId, user.id!), eq(purchases.agentId, agent.id)))
     .limit(1);
 
   if (!purchase) {
