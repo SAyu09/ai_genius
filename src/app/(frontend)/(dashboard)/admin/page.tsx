@@ -43,11 +43,11 @@ export default async function AdminPage() {
 
   const [revenueStats] = await db
     .select({ 
-      totalRevenue: sum(purchases.amount),
+      totalRevenue: sum(purchases.amountPaid),
       platformFee: sum(purchases.platformFee)
     })
     .from(purchases)
-    .where(gte(purchases.createdAt, todayStart));
+    .where(gte(purchases.purchasedAt, todayStart));
 
   const totalRevenue = Number(revenueStats?.totalRevenue || 0) / 100;
   const platformFee = Number(revenueStats?.platformFee || 0) / 100;
@@ -161,7 +161,7 @@ export default async function AdminPage() {
                         )}
 
                         <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                          <span>${agent.price / 100}/mo</span>
+                          <span>${(agent.monthlyPricePaise || 0) / 100}/mo</span>
                           <span>·</span>
                           {agent.embedUrl ? (
                             <a href={agent.embedUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">

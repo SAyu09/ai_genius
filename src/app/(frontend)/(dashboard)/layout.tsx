@@ -2,7 +2,7 @@ import { auth } from "@/backend/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/frontend/components/ui/button";
-import { Bot, ShoppingBag, Settings, LayoutDashboard, Search, Grid, CreditCard, Shield } from "lucide-react";
+import { Bot, ShoppingBag, Settings, LayoutDashboard, Search, Grid, CreditCard, Shield, Wallet, Package } from "lucide-react";
 import { SignOutButton } from "./dashboard/components/SignOutButton";
 import { OfflineBanner } from "@/frontend/components/shared/OfflineBanner";
 
@@ -10,10 +10,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const session = await auth();
   
   if (!session?.user) {
-    redirect("/sign-in");
+    redirect("/auth");
   }
 
   const role = session.user.role || "buyer";
+
+  // Buyer should never reach this layout — middleware redirects to /marketplace/my-agents
+  // But as a safety net:
+  if (role === "buyer") {
+    redirect("/marketplace/my-agents");
+  }
 
   return (
     <div className="flex min-h-screen bg-muted/30">
@@ -38,8 +44,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
                   </Link>
                 </Button>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
-                  <Link href="/dashboard">
-                    <Grid className="h-4 w-4" /> Buyer View
+                  <Link href="/dashboard/seller">
+                    <LayoutDashboard className="h-4 w-4" /> Seller View
                   </Link>
                 </Button>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
@@ -48,44 +54,40 @@ export default async function DashboardLayout({ children }: { children: React.Re
                   </Link>
                 </Button>
               </>
-            ) : role === "seller" ? (
+            ) : (
+              /* Seller sidebar */
               <>
-                <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl bg-muted/50">
+                <div className="mb-3">
+                  <span className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Seller</span>
+                </div>
+                <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
                   <Link href="/dashboard/seller">
-                    <LayoutDashboard className="h-4 w-4" /> Seller Dashboard
+                    <LayoutDashboard className="h-4 w-4" /> Overview
                   </Link>
                 </Button>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
-                  <Link href="/dashboard/list-agent">
+                  <Link href="/dashboard/seller/listings">
                     <ShoppingBag className="h-4 w-4" /> My Listings
                   </Link>
                 </Button>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
-                  <Link href="/dashboard">
-                    <Grid className="h-4 w-4" /> My Tools
+                  <Link href="/dashboard/seller/billing">
+                    <Wallet className="h-4 w-4" /> Billing & Payout
                   </Link>
                 </Button>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
-                  <Link href="/settings">
-                    <Settings className="h-4 w-4" /> Settings
+                  <Link href="/dashboard/seller/tools">
+                    <Package className="h-4 w-4" /> My Tools
                   </Link>
                 </Button>
-              </>
-            ) : (
-              <>
-                <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl bg-muted/50">
-                  <Link href="/dashboard">
-                    <Grid className="h-4 w-4" /> My Tools
-                  </Link>
-                </Button>
+
+                <div className="my-4 border-t border-border" />
+                <div className="mb-3">
+                  <span className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Explore</span>
+                </div>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
                   <Link href="/marketplace">
-                    <Search className="h-4 w-4" /> Explore Market
-                  </Link>
-                </Button>
-                <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
-                  <Link href="/billing">
-                    <CreditCard className="h-4 w-4" /> Billing & Subscriptions
+                    <Search className="h-4 w-4" /> Marketplace
                   </Link>
                 </Button>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
@@ -108,11 +110,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <header className="sticky top-0 z-30 flex h-16 items-center border-b bg-background/80 px-6 backdrop-blur">
           <h2 className="text-sm font-medium">Welcome back, {session.user.name || "User"}</h2>
           <div className="ml-auto flex items-center gap-4">
-            {role === "buyer" && (
-              <Button asChild variant="outline" size="sm" className="rounded-full hidden sm:flex">
-                <Link href="/marketplace">Explore Tools</Link>
-              </Button>
-            )}
+            <Button asChild variant="outline" size="sm" className="rounded-full hidden sm:flex">
+              <Link href="/marketplace">Explore Tools</Link>
+            </Button>
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary-glow shadow-sm overflow-hidden">
               {session.user.image && <img src={session.user.image} alt="Avatar" className="h-full w-full object-cover" />}
             </div>

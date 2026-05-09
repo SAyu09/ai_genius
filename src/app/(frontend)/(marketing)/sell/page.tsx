@@ -119,7 +119,7 @@ export default function SellPage() {
               List once, sell everywhere. SellGetAI handles billing, distribution, infra and payouts in 60+ currencies, so you can focus on building.
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-3">
-              <Link href="/sign-up"><Button size="lg" className="rounded-full">Become a seller</Button></Link>
+              <Link href="/auth?tab=register"><Button size="lg" className="rounded-full">Become a seller</Button></Link>
               <Link href="/marketplace"><Button size="lg" variant="outline" className="rounded-full">See examples</Button></Link>
             </div>
           </div>
@@ -189,7 +189,7 @@ export default function SellPage() {
               <p className="mt-4 text-muted-foreground">
                 We keep the bar high so buyers can trust every agent they install. Here is what we look for during review.
               </p>
-              <Link href="/sign-up" className="mt-6 inline-block">
+              <Link href="/auth?tab=register" className="mt-6 inline-block">
                 <Button size="lg" className="rounded-full">Start your application</Button>
               </Link>
             </div>
@@ -224,7 +224,7 @@ export default function SellPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/sign-up" className="mt-8 inline-block">
+              <Link href="/auth?tab=register" className="mt-8 inline-block">
                 <Button size="lg" className="rounded-full bg-background text-foreground hover:bg-background/90">Start selling</Button>
               </Link>
             </div>

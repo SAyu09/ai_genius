@@ -263,7 +263,7 @@ export default {
       const transformed = new HTMLRewriter()
         .on("meta", new BrandingStripper())
         .on("title", new TitleRewriter())
-        .transform(response);
+        .transform(response.clone());
 
       // Add platform headers
       const headers = new Headers(transformed.headers);

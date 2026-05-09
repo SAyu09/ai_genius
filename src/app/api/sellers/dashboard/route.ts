@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/backend/lib/auth";
 import { db } from "@/backend/db";
-import { agents, purchases, users } from "@/backend/db/schema";
+import { agents, purchases, users, sellerProfiles } from "@/backend/db/schema";
 import { eq, sql } from "drizzle-orm";
 
 /**
@@ -45,29 +45,28 @@ export async function GET(req: NextRequest) {
     totalSales: 0,
   };
 
-  // Check Stripe onboarding status
-  const [user] = await db
+  // Check settlement details status
+  const [profile] = await db
     .select({
-      stripeAccountId: users.stripeAccountId,
-      stripeOnboarded: users.stripeOnboarded,
+      settlementStatus: sellerProfiles.settlementStatus,
     })
-    .from(users)
-    .where(eq(users.id, currentUser.id!))
+    .from(sellerProfiles)
+    .where(eq(sellerProfiles.userId, currentUser.id!))
     .limit(1);
 
   return NextResponse.json({
     agents: sellerAgents.map((a) => ({
       ...a,
-      price: a.price / 100,
+      monthlyPrice: (a.monthlyPricePaise || 0) / 100,
+      annualPrice: (a.annualPricePaise || 0) / 100,
     })),
     stats: {
-      totalRevenue: totalRevenue / 100, // cents → dollars
+      totalRevenue: totalRevenue / 100, // paise → rupees
       totalSales,
       agentCount: sellerAgents.length,
     },
-    stripe: {
-      connected: !!user?.stripeAccountId,
-      onboarded: user?.stripeOnboarded || false,
+    settlement: {
+      status: profile?.settlementStatus || "pending_details",
     },
   });
 }

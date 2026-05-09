@@ -75,7 +75,7 @@ export default function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/sign-up" className="mt-8">
+              <Link href="/auth?tab=register" className="mt-8">
                 <Button
                   size="lg"
                   className={`w-full rounded-full ${

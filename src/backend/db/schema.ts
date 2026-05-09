@@ -7,8 +7,9 @@ import {
   boolean,
   primaryKey,
   real,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 // ─────────────────────────────────────────────────────────────
 // 1. NEXTAUTH TABLES
@@ -68,8 +69,6 @@ export const users = pgTable("users", {
     .default("buyer")
     .notNull(),
 
-  // Stripe
-  stripeAccountId: text("stripe_account_id"), // for sellers
   stripeCustomerId: text("stripe_customer_id"), // for buyers
   stripeOnboarded: boolean("stripe_onboarded").default(false),
   
@@ -80,12 +79,72 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   listedAgents: many(agents),
   purchases: many(purchases),
   subscriptions: many(subscriptions),
   reviews: many(reviews),
+  sellerProfile: one(sellerProfiles, {
+    fields: [users.id],
+    references: [sellerProfiles.userId],
+  }),
+  sellerBankDetails: one(sellerBankDetails, {
+    fields: [users.id],
+    references: [sellerBankDetails.sellerId],
+  }),
+  sellerSettlements: many(sellerSettlements),
 }));
+
+export const sellerProfiles = pgTable("seller_profiles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  businessName: text("business_name"),
+  settlementStatus: text("settlement_status", { enum: ["pending_details", "pending_verification", "verified"] }).default("pending_details"),
+  tosAcceptedAt: timestamp("tos_accepted_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const sellerBankDetails = pgTable("seller_bank_details", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sellerId: uuid("seller_id")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  accountHolderName: text("account_holder_name").notNull(),
+  bankName: text("bank_name").notNull(),
+  accountNumberEncrypted: text("account_number_encrypted").notNull(),
+  ifscCode: text("ifsc_code").notNull(),
+  accountType: text("account_type", { enum: ["savings", "current"] }).default("savings").notNull(),
+  upiIdEncrypted: text("upi_id_encrypted"),
+  panNumberEncrypted: text("pan_number_encrypted").notNull(),
+  gstNumber: text("gst_number"),
+  isVerified: boolean("is_verified").default(false),
+  verifiedAt: timestamp("verified_at"),
+  verifiedBy: uuid("verified_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const sellerSettlements = pgTable("seller_settlements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sellerId: uuid("seller_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  periodStart: timestamp("period_start", { mode: "date" }).notNull(),
+  periodEnd: timestamp("period_end", { mode: "date" }).notNull(),
+  grossPayoutPaise: integer("gross_payout_paise").notNull(),
+  tdsDeductedPaise: integer("tds_deducted_paise").default(0).notNull(),
+  refundDeductionsPaise: integer("refund_deductions_paise").default(0).notNull(),
+  netPayoutPaise: integer("net_payout_paise").notNull(),
+  bankReferenceNumber: text("bank_reference_number"),
+  status: text("status", { enum: ["processing", "completed", "failed"] }).default("processing").notNull(),
+  failureReason: text("failure_reason"),
+  initiatedBy: uuid("initiated_by").references(() => users.id),
+  settledAt: timestamp("settled_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 // ─────────────────────────────────────────────────────────────
 // 3. AGENTS — The digital assets sellers upload
@@ -96,12 +155,18 @@ export const agents = pgTable("agents", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
 
+  type: text("type", { enum: ["hosted", "workflow"] }).default("hosted").notNull(),
   slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
   tag: text("tag").notNull(),
   description: text("description").notNull(),
   longDesc: text("long_desc").notNull(),
-  price: integer("price").notNull(), // cents — 4900 = $49.00
+
+  pricingModel: text("pricing_model", { enum: ["subscription", "one_time"] }).default("subscription").notNull(),
+  monthlyPricePaise: integer("monthly_price_paise"),
+  annualPricePaise: integer("annual_price_paise"),
+  stripePriceIdMonthly: text("stripe_price_id_monthly"),
+  stripePriceIdAnnual: text("stripe_price_id_annual"),
 
   // Private S3/R2 key to the ZIP/source-code bundle
   assetKey: text("asset_key").notNull(),
@@ -121,6 +186,7 @@ export const agents = pgTable("agents", {
   avgRating: text("avg_rating"), // DECIMAL(3,2) as text
   reviewCount: integer("review_count").default(0).notNull(),
   salesCount: integer("sales_count").default(0).notNull(),
+  subscriberCount: integer("subscriber_count").default(0).notNull(),
 
   // Performance monitoring
   performanceAvgMs: real("performance_avg_ms"),
@@ -172,7 +238,11 @@ export const subscriptions = pgTable("subscriptions", {
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => [
+  uniqueIndex("active_sub_idx")
+    .on(table.buyerId, table.agentId)
+    .where(sql`${table.status} = 'active'`)
+]);
 
 export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   buyer: one(users, {
@@ -196,11 +266,22 @@ export const purchases = pgTable("purchases", {
   agentId: uuid("agent_id")
     .notNull()
     .references(() => agents.id, { onDelete: "restrict" }),
+  sellerId: uuid("seller_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  subscriptionId: uuid("subscription_id")
+    .references(() => subscriptions.id),
 
-  stripeSessionId: text("stripe_session_id").unique().notNull(),
+  stripePaymentId: text("stripe_payment_id"), // Removed unique since a purchase record might span or we use this generic
   amountPaid: integer("amount_paid").notNull(),   // cents
   platformFee: integer("platform_fee").notNull(),  // 15%
   sellerPayout: integer("seller_payout").notNull(), // 85%
+
+  currency: text("currency").default("inr"),
+  type: text("type", { enum: ["subscription", "renewal", "one_time"] }).default("one_time").notNull(),
+  
+  settlementStatus: text("settlement_status", { enum: ["pending", "settled", "refunded", "withheld"] }).default("pending").notNull(),
+  settlementId: uuid("settlement_id").references(() => sellerSettlements.id),
 
   purchasedAt: timestamp("purchased_at").defaultNow().notNull(),
 });
@@ -213,6 +294,18 @@ export const purchasesRelations = relations(purchases, ({ one }) => ({
   agent: one(agents, {
     fields: [purchases.agentId],
     references: [agents.id],
+  }),
+  seller: one(users, {
+    fields: [purchases.sellerId],
+    references: [users.id],
+  }),
+  subscription: one(subscriptions, {
+    fields: [purchases.subscriptionId],
+    references: [subscriptions.id],
+  }),
+  settlement: one(sellerSettlements, {
+    fields: [purchases.settlementId],
+    references: [sellerSettlements.id],
   }),
 }));
 
@@ -244,4 +337,3 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
     references: [agents.id],
   }),
 }));
-

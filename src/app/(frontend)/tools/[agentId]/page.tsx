@@ -15,7 +15,7 @@ export default async function ToolAppPage(props: { params: Promise<{ agentId: st
   const session = await auth();
 
   if (!session?.user) {
-    redirect(`/sign-in?callbackUrl=/tools/${agentId}`);
+    redirect(`/auth?callbackUrl=/tools/${agentId}`);
   }
 
   const [agent] = await db

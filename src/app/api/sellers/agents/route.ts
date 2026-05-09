@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, tag, category, description, longDesc, price, embedUrl, features, useCases } = body;
+    const { name, tag, category, description, longDesc, monthlyPrice, annualPrice, pricingModel, type, embedUrl, features, useCases } = body;
 
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
@@ -37,12 +37,15 @@ export async function POST(request: Request) {
         category,
         description,
         longDesc,
-        price: Number(price),
+        monthlyPricePaise: monthlyPrice ? Number(monthlyPrice) * 100 : null,
+        annualPricePaise: annualPrice ? Number(annualPrice) * 100 : null,
+        pricingModel: pricingModel || "subscription",
+        type: type || "hosted",
         embedUrl,
         assetKey: `agents/${slug}.zip`,
         features: typeof features === "string" ? features.split(",").map((f: string) => f.trim()) : features || [],
         useCases: typeof useCases === "string" ? useCases.split(",").map((u: string) => u.trim()) : useCases || [],
-        status: "pending",
+        status: process.env.NODE_ENV === "development" && !embedUrl ? "approved" : "pending",
       })
       .returning();
 

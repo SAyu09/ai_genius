@@ -1,25 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/backend/lib/stripe";
 import { db } from "@/backend/db";
-import { agents, subscriptions } from "@/backend/db/schema";
+import { agents, subscriptions, purchases } from "@/backend/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { invalidateSubscriptionCache } from "@/backend/lib/subscriptions";
+import Stripe from "stripe";
 
-/**
- * POST /api/webhooks/stripe
- * Handles Stripe webhook events for the full subscription lifecycle.
- */
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
 
   if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
-    return NextResponse.json(
-      { error: { code: "MISSING_SIGNATURE", message: "Missing signature" } },
-      { status: 400 }
-    );
+    return new Response("Missing signature", { status: 400 });
   }
 
-  let event;
+  let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(
       body,
@@ -28,116 +23,181 @@ export async function POST(req: NextRequest) {
     );
   } catch (err: any) {
     console.error("Webhook signature verification failed:", err.message);
-    return NextResponse.json(
-      { error: { code: "INVALID_SIGNATURE", message: "Invalid signature" } },
-      { status: 400 }
-    );
+    return new Response("Invalid signature", { status: 400 });
   }
 
-  // ─── checkout.session.completed — New subscription created ───
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as any;
-    const buyerId = session.metadata?.buyerId;
-    const agentId = session.metadata?.agentId;
-    const planType = session.metadata?.planType || "monthly";
-    const subscriptionId = session.subscription as string;
+  // Handler map — clean, easy to extend
+  const handlers: Partial<Record<Stripe.Event["type"], (e: Stripe.Event) => Promise<void>>> = {
+    "checkout.session.completed": handleCheckoutCompleted,
+    "customer.subscription.deleted": handleSubscriptionCancelled,
+    "invoice.payment_failed": handlePaymentFailed,
+    "invoice.payment_succeeded": handleRenewal,
+  };
 
-    if (!buyerId || !agentId || !subscriptionId) {
-      console.error("Missing metadata in checkout session");
-      return NextResponse.json({ received: true });
+  const handler = handlers[event.type];
+  if (handler) {
+    // Run handler async — return 200 immediately so Stripe doesn't retry
+    // Stripe gives 30s; heavy ops (email, cache invalidation) go in background
+    if (event.type !== "checkout.session.completed") {
+      void handler(event).catch(e => console.error("Webhook handler error async:", e));
+    } else {
+      try {
+        await handler(event);
+      } catch (e) {
+        console.error("Webhook handler error sync:", e);
+      }
     }
+  }
 
-    try {
-      await db.insert(subscriptions).values({
+  return new Response("ok", { status: 200 });
+}
+
+// ── Handlers ────────────────────────────────────────────────────────────────
+
+async function handleCheckoutCompleted(event: Stripe.Event) {
+  const session = event.data.object as any;
+  
+  let metadata = session.metadata;
+  if (!metadata || !metadata.buyerId) {
+    // Try to get from subscription_data or payment_intent
+    if (session.subscription) {
+      const stripeSub = await stripe.subscriptions.retrieve(session.subscription as string);
+      metadata = stripeSub.metadata;
+    }
+  }
+
+  if (!metadata || !(metadata.buyerId || metadata.userId) || !metadata.agentId) {
+    console.error("Webhook missing metadata fields:", metadata);
+    return;
+  }
+
+  const buyerId = metadata.buyerId || metadata.userId;
+  const { agentId, sellerId, planType, pricingModel } = metadata;
+  const amountPaise = session.amount_total || 0;
+
+  // Atomic — either all succeed or nothing does
+  await db.transaction(async (tx) => {
+    let dbSubscriptionId: string | undefined;
+
+    if ((pricingModel === "subscription" || session.mode === "subscription") && session.subscription) {
+      const stripeSubId = session.subscription as string;
+      const stripeSub = await stripe.subscriptions.retrieve(stripeSubId) as any;
+
+      const startDate = stripeSub.current_period_start ? new Date(stripeSub.current_period_start * 1000) : new Date();
+      const endDate = stripeSub.current_period_end ? new Date(stripeSub.current_period_end * 1000) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.error("Invalid dates from stripeSub:", stripeSub);
+      }
+
+      const [sub] = await tx.insert(subscriptions).values({
         buyerId: buyerId as string,
         agentId: agentId as string,
-        stripeSubscriptionId: subscriptionId,
+        stripeSubscriptionId: stripeSubId,
         stripeCustomerId: session.customer as string,
-        planType,
+        planType: planType || "monthly",
         status: "active",
-        currentPeriodStart: new Date(),
-        currentPeriodEnd: new Date(
-          Date.now() + (planType === "annual" ? 365 : 30) * 24 * 60 * 60 * 1000
-        ),
+        currentPeriodStart: startDate,
+        currentPeriodEnd: endDate,
+      }).onConflictDoNothing().returning({ id: subscriptions.id });
+      
+      if (sub) dbSubscriptionId = sub.id;
+    }
+
+    await tx.insert(purchases).values({
+      buyerId: buyerId as string,
+      agentId: agentId as string,
+      sellerId: sellerId as string,
+      subscriptionId: dbSubscriptionId,
+      stripePaymentId: session.payment_intent as string | undefined,
+      amountPaid: amountPaise,
+      platformFee: Math.round(amountPaise * 0.15),
+      sellerPayout: Math.round(amountPaise * 0.85),
+      currency: "usd",
+      type: session.mode === "subscription" ? "subscription" : "one_time",
+      settlementStatus: "pending",
+    });
+  });
+
+  // After commit — invalidate KV cache
+  await invalidateSubscriptionCache(buyerId as string, agentId as string);
+}
+
+async function handleSubscriptionCancelled(event: Stripe.Event) {
+  const sub = event.data.object as any;
+  const metadata = sub.metadata;
+
+  await db.update(subscriptions)
+    .set({ status: "cancelled", cancelledAt: new Date() })
+    .where(eq(subscriptions.stripeSubscriptionId, sub.id));
+
+  if (metadata?.buyerId && metadata?.agentId) {
+    await invalidateSubscriptionCache(metadata.buyerId, metadata.agentId);
+  }
+}
+
+async function handlePaymentFailed(event: Stripe.Event) {
+  const invoice = event.data.object as any;
+  const stripeSubId = invoice.subscription as string;
+
+  if (stripeSubId) {
+    const subRecord = await db.query.subscriptions.findFirst({
+      where: eq(subscriptions.stripeSubscriptionId, stripeSubId)
+    });
+    
+    if (subRecord) {
+      await db.update(subscriptions)
+        .set({ status: "past_due" })
+        .where(eq(subscriptions.stripeSubscriptionId, stripeSubId));
+
+      await invalidateSubscriptionCache(subRecord.buyerId, subRecord.agentId);
+    }
+  }
+}
+
+async function handleRenewal(event: Stripe.Event) {
+  const invoice = event.data.object as any;
+  if (invoice.billing_reason !== "subscription_cycle") return; // skip first payment
+
+  const stripeSubId = invoice.subscription as string;
+  if (!stripeSubId) return;
+
+  const stripeSub = await stripe.subscriptions.retrieve(stripeSubId) as any;
+  const metadata = stripeSub.metadata;
+  const amountPaise = invoice.amount_paid;
+
+  if (!metadata || !metadata.buyerId || !metadata.agentId) return;
+
+  await db.transaction(async (tx) => {
+    const startDate = stripeSub.current_period_start ? new Date(stripeSub.current_period_start * 1000) : new Date();
+    const endDate = stripeSub.current_period_end ? new Date(stripeSub.current_period_end * 1000) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+    const [sub] = await tx.update(subscriptions)
+      .set({
+        status: "active",
+        currentPeriodStart: startDate,
+        currentPeriodEnd: endDate,
+        updatedAt: new Date()
+      })
+      .where(eq(subscriptions.stripeSubscriptionId, stripeSubId))
+      .returning({ id: subscriptions.id });
+
+    if (sub) {
+      await tx.insert(purchases).values({
+        buyerId: metadata.buyerId,
+        agentId: metadata.agentId,
+        sellerId: metadata.sellerId,
+        subscriptionId: sub.id,
+        stripePaymentId: invoice.payment_intent as string | undefined,
+        amountPaid: amountPaise,
+        platformFee: Math.round(amountPaise * 0.15),
+        sellerPayout: Math.round(amountPaise * 0.85),
+        currency: "usd",
+        type: "renewal",
+        settlementStatus: "pending",
       });
-
-      // Increment sales count on the agent
-      await db
-        .update(agents)
-        .set({ salesCount: sql`${agents.salesCount} + 1` })
-        .where(eq(agents.id, agentId));
-    } catch (err: any) {
-      if (err.code === "23505") {
-        console.log("Duplicate webhook, already processed:", session.id);
-      } else {
-        throw err;
-      }
     }
-  }
-
-  // ─── customer.subscription.updated — Plan changes, billing cycle ───
-  if (event.type === "customer.subscription.updated") {
-    const subscription = event.data.object as any;
-    try {
-      const updates: Record<string, any> = {
-        updatedAt: new Date(),
-      };
-
-      // Update period dates if available
-      if (subscription.current_period_start) {
-        updates.currentPeriodStart = new Date(subscription.current_period_start * 1000);
-      }
-      if (subscription.current_period_end) {
-        updates.currentPeriodEnd = new Date(subscription.current_period_end * 1000);
-      }
-
-      // Map Stripe status to our status
-      if (subscription.status === "active") {
-        updates.status = "active";
-      } else if (subscription.status === "past_due") {
-        updates.status = "expired";
-      } else if (subscription.status === "canceled") {
-        updates.status = "cancelled";
-        updates.cancelledAt = new Date();
-      }
-
-      await db
-        .update(subscriptions)
-        .set(updates)
-        .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
-    } catch (err) {
-      console.error("Failed to update subscription:", err);
-    }
-  }
-
-  // ─── invoice.payment_failed — Mark as expired ───
-  if (event.type === "invoice.payment_failed") {
-    const invoice = event.data.object as any;
-    const subscriptionId = invoice.subscription as string;
-    if (subscriptionId) {
-      try {
-        await db
-          .update(subscriptions)
-          .set({ status: "expired", updatedAt: new Date() })
-          .where(eq(subscriptions.stripeSubscriptionId, subscriptionId));
-      } catch (err) {
-        console.error("Failed to mark subscription as expired:", err);
-      }
-    }
-  }
-
-  // ─── customer.subscription.deleted — Cancelled ───
-  if (event.type === "customer.subscription.deleted") {
-    const subscription = event.data.object as any;
-    try {
-      await db
-        .update(subscriptions)
-        .set({ status: "cancelled", cancelledAt: new Date(), updatedAt: new Date() })
-        .where(eq(subscriptions.stripeSubscriptionId, subscription.id));
-    } catch (err) {
-      console.error("Failed to cancel subscription", err);
-    }
-  }
-
-  return NextResponse.json({ received: true });
+  });
+  
+  await invalidateSubscriptionCache(metadata.buyerId, metadata.agentId);
 }

@@ -9,7 +9,7 @@ import { CancelSubscriptionButton } from "./CancelButton";
 
 export default async function BillingPage() {
   const session = await auth();
-  if (!session?.user) redirect("/sign-in?callbackUrl=/billing");
+  if (!session?.user) redirect("/auth?callbackUrl=/billing");
 
   const subs = await getUserSubscriptions(session.user.id);
   const activeSubs = subs.filter(({ subscription }) => subscription.status === "active");
@@ -51,7 +51,7 @@ export default async function BillingPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-lg">${agent.price / 100}</div>
+                        <div className="font-bold text-lg">${(agent.monthlyPricePaise || 0) / 100}</div>
                         <div className="text-xs text-muted-foreground">/{subscription.planType === "annual" ? "year" : "month"}</div>
                       </div>
                     </div>

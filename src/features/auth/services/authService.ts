@@ -19,7 +19,7 @@ export function isValidCallbackUrl(
     // Must be same origin
     if (url.origin !== base.origin) return null;
     // Must not be an auth route (prevent redirect loops)
-    if (url.pathname === "/sign-in" || url.pathname === "/sign-up") return null;
+    if (url.pathname === "/auth" || url.pathname === "/sign-in" || url.pathname === "/sign-up") return null;
     return url.pathname + url.search;
   } catch {
     return null;
@@ -37,7 +37,7 @@ export function getRoleBasedRedirect(role: UserRole): string {
       return "/dashboard/seller";
     case "buyer":
     default:
-      return "/dashboard";
+      return "/marketplace";
   }
 }
 

@@ -5,7 +5,7 @@ import { User, Mail, Shield, Calendar } from "lucide-react";
 
 export default async function SettingsPage() {
   const session = await auth();
-  if (!session?.user) redirect("/sign-in?callbackUrl=/settings");
+  if (!session?.user) redirect("/auth?callbackUrl=/settings");
 
   const user = session.user;
 

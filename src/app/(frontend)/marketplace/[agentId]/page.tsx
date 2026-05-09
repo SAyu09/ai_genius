@@ -26,7 +26,7 @@ export default async function AgentDetailPage(props: { params: Promise<{ agentId
   }
 
   const { agent, seller } = agentWithSeller;
-  const price = agent.price / 100;
+  const price = (agent.monthlyPricePaise || 0) / 100;
 
   return (
     <div className="min-h-screen">

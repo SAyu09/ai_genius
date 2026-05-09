@@ -30,10 +30,10 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ q
   let orderBy;
   switch (sort) {
     case "price-asc":
-      orderBy = agents.price;
+      orderBy = agents.monthlyPricePaise;
       break;
     case "price-desc":
-      orderBy = sql`${agents.price} DESC`;
+      orderBy = sql`${agents.monthlyPricePaise} DESC`;
       break;
     case "new":
       orderBy = sql`${agents.createdAt} DESC`;
@@ -120,7 +120,7 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ q
                 <p className="mt-3 text-sm leading-relaxed text-foreground/80 line-clamp-2">{agent.description}</p>
                 <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
                   <div>
-                    <span className="font-display text-2xl">${agent.price / 100}</span>
+                    <span className="font-display text-2xl">${(agent.monthlyPricePaise || 0) / 100}</span>
                     <span className="text-sm text-muted-foreground">/mo</span>
                   </div>
                   <Button size="sm" className="rounded-full group-hover:bg-primary group-hover:text-primary-foreground">View →</Button>

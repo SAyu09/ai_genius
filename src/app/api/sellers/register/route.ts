@@ -5,7 +5,7 @@ import { upgradeToSeller } from "@/features/auth/services/authService";
 /**
  * POST /api/sellers/register
  * Upgrades the authenticated user's role from 'buyer' to 'seller'.
- * Does NOT create a Stripe account — that's handled by /api/sellers/onboard.
+ * Does NOT collect bank details — that's handled by /api/sellers/settlement-details.
  */
 export async function POST() {
   const session = await auth();

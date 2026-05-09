@@ -33,10 +33,10 @@ export async function GET(req: NextRequest) {
   let orderBy;
   switch (sort) {
     case "price-asc":
-      orderBy = agents.price;
+      orderBy = agents.monthlyPricePaise;
       break;
     case "price-desc":
-      orderBy = sql`${agents.price} DESC`;
+      orderBy = sql`${agents.monthlyPricePaise} DESC`;
       break;
     case "new":
       orderBy = sql`${agents.createdAt} DESC`;
@@ -77,9 +77,9 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, tag, category, description, longDesc, price, assetKey, embedUrl, features, integrations, useCases } = body;
+  const { name, tag, category, description, longDesc, monthlyPrice, annualPrice, pricingModel, type, assetKey, embedUrl, features, integrations, useCases } = body;
 
-  if (!name || !tag || !description || !longDesc || !price || (!assetKey && !embedUrl)) {
+  if (!name || !tag || !description || !longDesc || (!assetKey && !embedUrl)) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 }
@@ -102,7 +102,10 @@ export async function POST(req: NextRequest) {
       category,
       description,
       longDesc,
-      price: Math.round(price * 100), // Convert dollars to cents
+      monthlyPricePaise: monthlyPrice ? Math.round(monthlyPrice * 100) : null,
+      annualPricePaise: annualPrice ? Math.round(annualPrice * 100) : null,
+      pricingModel: pricingModel || "subscription",
+      type: type || "hosted",
       assetKey: assetKey || "",
       embedUrl,
       status: "testing", // Set to testing while we simulate performance

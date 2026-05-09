@@ -45,7 +45,8 @@ export async function GET(req: NextRequest, { params }: Props) {
   return NextResponse.json({
     agent: {
       ...agent,
-      price: agent.price / 100, // cents → dollars for display
+      monthlyPrice: (agent.monthlyPricePaise || 0) / 100, // paise → rupees for display
+      annualPrice: (agent.annualPricePaise || 0) / 100,
       seller,
       reviews: agentReviews,
     },

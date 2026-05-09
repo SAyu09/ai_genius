@@ -8,6 +8,8 @@ const PROTECTED_PATHS = [
   "/billing",
   "/settings",
   "/admin",
+  "/marketplace/my-agents",
+  "/marketplace/billing",
   "/api/checkout",
   "/api/upload",
   "/api/sellers",
@@ -16,7 +18,7 @@ const PROTECTED_PATHS = [
   "/api/tools",
 ];
 
-const AUTH_ROUTES = ["/sign-in", "/sign-up"];
+const AUTH_ROUTES = ["/auth", "/sign-in", "/sign-up"];
 
 const SELLER_ROUTES = ["/dashboard/seller", "/dashboard/list-agent"];
 
@@ -30,29 +32,57 @@ export default auth((req) => {
   const isAuthRoute = AUTH_ROUTES.includes(pathname);
   const role = (req.auth?.user?.role as UserRole) || null;
 
-  // 1. Protected routes — redirect unauthenticated to sign-in
+  // 1. Redirect old auth routes to unified /auth page
+  if (pathname === "/sign-in") {
+    return NextResponse.redirect(new URL("/auth", req.url));
+  }
+  if (pathname === "/sign-up") {
+    return NextResponse.redirect(new URL("/auth?tab=register", req.url));
+  }
+
+  // 2. Protected routes — redirect unauthenticated to /auth
   if (isProtected && !isLoggedIn) {
-    const signInUrl = new URL("/sign-in", req.url);
-    signInUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(signInUrl);
+    const authUrl = new URL("/auth", req.url);
+    authUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(authUrl);
   }
 
-  // 2. Auth routes — redirect authenticated users to dashboard
+  // 3. Auth routes — redirect authenticated users to their respective destination
   if (isAuthRoute && isLoggedIn) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    if (role === "admin") return NextResponse.redirect(new URL("/admin", req.url));
+    if (role === "seller") return NextResponse.redirect(new URL("/dashboard/seller", req.url));
+    return NextResponse.redirect(new URL("/marketplace", req.url));
   }
 
-  // 3. Seller routes — redirect non-sellers to buyer dashboard
+  // 4. Role-based dashboard redirects
+  if (isLoggedIn) {
+    // Buyer visiting /dashboard → redirect to /marketplace/my-agents
+    if (pathname === "/dashboard" && role === "buyer") {
+      return NextResponse.redirect(new URL("/marketplace/my-agents", req.url));
+    }
+
+    // Anyone visiting /billing → redirect to /marketplace/billing
+    if (pathname === "/billing") {
+      return NextResponse.redirect(new URL("/marketplace/billing", req.url));
+    }
+
+    // Seller visiting /dashboard (exact, not /dashboard/seller) → redirect to seller dashboard
+    if (pathname === "/dashboard" && role === "seller") {
+      return NextResponse.redirect(new URL("/dashboard/seller", req.url));
+    }
+  }
+
+  // 5. Seller routes — redirect non-sellers to marketplace
   if (SELLER_ROUTES.some((r) => pathname.startsWith(r)) && role !== "seller" && role !== "admin") {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/marketplace", req.url));
   }
 
-  // 4. Admin routes — strict role check
+  // 6. Admin routes — strict role check
   if (ADMIN_ROUTES.some((r) => pathname.startsWith(r)) && role !== "admin") {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/marketplace", req.url));
   }
 
-  // 5. Subscription check for /tools/[agentId] happens at page level, not middleware
+  // 7. Subscription check for /tools/[agentId] happens at page level, not middleware
 
   return NextResponse.next();
 });
