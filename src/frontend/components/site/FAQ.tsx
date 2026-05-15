@@ -10,17 +10,25 @@ const faqs = [
 
 export function FAQ() {
   return (
-    <section className="py-20">
-      <div className="mx-auto w-[min(900px,92%)]">
-        <div className="text-center">
-          <p className="text-sm uppercase tracking-widest text-muted-foreground">FAQ</p>
-          <h2 className="mt-2 font-display text-4xl sm:text-5xl">Questions, answered.</h2>
+    <section className="py-24 bg-surface">
+      <div className="mx-auto w-[min(800px,92%)]">
+        <div className="text-center mb-16">
+          <p className="text-sm font-bold uppercase tracking-widest text-primary">FAQ</p>
+          <h2 className="mt-3 font-display text-4xl sm:text-5xl font-semibold text-foreground">Questions, answered.</h2>
         </div>
-        <Accordion type="single" collapsible className="mt-10">
+        <Accordion type="single" collapsible className="w-full space-y-4">
           {faqs.map((f, i) => (
-            <AccordionItem key={i} value={`f-${i}`}>
-              <AccordionTrigger className="text-left text-base">{f.q}</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
+            <AccordionItem 
+              key={i} 
+              value={`f-${i}`}
+              className="rounded-2xl border border-gray-200 bg-white px-6 shadow-sm transition-all data-[state=open]:border-primary/40 data-[state=open]:shadow-[var(--shadow-soft)] hover:border-gray-300"
+            >
+              <AccordionTrigger className="text-left text-[17px] font-semibold text-slate-800 transition-colors hover:no-underline hover:text-primary data-[state=open]:text-primary py-5">
+                {f.q}
+              </AccordionTrigger>
+              <AccordionContent className="text-[15px] leading-relaxed text-slate-500 pb-5">
+                {f.a}
+              </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>

@@ -4,262 +4,347 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/frontend/components/ui/button";
-import { Sparkles, Menu, X, Bot, CreditCard, LogOut, ChevronDown, LayoutDashboard, ShoppingBag } from "lucide-react";
+import {
+  Sparkles, Menu, X, Bot, CreditCard, LogOut,
+  ChevronDown, LayoutDashboard, ShoppingBag, User,
+} from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
+/* ─── helpers ─────────────────────────────────────────── */
+function Avatar({ image, name }: { image?: string | null; name?: string | null }) {
+  return (
+    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 overflow-hidden flex-shrink-0 ring-2 ring-white shadow-sm">
+      {image ? (
+        <img src={image} alt="Avatar" className="h-full w-full object-cover" />
+      ) : (
+        <span className="grid h-full w-full place-items-center text-[11px] font-bold text-white">
+          {(name || "U")[0].toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* ─── main component ───────────────────────────────────── */
 export function Header() {
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const [scrolled, setScrolled] = useState(false);
 
   const isLoggedIn = status === "authenticated" && !!session?.user;
   const role = session?.user?.role || "buyer";
+  const firstName = session?.user?.name?.split(" ")[0] || "User";
 
-  // Close dropdown on outside click
+  /* scroll + outside-click */
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node))
         setDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("mousedown", onOutside);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("mousedown", onOutside);
+    };
   }, []);
 
-  // Nav links based on auth state and role
-  const getLinks = () => {
-    if (!isLoggedIn) {
+  /* close mobile menu on route change */
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
+
+  /* nav links */
+  const links = (() => {
+    if (!isLoggedIn)
       return [
         { href: "/marketplace", label: "Marketplace" },
         { href: "/sell", label: "Sell" },
         { href: "/pricing", label: "Pricing" },
         { href: "/about", label: "About" },
       ];
-    }
-    if (role === "seller" || role === "admin") {
+    if (role === "seller" || role === "admin")
       return [
         { href: "/marketplace", label: "Marketplace" },
         { href: "/dashboard/seller", label: "Dashboard" },
-        { href: "/dashboard/seller/listings", label: "My Listings" },
+        { href: "/dashboard/seller/listings", label: "Listings" },
       ];
-    }
-    // Buyer
     return [
       { href: "/marketplace", label: "Marketplace" },
       { href: "/marketplace/my-agents", label: "My Agents" },
       { href: "/marketplace/billing", label: "Billing" },
     ];
-  };
+  })();
 
-  const links = getLinks();
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(href + "/");
 
+  /* dropdown items per role */
+  const dropdownItems =
+    role === "buyer"
+      ? [
+          { href: "/marketplace/my-agents", icon: Bot, label: "My Agents" },
+          { href: "/marketplace/billing", icon: CreditCard, label: "Billing" },
+        ]
+      : [
+          { href: "/dashboard/seller", icon: LayoutDashboard, label: "Dashboard" },
+          { href: "/dashboard/seller/listings", icon: ShoppingBag, label: "My Listings" },
+          { href: "/marketplace/my-agents", icon: Bot, label: "My Agents" },
+        ];
+
+  /* ── render ─────────────────────────────────────────── */
   return (
-    <header className="sticky top-0 z-50 w-full">
-      <div className="glass mx-auto mt-4 flex w-[min(1200px,95%)] items-center justify-between rounded-2xl px-4 py-3 sm:px-5">
-        <Link href="/" className="flex items-center gap-2 font-display text-lg sm:text-xl">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
-          </span>
-          <span className="font-semibold tracking-tight">sellget<span className="text-gradient">ai</span></span>
-        </Link>
-        <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={`hover:text-foreground transition ${pathname === l.href || pathname.startsWith(l.href + "/") ? "text-foreground" : ""}`}
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="flex items-center gap-2">
-          {!isLoggedIn ? (
-            <>
-              <Link href="/auth" className="hidden sm:inline-flex">
-                <Button variant="ghost" size="sm">Sign in</Button>
-              </Link>
-              <Link href="/auth?tab=register" className="hidden sm:inline-flex">
-                <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90">Get started</Button>
-              </Link>
-            </>
-          ) : (
-            /* Logged-in user avatar dropdown */
-            <div className="relative hidden sm:block" ref={dropdownRef}>
-              <button
-                onClick={() => setDropdownOpen((v) => !v)}
-                className="flex items-center gap-2 rounded-full border border-border bg-card/80 py-1.5 pl-1.5 pr-3 transition hover:bg-muted"
-              >
-                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary to-primary-glow shadow-sm overflow-hidden flex-shrink-0">
-                  {session.user.image ? (
-                    <img src={session.user.image} alt="Avatar" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="grid h-full w-full place-items-center text-[10px] font-bold text-primary-foreground">
-                      {(session.user.name || "U")[0].toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <span className="text-sm font-medium text-foreground max-w-[100px] truncate">
-                  {session.user.name?.split(" ")[0] || "User"}
-                </span>
-                <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
-              </button>
+    <>
+      <header
+        className={[
+          "sticky top-0 z-50 w-full transition-all duration-300",
+          scrolled
+            ? "bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-[0_1px_16px_-4px_rgba(0,0,0,0.08)] py-2.5"
+            : "bg-transparent py-5",
+        ].join(" ")}
+      >
+        <div className="mx-auto flex w-[min(1200px,95%)] items-center justify-between px-4 sm:px-6">
 
-              {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-border bg-card shadow-[var(--shadow-card)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-                  {/* User info */}
-                  <div className="border-b border-border px-4 py-3">
-                    <p className="text-sm font-semibold text-foreground truncate">{session.user.name || "User"}</p>
-                    <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
-                    <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary capitalize">
-                      {role}
-                    </span>
-                  </div>
-
-                  {/* Menu items */}
-                  <div className="py-1">
-                    {role === "buyer" && (
-                      <>
-                        <Link
-                          href="/marketplace/my-agents"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground/80 hover:bg-muted hover:text-foreground transition"
-                        >
-                          <Bot className="h-4 w-4" /> My Agents
-                        </Link>
-                        <Link
-                          href="/marketplace/billing"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground/80 hover:bg-muted hover:text-foreground transition"
-                        >
-                          <CreditCard className="h-4 w-4" /> Billing
-                        </Link>
-                      </>
-                    )}
-                    {(role === "seller" || role === "admin") && (
-                      <>
-                        <Link
-                          href="/dashboard/seller"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground/80 hover:bg-muted hover:text-foreground transition"
-                        >
-                          <LayoutDashboard className="h-4 w-4" /> Dashboard
-                        </Link>
-                        <Link
-                          href="/dashboard/seller/listings"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground/80 hover:bg-muted hover:text-foreground transition"
-                        >
-                          <ShoppingBag className="h-4 w-4" /> My Listings
-                        </Link>
-                        <Link
-                          href="/marketplace/my-agents"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground/80 hover:bg-muted hover:text-foreground transition"
-                        >
-                          <Bot className="h-4 w-4" /> My Agents
-                        </Link>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Sign out */}
-                  <div className="border-t border-border py-1">
-                    <button
-                      onClick={() => {
-                        setDropdownOpen(false);
-                        signOut({ callbackUrl: "/" });
-                      }}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 transition"
-                    >
-                      <LogOut className="h-4 w-4" /> Sign out
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-          <button
-            aria-label="Toggle menu"
-            onClick={() => setOpen((v) => !v)}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-border md:hidden"
+          {/* ── Logo ──────────────────────────────────────── */}
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 group select-none"
           >
-            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
+            <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-blue-600 text-white shadow-[0_2px_8px_rgba(37,99,235,0.4)] transition-transform duration-200 group-hover:scale-105">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <span className="font-semibold text-[17px] tracking-tight text-slate-900">
+              sellget<span className="text-blue-600">ai</span>
+            </span>
+          </Link>
 
-      {/* Mobile menu */}
-      {open && (
-        <div className="mx-auto mt-2 w-[min(1200px,95%)] rounded-2xl border border-border bg-card/95 p-4 shadow-[var(--shadow-card)] backdrop-blur md:hidden">
-          <nav className="flex flex-col gap-1 text-sm">
+          {/* ── Desktop nav ───────────────────────────────── */}
+          <nav className="hidden md:flex items-center gap-1">
             {links.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2 text-foreground/80 hover:bg-muted hover:text-foreground"
+                className={[
+                  "relative px-3.5 py-2 rounded-lg text-[14.5px] font-medium transition-colors duration-150",
+                  isActive(l.href)
+                    ? "text-blue-600 bg-blue-50"
+                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/70",
+                ].join(" ")}
               >
                 {l.label}
+                {isActive(l.href) && (
+                  <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 h-0.5 w-3.5 rounded-full bg-blue-500" />
+                )}
               </Link>
             ))}
-            <div className="mt-2 grid grid-cols-2 gap-2">
+          </nav>
+
+          {/* ── Right side actions ────────────────────────── */}
+          <div className="flex items-center gap-2">
+
+            {/* Guest buttons */}
+            {!isLoggedIn && (
+              <>
+                <Link href="/auth" className="hidden sm:block">
+                  <Button
+                    variant="ghost"
+                    className="h-9 px-4 text-[14px] font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 rounded-lg"
+                  >
+                    Sign in
+                  </Button>
+                </Link>
+                <Link href="/auth?tab=register" className="hidden sm:block">
+                  <Button className="h-9 px-5 text-[14px] font-semibold bg-blue-600 text-white hover:bg-blue-700 rounded-lg shadow-[0_2px_8px_rgba(37,99,235,0.35)] transition-all hover:shadow-[0_4px_14px_rgba(37,99,235,0.45)] hover:-translate-y-px active:translate-y-0">
+                    Get started
+                  </Button>
+                </Link>
+              </>
+            )}
+
+            {/* Logged-in user dropdown */}
+            {isLoggedIn && (
+              <div className="relative hidden sm:block" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen((v) => !v)}
+                  aria-expanded={dropdownOpen}
+                  aria-haspopup="true"
+                  className={[
+                    "flex items-center gap-2.5 h-9 rounded-lg border px-2 pr-3 transition-all duration-150",
+                    dropdownOpen
+                      ? "border-blue-300 bg-blue-50/60 shadow-[0_0_0_3px_rgba(59,130,246,0.12)]"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 shadow-sm",
+                  ].join(" ")}
+                >
+                  <Avatar image={session.user.image} name={session.user.name} />
+                  <span className="text-[13.5px] font-semibold text-slate-800 max-w-[90px] truncate leading-none">
+                    {firstName}
+                  </span>
+                  <ChevronDown
+                    className={[
+                      "h-3.5 w-3.5 text-slate-400 transition-transform duration-200",
+                      dropdownOpen ? "rotate-180" : "",
+                    ].join(" ")}
+                  />
+                </button>
+
+                {/* Dropdown panel */}
+                {dropdownOpen && (
+                  <div className="absolute right-0 top-[calc(100%+8px)] w-60 rounded-xl border border-slate-200/80 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.1),0_1px_4px_rgba(0,0,0,0.04)] overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+
+                    {/* User identity */}
+                    <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-100 bg-slate-50/60">
+                      <Avatar image={session.user.image} name={session.user.name} />
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-semibold text-slate-800 truncate leading-tight">
+                          {session.user.name || "User"}
+                        </p>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                          {session.user.email}
+                        </p>
+                      </div>
+                      <span className="ml-auto flex-shrink-0 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 capitalize">
+                        {role}
+                      </span>
+                    </div>
+
+                    {/* Menu items */}
+                    <div className="py-1.5 px-1.5">
+                      {dropdownItems.map(({ href, icon: Icon, label }) => (
+                        <Link
+                          key={href}
+                          href={href}
+                          onClick={() => setDropdownOpen(false)}
+                          className={[
+                            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-colors",
+                            isActive(href)
+                              ? "bg-blue-50 text-blue-700"
+                              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                          ].join(" ")}
+                        >
+                          <Icon className={`h-4 w-4 flex-shrink-0 ${isActive(href) ? "text-blue-500" : "text-slate-400"}`} />
+                          {label}
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Sign out */}
+                    <div className="border-t border-slate-100 px-1.5 py-1.5">
+                      <button
+                        onClick={() => { setDropdownOpen(false); signOut({ callbackUrl: "/" }); }}
+                        className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      >
+                        <LogOut className="h-4 w-4 flex-shrink-0" />
+                        Sign out
+                      </button>
+                    </div>
+
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Mobile hamburger */}
+            <button
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              onClick={() => setMobileOpen((v) => !v)}
+              className={[
+                "grid h-9 w-9 place-items-center rounded-lg border transition-colors md:hidden",
+                mobileOpen
+                  ? "border-blue-200 bg-blue-50 text-blue-600"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50",
+              ].join(" ")}
+            >
+              {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        {/* ── Mobile menu ─────────────────────────────────── */}
+        {mobileOpen && (
+          <div className="mx-auto mt-2 mb-1 w-[min(1200px,95%)] rounded-xl border border-slate-200/80 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)] overflow-hidden md:hidden animate-in fade-in slide-in-from-top-2 duration-200">
+
+            {/* User identity strip (logged-in only) */}
+            {isLoggedIn && (
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 bg-slate-50/70">
+                <Avatar image={session.user.image} name={session.user.name} />
+                <div className="min-w-0">
+                  <p className="text-[13px] font-semibold text-slate-800 truncate">{session.user.name || "User"}</p>
+                  <p className="text-[11px] text-slate-400 truncate">{session.user.email}</p>
+                </div>
+                <span className="ml-auto flex-shrink-0 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 capitalize">
+                  {role}
+                </span>
+              </div>
+            )}
+
+            {/* Nav links */}
+            <nav className="flex flex-col gap-0.5 px-2 py-2">
+              {links.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={[
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors",
+                    isActive(l.href)
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                  ].join(" ")}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Auth / action buttons */}
+            <div className="border-t border-slate-100 px-3 py-3 flex flex-col gap-2">
               {!isLoggedIn ? (
-                <>
-                  <Link href="/auth" onClick={() => setOpen(false)}>
-                    <Button variant="outline" size="sm" className="w-full">Sign in</Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Link href="/auth" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full h-9 rounded-lg text-[13px]">
+                      Sign in
+                    </Button>
                   </Link>
-                  <Link href="/auth?tab=register" onClick={() => setOpen(false)}>
-                    <Button size="sm" className="w-full bg-foreground text-background hover:bg-foreground/90">Get started</Button>
+                  <Link href="/auth?tab=register" onClick={() => setMobileOpen(false)}>
+                    <Button size="sm" className="w-full h-9 rounded-lg text-[13px] bg-blue-600 hover:bg-blue-700 text-white">
+                      Get started
+                    </Button>
                   </Link>
-                </>
+                </div>
               ) : (
                 <>
-                  {role === "buyer" && (
-                    <>
-                      <Link href="/marketplace/my-agents" onClick={() => setOpen(false)}>
-                        <Button variant="outline" size="sm" className="w-full gap-1.5">
-                          <Bot className="h-3.5 w-3.5" /> My Agents
+                  <div className="grid grid-cols-2 gap-2">
+                    {dropdownItems.map(({ href, icon: Icon, label }) => (
+                      <Link key={href} href={href} onClick={() => setMobileOpen(false)}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={[
+                            "w-full h-9 gap-1.5 rounded-lg text-[13px]",
+                            isActive(href) ? "border-blue-200 bg-blue-50 text-blue-700" : "",
+                          ].join(" ")}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                          {label}
                         </Button>
                       </Link>
-                      <Link href="/marketplace/billing" onClick={() => setOpen(false)}>
-                        <Button variant="outline" size="sm" className="w-full gap-1.5">
-                          <CreditCard className="h-3.5 w-3.5" /> Billing
-                        </Button>
-                      </Link>
-                    </>
-                  )}
-                  {(role === "seller" || role === "admin") && (
-                    <>
-                      <Link href="/dashboard/seller" onClick={() => setOpen(false)}>
-                        <Button variant="outline" size="sm" className="w-full gap-1.5">
-                          <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
-                        </Button>
-                      </Link>
-                      <Link href="/dashboard/seller/listings" onClick={() => setOpen(false)}>
-                        <Button variant="outline" size="sm" className="w-full gap-1.5">
-                          <ShoppingBag className="h-3.5 w-3.5" /> Listings
-                        </Button>
-                      </Link>
-                    </>
-                  )}
+                    ))}
+                  </div>
                   <button
-                    onClick={() => {
-                      setOpen(false);
-                      signOut({ callbackUrl: "/" });
-                    }}
-                    className="col-span-2 flex items-center justify-center gap-2 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition"
+                    onClick={() => { setMobileOpen(false); signOut({ callbackUrl: "/" }); }}
+                    className="flex items-center justify-center gap-2 w-full rounded-lg border border-red-200 bg-red-50/70 px-3 py-2.5 text-[13px] font-medium text-red-500 hover:bg-red-100 hover:text-red-600 transition-colors"
                   >
-                    <LogOut className="h-3.5 w-3.5" /> Sign out
+                    <LogOut className="h-3.5 w-3.5" />
+                    Sign out
                   </button>
                 </>
               )}
             </div>
-          </nav>
-        </div>
-      )}
-    </header>
+          </div>
+        )}
+      </header>
+    </>
   );
 }

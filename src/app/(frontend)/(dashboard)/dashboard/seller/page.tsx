@@ -8,8 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/frontend/components/
 import { Bot, CreditCard, Users, TrendingUp, Plus, CheckCircle, XCircle, Clock, RotateCw } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { RequestReviewButton } from "./RequestReviewButton";
-import { SettlementDetailsForm } from "./SettlementDetailsForm";
 
 const STATUS_CONFIG: Record<string, { label: string; className: string; icon: typeof CheckCircle }> = {
   approved: { label: "Approved", className: "bg-green-500/10 text-green-600", icon: CheckCircle },
@@ -77,34 +75,6 @@ export default async function SellerDashboardPage(props: { searchParams: Promise
           </Link>
         </Button>
       </div>
-
-      {settlementStatus === "pending_details" ? (
-        <Card className="mb-8 rounded-3xl border-orange-500/20 bg-orange-500/5 shadow-sm p-6 lg:p-8">
-          <div className="flex flex-col md:flex-row gap-6 items-start justify-between">
-            <div className="flex-1">
-              <h2 className="font-display text-2xl font-bold mb-2">Setup Payouts</h2>
-              <p className="text-muted-foreground text-sm max-w-xl mb-6">
-                Provide your bank account details to receive weekly payouts. You'll receive 85% of every transaction.
-              </p>
-              <SettlementDetailsForm />
-            </div>
-          </div>
-        </Card>
-      ) : settlementStatus === "pending_verification" ? (
-        <Card className="mb-8 rounded-3xl border-blue-500/20 bg-blue-500/5 shadow-sm p-6 lg:p-8">
-          <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
-            <div>
-              <h2 className="font-display text-2xl font-bold mb-2 text-blue-800">Verification Pending</h2>
-              <p className="text-blue-600/80 text-sm max-w-xl">
-                Your bank details are currently being verified by our team. This usually takes 1-2 business days. Payouts will begin once verified.
-              </p>
-            </div>
-            <div className="shrink-0 p-3 bg-blue-500/10 rounded-full text-blue-600">
-              <Clock className="h-6 w-6" />
-            </div>
-          </div>
-        </Card>
-      ) : null}
 
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="bg-transparent h-auto p-0 gap-6">

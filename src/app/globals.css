@@ -33,55 +33,54 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
-  --shadow-glow: 0 30px 80px -20px color-mix(in oklab, var(--primary) 35%, transparent);
-  --shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px -8px oklch(0 0 0 / 0.08);
-  --gradient-hero: radial-gradient(ellipse at top, color-mix(in oklab, var(--primary) 18%, transparent), transparent 60%);
+  --shadow-glow: 0 0 40px -10px color-mix(in oklab, var(--primary) 20%, transparent);
+  --shadow-soft: 0 4px 20px -2px color-mix(in oklab, var(--foreground) 3%, transparent), 0 0 2px color-mix(in oklab, var(--foreground) 2%, transparent);
+  --shadow-card: 0 4px 12px -4px color-mix(in oklab, var(--foreground) 4%, transparent), 0 1px 3px color-mix(in oklab, var(--foreground) 2%, transparent);
+  --shadow-float: 0 12px 32px -8px color-mix(in oklab, var(--foreground) 6%, transparent), 0 4px 12px -4px color-mix(in oklab, var(--foreground) 3%, transparent);
+  --shadow-inner-btn: inset 0 1px 0 color-mix(in oklab, white 20%, transparent), inset 0 -1px 0 color-mix(in oklab, black 10%, transparent);
+  
+  --gradient-hero: radial-gradient(circle at top, color-mix(in oklab, var(--primary) 6%, transparent) 0%, transparent 60%);
   --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-glow));
 }
 
 :root {
-  --radius: 0.875rem;
+  --radius: 0.75rem;
 
-  /* Kore-inspired: deep navy on near-white with electric blue accent */
-  --background: oklch(0.985 0.005 230);
-  --foreground: oklch(0.18 0.04 255);
-  --surface: oklch(0.97 0.012 230);
+  /* Crisp, Stripe/Apple-inspired high contrast light mode */
+  /* Backgrounds: pure white or subtle off-white */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.2 0.02 240); /* Deep slate/navy text */
+  --surface: oklch(0.985 0 0); /* Off-white for sections */
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.04 255);
+  --card-foreground: oklch(0.2 0.02 240);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.04 255);
+  --popover-foreground: oklch(0.2 0.02 240);
 
-  --primary: oklch(0.55 0.22 260);
-  --primary-foreground: oklch(0.99 0.005 230);
-  --primary-glow: oklch(0.72 0.18 230);
+  /* Vibrant brand blue */
+  --primary: oklch(0.52 0.18 250); 
+  --primary-foreground: oklch(1 0 0);
+  --primary-glow: oklch(0.65 0.15 250);
 
-  --secondary: oklch(0.95 0.015 240);
-  --secondary-foreground: oklch(0.22 0.04 255);
+  --secondary: oklch(0.96 0.01 240);
+  --secondary-foreground: oklch(0.3 0.02 240);
 
-  --muted: oklch(0.95 0.012 235);
-  --muted-foreground: oklch(0.5 0.02 255);
+  --muted: oklch(0.96 0.01 240);
+  --muted-foreground: oklch(0.45 0.02 240);
 
-  --accent: oklch(0.92 0.05 220);
-  --accent-foreground: oklch(0.22 0.04 255);
+  --accent: oklch(0.96 0.02 250);
+  --accent-foreground: oklch(0.52 0.18 250);
 
-  --destructive: oklch(0.6 0.22 25);
-  --destructive-foreground: oklch(0.99 0.005 230);
+  --destructive: oklch(0.6 0.15 20);
+  --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.9 0.012 235);
-  --input: oklch(0.9 0.012 235);
-  --ring: oklch(0.55 0.22 260);
-}
-
-@font-face {
-  font-family: "Instrument Serif";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("https://fonts.gstatic.com/s/instrumentserif/v4/jizDREVItHgc8qDIbSTKq4XpRPmaUbjZbQ.woff2") format("woff2");
+  /* Crisp borders */
+  --border: oklch(0.92 0.01 240);
+  --input: oklch(0.92 0.01 240);
+  --ring: oklch(0.52 0.18 250);
 }
 
 @layer base {
@@ -95,18 +94,15 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    background-image:
-      linear-gradient(to right, color-mix(in oklab, var(--foreground) 3%, transparent) 1px, transparent 1px),
-      linear-gradient(to bottom, color-mix(in oklab, var(--foreground) 3%, transparent) 1px, transparent 1px),
-      radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in oklab, var(--primary) 15%, transparent), transparent),
-      radial-gradient(ellipse 60% 40% at 100% 10%, color-mix(in oklab, var(--primary-glow) 12%, transparent), transparent);
-    background-size: 24px 24px, 24px 24px, auto, auto;
-    background-attachment: fixed, fixed, fixed, fixed;
+    /* Very subtle dot pattern instead of heavy lines */
+    background-image: radial-gradient(color-mix(in oklab, var(--foreground) 4%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-attachment: fixed;
   }
-  h1, h2, h3 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    font-weight: 400;
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    letter-spacing: -0.03em;
   }
 }
 

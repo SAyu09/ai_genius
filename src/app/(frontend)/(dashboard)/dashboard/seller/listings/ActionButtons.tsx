@@ -1,26 +1,31 @@
-"use client";
-
 import { Button } from "@/frontend/components/ui/button";
-import { toast } from "sonner";
+import Link from "next/link";
+import { BarChart3, Edit3 } from "lucide-react";
 
-export function ActionButtons() {
+export function ActionButtons({ agentId }: { agentId: string }) {
   return (
     <>
       <Button 
+        asChild
         size="sm" 
         variant="outline" 
-        className="h-8 rounded-lg text-xs"
-        onClick={() => toast.info("Edit feature is coming soon!")}
+        className="h-8 rounded-lg text-xs gap-2"
       >
-        Edit
+        <Link href={`/dashboard/seller/listings/${agentId}/edit`}>
+          <Edit3 className="h-3 w-3" />
+          Edit
+        </Link>
       </Button>
       <Button 
+        asChild
         size="sm" 
         variant="ghost" 
-        className="h-8 rounded-lg text-xs text-primary"
-        onClick={() => toast.info("Detailed stats are coming soon!")}
+        className="h-8 rounded-lg text-xs text-primary gap-2"
       >
-        View Stats
+        <Link href={`/dashboard/seller/listings/${agentId}/stats`}>
+          <BarChart3 className="h-3 w-3" />
+          View Stats
+        </Link>
       </Button>
     </>
   );

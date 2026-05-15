@@ -69,3 +69,4 @@ Ready! You are using Stripe API Version [2026-04-22.dahlia]. Your webhook signin
 2026-05-09 17:13:19  <--  [200] POST http://localhost:3000/api/webhooks/stripe [evt_1TV9Hs22sVmSdWme404FO9y4]
 2026-05-09 17:13:21   --> invoice_payment.paid [evt_1TV9Hw22sVmSdWme2eXiFNJs]
 2026-05-09 17:13:21  <--  [200] POST http://localhost:3000/api/webhooks/stripe [evt_1TV9Hw22sVmSdWme2eXiFNJs]
+

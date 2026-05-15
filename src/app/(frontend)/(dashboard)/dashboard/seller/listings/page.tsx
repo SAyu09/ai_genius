@@ -154,7 +154,7 @@ export default async function SellerListingsPage() {
 
                   {/* Right: Actions */}
                   <div className="flex sm:flex-col items-center justify-end gap-2 p-4 sm:p-5 sm:border-l border-t sm:border-t-0 border-border bg-muted/20">
-                    <ActionButtons />
+                    <ActionButtons agentId={agent.id} />
                     {agent.status === "approved" && (
                       <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg text-xs">
                         <Link href={`/marketplace/${agent.id}`}>View Listing</Link>
