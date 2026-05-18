@@ -2,16 +2,16 @@ import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "ap-south-1",
+  region: process.env.S3_REGION || process.env.AWS_REGION || "ap-south-1",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY!,
   },
-  endpoint: process.env.AWS_ENDPOINT, // For Supabase S3 compatibility
+  endpoint: process.env.S3_ENDPOINT || process.env.AWS_ENDPOINT, // For Supabase S3 compatibility
   forcePathStyle: true,
 });
 
-const BUCKET_NAME = process.env.AWS_BUCKET_NAME || "agents";
+const BUCKET_NAME = process.env.S3_BUCKET_NAME || process.env.AWS_BUCKET_NAME || "agents";
 
 export async function getDownloadUrl(key: string) {
   const command = new GetObjectCommand({
