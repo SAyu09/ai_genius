@@ -138,12 +138,12 @@ export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
                         <div className="flex-1 bg-gray-50 border border-gray-200 text-gray-800 font-mono text-sm px-4 py-2.5 rounded-lg w-full break-all">
                           {secret}
                         </div>
-                        <Button size="md" className="shrink-0 w-full sm:w-auto gap-2" onClick={() => copyToClipboard(secret)}>
+                        <Button size="default" className="shrink-0 w-full sm:w-auto gap-2" onClick={() => copyToClipboard(secret)}>
                           <Copy className="h-4 w-4" /> Copy Secret
                         </Button>
                       </>
                     ) : (
-                      <Button onClick={fetchSecret} disabled={loading} size="md" variant="outline" className="w-full rounded-lg gap-2 border-dashed border-primary/40 text-primary bg-primary/5 hover:bg-primary/10 py-6">
+                      <Button onClick={fetchSecret} disabled={loading} size="default" variant="outline" className="w-full rounded-lg gap-2 border-dashed border-primary/40 text-primary bg-primary/5 hover:bg-primary/10 py-6">
                         {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Key className="h-5 w-5" />}
                         Reveal AIGenius_SECRET
                       </Button>

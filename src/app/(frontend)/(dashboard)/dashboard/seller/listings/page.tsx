@@ -80,7 +80,7 @@ export default async function SellerListingsPage() {
           <p className="text-sm text-gray-500 mt-0.5">Manage your agents and track transaction performance.</p>
         </div>
         <div className="header-actions">
-          <Button asChild size="md" className="gap-2">
+          <Button asChild size="default" className="gap-2">
             <Link href="/dashboard/list-agent">
               <Plus className="h-4 w-4" /> Create Listing
             </Link>
@@ -153,7 +153,7 @@ export default async function SellerListingsPage() {
             <p className="text-sm text-gray-400 mt-1 max-w-[300px] mx-auto">
               Create your first listing and start earning.
             </p>
-            <Button asChild size="md" className="mt-4 gap-2">
+            <Button asChild size="default" className="mt-4 gap-2">
               <Link href="/dashboard/list-agent">
                 <Plus className="h-4 w-4" /> Create your first listing
               </Link>
