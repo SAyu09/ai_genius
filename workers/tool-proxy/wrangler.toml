@@ -5,12 +5,16 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 PLATFORM_ORIGIN = "https://aigenius.app"
-ALLOWED_ORIGINS = "https://aigenius.app,https://www.aigenius.app"
 
-# KV Namespace for agent status + suspension cache
+# KV Namespace for agent suspension flags
 [[kv_namespaces]]
 binding = "AGENT_STATUS"
 id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# KV Namespace for rate limiting counters
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "REPLACE_WITH_RATE_LIMIT_KV_ID"
 
 # Analytics Engine for performance logging
 [[analytics_engine_datasets]]
@@ -18,7 +22,7 @@ binding = "PERF_ANALYTICS"
 
 # Environment-specific overrides
 [env.production]
-routes = [{ pattern = "tools.aigenius.app/*", zone_name = "aigenius.app" }]
+routes = [{ pattern = "agent-proxy.aigenius.workers.dev/*", zone_name = "aigenius.app" }]
 
 [env.staging]
-routes = [{ pattern = "tools-staging.aigenius.app/*", zone_name = "aigenius.app" }]
+routes = [{ pattern = "agent-proxy-staging.aigenius.workers.dev/*", zone_name = "aigenius.app" }]

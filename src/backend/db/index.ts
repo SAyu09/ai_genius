@@ -6,6 +6,14 @@ import * as schema from "./schema";
 // Use the "Transaction" pool mode URL from Supabase dashboard → Settings → Database
 const connectionString = process.env.DATABASE_URL!;
 
-const client = postgres(connectionString, { prepare: false });
+declare global {
+  var postgresClient: postgres.Sql | undefined;
+}
+
+const client = globalThis.postgresClient ?? postgres(connectionString, { prepare: false });
+
+if (process.env.NODE_ENV !== "production") {
+  globalThis.postgresClient = client;
+}
 
 export const db = drizzle(client, { schema });

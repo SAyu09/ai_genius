@@ -6,7 +6,9 @@ import { auth } from "@/backend/lib/auth";
 import { generateEmbedToken } from "@/features/tools/services/tokenService";
 import { ToolEmbed } from "@/frontend/components/shared/ToolEmbed";
 import { ToolUnavailable } from "@/frontend/components/shared/ToolUnavailable";
-import { Bot, ArrowLeft } from "lucide-react";
+import { AgentRuntime } from "@/frontend/components/shared/AgentRuntime";
+import type { AgentConfig } from "@/frontend/components/shared/AgentRuntime";
+import { Bot, ArrowLeft, Shield } from "lucide-react";
 import Link from "next/link";
 
 export default async function ToolAppPage(props: { params: Promise<{ agentId: string }> }) {
@@ -58,19 +60,22 @@ export default async function ToolAppPage(props: { params: Promise<{ agentId: st
     redirect(`/marketplace/${agentId}`);
   }
 
-  // Generate initial token for postMessage handshake
-  // Token is 5 minutes, refresh happens client-side every 4 minutes
+  // Determine rendering mode: SDK (v4) or iframe (legacy)
+  const isSDKAgent = !!agent.endpointUrl;
+
+  // Generate embed token for legacy iframe agents
   let initialToken = "";
-  try {
-    const { token } = await generateEmbedToken(
-      session.user.id,
-      agentId,
-      planType
-    );
-    initialToken = token;
-  } catch {
-    // If PLATFORM_SECRET isn't set, fall back gracefully
-    console.error("Failed to generate embed token");
+  if (!isSDKAgent && agent.embedUrl) {
+    try {
+      const { token } = await generateEmbedToken(
+        session.user.id,
+        agentId,
+        planType
+      );
+      initialToken = token;
+    } catch {
+      console.error("Failed to generate embed token");
+    }
   }
 
   return (
@@ -85,14 +90,33 @@ export default async function ToolAppPage(props: { params: Promise<{ agentId: st
             <Bot className="h-5 w-5 text-primary" />
             {agent.name}
           </div>
+          {isSDKAgent && (
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-wider">
+              {agent.agentType}
+            </span>
+          )}
         </div>
-        <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-green-500/10 text-green-600">
-          Secure Connection Active
+        <div className="flex items-center gap-2">
+          <div className="text-xs font-medium px-2.5 py-1 rounded-md bg-green-500/10 text-green-600 flex items-center gap-1">
+            <Shield className="h-3 w-3" />
+            Secure Connection
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 bg-muted/20 relative">
-        {agent.embedUrl ? (
+      <main className="flex-1 bg-muted/20 relative overflow-hidden">
+        {isSDKAgent ? (
+          /* v4 SDK: Platform renders its own UI — no iframe, no seller frontend */
+          <AgentRuntime
+            agentId={agent.id}
+            agentName={agent.name}
+            agentType={agent.agentType as "chat" | "form" | "workflow"}
+            agentConfig={agent.agentConfig as AgentConfig | null}
+            userId={session.user.id}
+            planType={planType}
+          />
+        ) : agent.embedUrl ? (
+          /* Legacy iframe embed (deprecated in v4, kept for backwards compat) */
           <ToolEmbed
             embedUrl={agent.embedUrl}
             agentId={agent.id}

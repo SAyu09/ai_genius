@@ -77,11 +77,20 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, tag, category, description, longDesc, monthlyPrice, annualPrice, pricingModel, type, assetKey, embedUrl, features, integrations, useCases } = body;
+  const { name, tag, category, description, longDesc, monthlyPrice, annualPrice, pricingModel, type, agentType, assetKey, endpointUrl, features, integrations, useCases } = body;
 
-  if (!name || !tag || !description || !longDesc || (!assetKey && !embedUrl)) {
+  if (!name || !tag || !description || !longDesc) {
     return NextResponse.json(
       { error: "Missing required fields" },
+      { status: 400 }
+    );
+  }
+
+  // Validate longDesc word count
+  const wordCount = longDesc.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
+  if (wordCount < 150) {
+    return NextResponse.json(
+      { error: `Your detailed description must be at least 150 words. You currently have ${wordCount} words.` },
       { status: 400 }
     );
   }
@@ -106,47 +115,15 @@ export async function POST(req: NextRequest) {
       annualPricePaise: annualPrice ? Math.round(annualPrice * 100) : null,
       pricingModel: pricingModel || "subscription",
       type: type || "hosted",
+      agentType: agentType || "chat", // Default to chat
       assetKey: assetKey || "",
-      embedUrl,
-      status: "testing", // Set to testing while we simulate performance
+      endpointUrl,
+      status: "approved", // SDK agents are approved, but must pass connection ping from Developer dashboard later
       features: features || [],
       integrations: integrations || [],
       useCases: useCases || [],
     })
     .returning();
-
-  // Simulate Performance Test (Background Job)
-  // We'll do a simple synchronous simulation for the demo
-  const runPerformanceTest = async () => {
-    try {
-      // Simulate checking the URL
-      // If the embed URL contains 'fail' or 'slow', we'll simulate a failure.
-      // Otherwise, we simulate a pass with random ms under 2s.
-      const isSlow = embedUrl.toLowerCase().includes('slow') || embedUrl.toLowerCase().includes('fail');
-      
-      const avgMs = isSlow ? 4200 + Math.random() * 500 : 800 + Math.random() * 400;
-      const errorRate = isSlow ? 12 + Math.random() * 5 : 0 + Math.random() * 2;
-      const p95Ms = avgMs * 1.2;
-      
-      const passed = avgMs < 2000 && errorRate < 5;
-      
-      await db.update(agents).set({
-        status: passed ? "pending_review" : "rejected_performance",
-        performanceTestedAt: new Date(),
-        performanceAvgMs: avgMs,
-        performanceP95Ms: p95Ms,
-        performanceErrorRate: errorRate,
-        performancePass: passed
-      }).where(eq(agents.id, agent.id));
-      
-      // In a real system, we'd email the seller here
-    } catch (e) {
-      console.error("Performance test failed to run:", e);
-    }
-  };
-
-  // Run the test in background (not blocking the response)
-  runPerformanceTest();
 
   return NextResponse.json({ agent }, { status: 201 });
 }

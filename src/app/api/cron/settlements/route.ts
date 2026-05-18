@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/backend/db";
-import { purchases, sellerSettlements } from "@/backend/db/schema";
-import { eq, inArray, sql } from "drizzle-orm";
+import { purchases, sellerSettlements, sellerBankDetails } from "@/backend/db/schema";
+import { eq, and, inArray, sql } from "drizzle-orm";
 
+/**
+ * POST /api/cron/settlements
+ *
+ * Weekly settlement cron — processes pending payouts for verified sellers.
+ * Called by Vercel cron or external scheduler every Sunday.
+ * Authorization: Bearer token from CRON_SECRET env var.
+ */
 export async function POST(req: NextRequest) {
-  // Validate cron secret if provided
   const authHeader = req.headers.get("authorization");
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    await db.transaction(async (tx) => {
+    const now = new Date();
+    const periodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const result = await db.transaction(async (tx) => {
       // 1. Fetch all pending purchases grouped by seller
       const pendingPurchases = await tx
         .select({
@@ -24,44 +33,67 @@ export async function POST(req: NextRequest) {
         .groupBy(purchases.sellerId);
 
       if (pendingPurchases.length === 0) {
-        return; // Nothing to settle
+        return { processed: 0, skipped: 0, settlements: [] };
       }
 
-      const now = new Date();
-      // Assume a 7-day period ending now (or logic as required)
-      const periodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      // 2. Filter to sellers with verified bank details only
+      const verifiedSellers = await tx
+        .select({ sellerId: sellerBankDetails.sellerId })
+        .from(sellerBankDetails)
+        .where(eq(sellerBankDetails.isVerified, true));
 
-      // 2. Create settlement records for each seller
-      const settlementsToInsert = pendingPurchases.map((p) => ({
-        sellerId: p.sellerId,
-        periodStart,
-        periodEnd: now,
-        grossPayoutPaise: p.totalPayout,
-        netPayoutPaise: p.totalPayout, // Adjust for TDS/refunds if needed
-        status: "processing" as const,
-      }));
+      const verifiedSet = new Set(verifiedSellers.map((s) => s.sellerId));
+
+      const eligible = pendingPurchases.filter(
+        (p) => verifiedSet.has(p.sellerId) && p.totalPayout >= 100
+      );
+      const skipped = pendingPurchases.length - eligible.length;
+
+      // 3. Create settlement records with TDS deduction
+      const TDS_RATE = 0.01; // 1% TDS
+      const settlementsToInsert = eligible.map((p) => {
+        const tds = Math.round(p.totalPayout * TDS_RATE);
+        return {
+          sellerId: p.sellerId,
+          periodStart,
+          periodEnd: now,
+          grossPayoutPaise: p.totalPayout,
+          tdsDeductedPaise: tds,
+          refundDeductionsPaise: 0,
+          netPayoutPaise: p.totalPayout - tds,
+          status: "processing" as const,
+        };
+      });
 
       const insertedSettlements = await tx
         .insert(sellerSettlements)
         .values(settlementsToInsert)
         .returning({ id: sellerSettlements.id, sellerId: sellerSettlements.sellerId });
 
-      // 3. Map settlement IDs back to purchases and update them
+      // 4. Link purchases to their settlement record
       for (const settlement of insertedSettlements) {
-        const sellerPurchases = pendingPurchases.find((p) => p.sellerId === settlement.sellerId);
+        const sellerPurchases = eligible.find((p) => p.sellerId === settlement.sellerId);
         if (sellerPurchases && sellerPurchases.purchaseIds.length > 0) {
-          await tx
-            .update(purchases)
-            .set({
-              settlementStatus: "settled",
-              settlementId: settlement.id,
-            })
-            .where(inArray(purchases.id, sellerPurchases.purchaseIds));
+          await tx.update(purchases).set({
+            settlementStatus: "settled",
+            settlementId: settlement.id,
+          }).where(inArray(purchases.id, sellerPurchases.purchaseIds));
         }
       }
+
+      return {
+        processed: insertedSettlements.length,
+        skipped,
+        settlements: insertedSettlements.map((s) => s.id),
+      };
     });
 
-    return NextResponse.json({ success: true, message: "Settlement batch completed successfully" });
+    return NextResponse.json({
+      success: true,
+      ...result,
+      periodStart: periodStart.toISOString(),
+      periodEnd: now.toISOString(),
+    });
   } catch (error) {
     console.error("Settlement cron error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

@@ -1,24 +1,25 @@
 import { auth } from "@/backend/lib/auth";
 import { db } from "@/backend/db";
-import { agents } from "@/backend/db/schema";
-import { eq } from "drizzle-orm";
+import { agents, purchases, users } from "@/backend/db/schema";
+import { eq, inArray, desc } from "drizzle-orm";
 import { Button } from "@/frontend/components/ui/button";
-import { Card } from "@/frontend/components/ui/card";
-import { Bot, Plus, CheckCircle, XCircle, Clock, RotateCw, Globe, Workflow, TrendingUp, Users } from "lucide-react";
+import { Card, CardContent } from "@/frontend/components/ui/card";
+import { Bot, Package, TrendingUp, Globe, Workflow, Plus, Users, Clock, CheckCircle, XCircle, MessageSquare, FormInput } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { ActionButtons } from "./ActionButtons";
+import { DeveloperIntegrationModal } from "./DeveloperIntegrationModal";
 
 export const metadata: Metadata = {
-  title: "My Listings — Manage Your Agents",
-  description: "View, edit, and manage all your listed AI agents.",
+  title: "My Listings — Manage Agents",
+  description: "View, manage, and track your AI agents.",
 };
 
 const STATUS_CONFIG: Record<string, { label: string; className: string; icon: typeof CheckCircle }> = {
   approved: { label: "Live", className: "bg-green-500/10 text-green-600 border-green-500/20", icon: CheckCircle },
   pending: { label: "Pending", className: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20", icon: Clock },
-  testing: { label: "Testing", className: "bg-blue-500/10 text-blue-600 border-blue-500/20", icon: RotateCw },
+  testing: { label: "Testing", className: "bg-blue-500/10 text-blue-600 border-blue-500/20", icon: Clock },
   pending_review: { label: "In Review", className: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20", icon: Clock },
   rejected_performance: { label: "Perf. Failed", className: "bg-red-500/10 text-red-500 border-red-500/20", icon: XCircle },
   rejected_admin: { label: "Rejected", className: "bg-red-500/10 text-red-500 border-red-500/20", icon: XCircle },
@@ -26,8 +27,10 @@ const STATUS_CONFIG: Record<string, { label: string; className: string; icon: ty
 };
 
 const TYPE_CONFIG: Record<string, { label: string; icon: typeof Globe; className: string }> = {
-  hosted: { label: "Website", icon: Globe, className: "bg-blue-500/10 text-blue-600" },
+  chat: { label: "Chat Agent", icon: MessageSquare, className: "bg-blue-500/10 text-blue-600" },
+  form: { label: "Form Tool", icon: FormInput, className: "bg-indigo-500/10 text-indigo-600" },
   workflow: { label: "n8n Agent", icon: Workflow, className: "bg-purple-500/10 text-purple-600" },
+  hosted: { label: "Legacy Hosted", icon: Globe, className: "bg-gray-500/10 text-gray-600" },
 };
 
 export default async function SellerListingsPage() {
@@ -36,50 +39,51 @@ export default async function SellerListingsPage() {
 
   const myAgents = await db.query.agents.findMany({
     where: eq(agents.sellerId, session.user.id),
+    orderBy: desc(agents.createdAt),
   });
 
+  const agentIds = myAgents.map((a) => a.id);
   const approvedCount = myAgents.filter((a) => a.status === "approved").length;
-  const pendingCount = myAgents.filter((a) => ["pending", "testing", "pending_review"].includes(a.status)).length;
   const totalSubscribers = myAgents.reduce((sum, a) => sum + (a.subscriberCount || 0), 0);
 
+  // Fetch transactions for these agents
+  let transactions: {
+    purchase: typeof purchases.$inferSelect;
+    agent: typeof agents.$inferSelect;
+    buyer: typeof users.$inferSelect;
+  }[] = [];
+
+  if (agentIds.length > 0) {
+    transactions = await db
+      .select({ purchase: purchases, agent: agents, buyer: users })
+      .from(purchases)
+      .innerJoin(agents, eq(purchases.agentId, agents.id))
+      .innerJoin(users, eq(purchases.buyerId, users.id))
+      .where(inArray(purchases.agentId, agentIds))
+      .orderBy(desc(purchases.purchasedAt))
+      .limit(20);
+  }
+
+  // Per-agent revenue breakdown
+  const agentRevenue = new Map<string, number>();
+  transactions.forEach(({ purchase }) => {
+    const current = agentRevenue.get(purchase.agentId) || 0;
+    agentRevenue.set(purchase.agentId, current + purchase.sellerPayout);
+  });
+
   return (
-    <div className="p-6 lg:p-8">
+    <div className="p-6 lg:p-8 space-y-8">
       {/* Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold">My Listings</h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage all your AI agents and websites.</p>
+          <p className="text-muted-foreground text-sm mt-1">Manage your agents and track transaction performance.</p>
         </div>
         <Button asChild className="rounded-xl gap-2 shadow-lg shadow-primary/20 self-start sm:self-auto">
           <Link href="/dashboard/list-agent">
-            <Plus className="h-4 w-4" /> List New Agent
+            <Plus className="h-4 w-4" /> Create Listing
           </Link>
         </Button>
-      </div>
-
-      {/* Quick stats */}
-      <div className="grid gap-4 sm:grid-cols-3 mb-8">
-        <div className="rounded-2xl border border-border bg-card p-4 flex items-center gap-4">
-          <div className="rounded-xl bg-green-500/10 p-3 text-green-600"><CheckCircle className="h-5 w-5" /></div>
-          <div>
-            <div className="text-2xl font-bold">{approvedCount}</div>
-            <div className="text-xs text-muted-foreground">Live Agents</div>
-          </div>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-4 flex items-center gap-4">
-          <div className="rounded-xl bg-yellow-500/10 p-3 text-yellow-600"><Clock className="h-5 w-5" /></div>
-          <div>
-            <div className="text-2xl font-bold">{pendingCount}</div>
-            <div className="text-xs text-muted-foreground">Under Review</div>
-          </div>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-4 flex items-center gap-4">
-          <div className="rounded-xl bg-blue-500/10 p-3 text-blue-600"><Users className="h-5 w-5" /></div>
-          <div>
-            <div className="text-2xl font-bold">{totalSubscribers}</div>
-            <div className="text-xs text-muted-foreground">Total Subscribers</div>
-          </div>
-        </div>
       </div>
 
       {/* Agents list */}
@@ -87,20 +91,21 @@ export default async function SellerListingsPage() {
         <div className="grid gap-4">
           {myAgents.map((agent) => {
             const statusCfg = STATUS_CONFIG[agent.status] || STATUS_CONFIG.pending;
-            const typeCfg = TYPE_CONFIG[agent.type] || TYPE_CONFIG.hosted;
+            const typeCfg = TYPE_CONFIG[agent.agentType || agent.type] || TYPE_CONFIG.hosted;
             const StatusIcon = statusCfg.icon;
             const TypeIcon = typeCfg.icon;
+            const revenue = agentRevenue.get(agent.id) || 0;
 
             return (
               <Card key={agent.id} className="rounded-2xl border shadow-sm overflow-hidden p-0">
-                <div className="flex flex-col sm:flex-row">
+                <div className="flex flex-col md:flex-row">
                   {/* Left: Agent info */}
                   <div className="flex-1 p-5 flex items-start gap-4">
                     <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
                       <Bot className="h-6 w-6" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
                         <h3 className="font-semibold text-lg truncate">{agent.name}</h3>
                         {/* Type badge */}
                         <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold ${typeCfg.className}`}>
@@ -113,51 +118,28 @@ export default async function SellerListingsPage() {
                           {statusCfg.label}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{agent.description}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1 mb-4">{agent.description}</p>
 
-                      {/* Stats row */}
-                      <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" /> {agent.subscriberCount || 0} subscribers
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3" /> {agent.salesCount || 0} sales
-                        </span>
-                        <span>${(agent.monthlyPricePaise || 0) / 100}/mo</span>
+                      {/* Stats & Integrations row */}
+                      <div className="flex flex-wrap items-center gap-4 text-xs">
+                        <div className="flex items-center gap-4 text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3.5 w-3.5" /> {agent.subscriberCount || 0} active
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <TrendingUp className="h-3.5 w-3.5" /> ${(revenue / 100).toFixed(2)} earned
+                          </span>
+                        </div>
                       </div>
-
-                      {/* Performance metrics */}
-                      {agent.performanceTestedAt && (
-                        <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
-                          <span>Avg: <span className="font-mono">{agent.performanceAvgMs?.toFixed(0)}ms</span></span>
-                          <span>P95: <span className="font-mono">{agent.performanceP95Ms?.toFixed(0)}ms</span></span>
-                          <span>Errors: <span className={`font-mono ${(agent.performanceErrorRate || 0) > 0.5 ? "text-red-500" : "text-green-600"}`}>{agent.performanceErrorRate?.toFixed(2)}%</span></span>
-                        </div>
-                      )}
-
-                      {/* Rejection reason */}
-                      {agent.rejectionReason && agent.status === "rejected_admin" && (
-                        <p className="text-[11px] text-red-500 mt-2 bg-red-500/5 rounded-lg px-3 py-1.5">Rejection: {agent.rejectionReason}</p>
-                      )}
-
-                      {/* Performance failure notice */}
-                      {agent.status === "rejected_performance" && (
-                        <div className="mt-3 p-3 rounded-xl bg-red-500/5 border border-red-500/10">
-                          <p className="text-[11px] text-red-600 font-semibold mb-1">Performance test failed</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            Avg must be &lt; 800ms, P95 &lt; 2000ms, Error rate &lt; 0.5%. Fix your server and re-submit, or host on our platform (₹500/mo).
-                          </p>
-                        </div>
-                      )}
                     </div>
                   </div>
 
                   {/* Right: Actions */}
-                  <div className="flex sm:flex-col items-center justify-end gap-2 p-4 sm:p-5 sm:border-l border-t sm:border-t-0 border-border bg-muted/20">
+                  <div className="flex md:flex-col items-center justify-end gap-2 p-4 md:p-5 md:border-l border-t md:border-t-0 border-border bg-muted/10 md:w-48 shrink-0">
                     <ActionButtons agentId={agent.id} />
                     {agent.status === "approved" && (
-                      <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg text-xs">
-                        <Link href={`/marketplace/${agent.id}`}>View Listing</Link>
+                      <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg text-xs w-full">
+                        <Link href={`/marketplace/${agent.id}`}>View Marketplace</Link>
                       </Button>
                     )}
                   </div>
@@ -167,23 +149,77 @@ export default async function SellerListingsPage() {
           })}
         </div>
       ) : (
-        <Card className="rounded-3xl border-none bg-background shadow-sm overflow-hidden min-h-[400px] flex items-center justify-center">
+        <Card className="rounded-3xl border-dashed border-2 bg-transparent shadow-none min-h-[400px] flex items-center justify-center">
           <div className="text-center p-8">
             <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-muted mb-6 opacity-50">
-              <Bot className="h-8 w-8" />
+              <Package className="h-8 w-8" />
             </div>
-            <h3 className="text-xl font-bold font-display">No agents listed yet</h3>
+            <h3 className="text-xl font-bold font-display">No listings created yet</h3>
             <p className="text-muted-foreground text-sm max-w-[300px] mx-auto mt-2">
-              You haven&apos;t listed any AI agents. Start selling your creations to a global market.
+              Create your first agent listing to start accepting buyers.
             </p>
             <Button asChild className="mt-6 rounded-xl gap-2 shadow-lg shadow-primary/20">
               <Link href="/dashboard/list-agent">
-                <Plus className="h-4 w-4" /> Create First Listing
+                <Plus className="h-4 w-4" /> Create Listing
               </Link>
             </Button>
           </div>
         </Card>
       )}
+
+      {/* Transaction History (from old tools logic) */}
+      <section className="pt-4">
+        <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-primary" />
+          Recent Transactions
+        </h2>
+        {transactions.length > 0 ? (
+          <div className="rounded-2xl border border-border bg-card overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/30">
+                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Agent</th>
+                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Buyer</th>
+                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Amount</th>
+                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Your Payout</th>
+                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.map(({ purchase, agent, buyer }) => (
+                  <tr key={purchase.id} className="border-b last:border-b-0 hover:bg-muted/10 transition">
+                    <td className="px-4 py-3 font-medium truncate max-w-[150px]">{agent.name}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold overflow-hidden flex-shrink-0">
+                          {buyer.image ? (
+                            <img src={buyer.image} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            (buyer.name || "U")[0].toUpperCase()
+                          )}
+                        </div>
+                        <span className="text-xs truncate max-w-[100px]">{buyer.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-medium">${(purchase.amountPaid / 100).toFixed(2)}</td>
+                    <td className="px-4 py-3 font-semibold text-green-600">${(purchase.sellerPayout / 100).toFixed(2)}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                      {new Date(purchase.purchasedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <Card className="rounded-2xl border-dashed bg-transparent shadow-none">
+            <CardContent className="p-10 text-center">
+              <Package className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">No transactions yet. Sales will appear here as buyers subscribe.</p>
+            </CardContent>
+          </Card>
+        )}
+      </section>
     </div>
   );
 }

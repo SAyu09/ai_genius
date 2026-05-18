@@ -2,7 +2,7 @@ import { auth } from "@/backend/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/frontend/components/ui/button";
-import { Bot, ShoppingBag, Settings, LayoutDashboard, Search, Grid, CreditCard, Shield, Wallet, Package } from "lucide-react";
+import { Bot, ShoppingBag, Settings, LayoutDashboard, Search, Grid, CreditCard, Shield, Wallet, Package, Code, DollarSign, Activity, Banknote } from "lucide-react";
 import { SignOutButton } from "./dashboard/components/SignOutButton";
 import { OfflineBanner } from "@/frontend/components/shared/OfflineBanner";
 
@@ -38,11 +38,34 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <nav className="flex-1 space-y-1 p-4">
             {role === "admin" ? (
               <>
+                <div className="mb-3">
+                  <span className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Admin</span>
+                </div>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl bg-muted/50">
                   <Link href="/admin">
-                    <Shield className="h-4 w-4" /> Admin Dashboard
+                    <Shield className="h-4 w-4" /> Dashboard
                   </Link>
                 </Button>
+                <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
+                  <Link href="/admin/monitor">
+                    <Activity className="h-4 w-4" /> Live Monitor
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
+                  <Link href="/admin/revenue">
+                    <DollarSign className="h-4 w-4" /> Revenue
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
+                  <Link href="/admin/settlements">
+                    <Banknote className="h-4 w-4" /> Settlements
+                  </Link>
+                </Button>
+
+                <div className="my-4 border-t border-border" />
+                <div className="mb-3">
+                  <span className="px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Explore</span>
+                </div>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
                   <Link href="/dashboard/seller">
                     <LayoutDashboard className="h-4 w-4" /> Seller View
@@ -76,8 +99,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
                   </Link>
                 </Button>
                 <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
-                  <Link href="/dashboard/seller/tools">
-                    <Package className="h-4 w-4" /> My Tools
+                  <Link href="/dashboard/seller/developer">
+                    <Code className="h-4 w-4" /> Developer & API
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" className="w-full justify-start gap-3 rounded-xl">
+                  <Link href="/dashboard/seller/earnings">
+                    <DollarSign className="h-4 w-4" /> Earnings
                   </Link>
                 </Button>
 

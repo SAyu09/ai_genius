@@ -15,6 +15,13 @@
       "when": 1777973623323,
       "tag": "0001_ambiguous_mantis",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778868892687,
+      "tag": "0002_grey_avengers",
+      "breakpoints": true
     }
   ]
 }

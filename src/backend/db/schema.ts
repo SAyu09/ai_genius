@@ -8,6 +8,7 @@ import {
   primaryKey,
   real,
   uniqueIndex,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 
@@ -156,6 +157,8 @@ export const agents = pgTable("agents", {
     .references(() => users.id, { onDelete: "cascade" }),
 
   type: text("type", { enum: ["hosted", "workflow"] }).default("hosted").notNull(),
+  // v4 SDK: Agent type determines which platform UI to render
+  agentType: text("agent_type", { enum: ["chat", "form", "workflow"] }).default("chat").notNull(),
   slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
   tag: text("tag").notNull(),
@@ -170,11 +173,22 @@ export const agents = pgTable("agents", {
 
   // Private S3/R2 key to the ZIP/source-code bundle
   assetKey: text("asset_key").notNull(),
-  embedUrl: text("embed_url"), // URL for iframe embed
+  embedUrl: text("embed_url"), // URL for iframe embed (legacy, deprecated in v4)
+
+  // v4 SDK: Seller's registered endpoint for SDK communication
+  endpointUrl: text("endpoint_url"),           // HTTPS URL to seller's SDK handler
+  sdkSecretEncrypted: text("sdk_secret_encrypted"), // HMAC secret, AES-256 encrypted
+  sdkVersion: text("sdk_version"),              // e.g. '1.0.0' — for SDK compatibility checks
+  // v4 SDK: Agent UI configuration (input schema for form, starter message for chat, etc.)
+  agentConfig: jsonb("agent_config"),           // { inputSchema?, starterMessage?, inputPlaceholder?, outputLabel? }
+
   category: text("category"), // Category for marketplace
-  status: text("status", { enum: ["pending", "testing", "pending_review", "approved", "rejected_performance", "rejected_admin", "suspended"] }).default("approved").notNull(),
+  status: text("status", { enum: ["pending", "testing", "pending_review", "approved", "rejected_performance", "rejected_admin", "rejected_manual", "suspended"] }).default("approved").notNull(),
+  isFeatured: boolean("is_featured").default(false),
+  featureOrder: integer("feature_order"),
   approvedAt: timestamp("approved_at"),
   approvedBy: uuid("approved_by").references(() => users.id),
+  rejectedAt: timestamp("rejected_at"),
   rejectionReason: text("rejection_reason"),
 
   features: text("features").array(),
@@ -198,6 +212,7 @@ export const agents = pgTable("agents", {
   // Suspension
   suspendedAt: timestamp("suspended_at"),
   suspensionReason: text("suspension_reason"),
+  suspensionNote: text("suspension_note"),
 
   isApproved: boolean("is_approved").default(false).notNull(), // legacy, kept for compatibility
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -320,12 +335,17 @@ export const reviews = pgTable("reviews", {
   agentId: uuid("agent_id")
     .notNull()
     .references(() => agents.id, { onDelete: "cascade" }),
+  subscriptionId: uuid("subscription_id")
+    .references(() => subscriptions.id),
 
   stars: integer("stars").notNull(), // 1–5
   comment: text("comment"),
+  isVisible: boolean("is_visible").default(true),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => [
+  uniqueIndex("one_review_per_buyer_agent").on(table.buyerId, table.agentId)
+]);
 
 export const reviewsRelations = relations(reviews, ({ one }) => ({
   buyer: one(users, {
@@ -335,5 +355,79 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
   agent: one(agents, {
     fields: [reviews.agentId],
     references: [agents.id],
+  }),
+  subscription: one(subscriptions, {
+    fields: [reviews.subscriptionId],
+    references: [subscriptions.id],
+  }),
+}));
+
+// ─────────────────────────────────────────────────────────────
+// 7. MANAGED HOSTING — Docker + Coolify for sellers with weak infra
+// ─────────────────────────────────────────────────────────────
+export const managedHosting = pgTable("managed_hosting", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  sellerId: uuid("seller_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  agentId: uuid("agent_id")
+    .notNull()
+    .references(() => agents.id, { onDelete: "cascade" }),
+  tier: text("tier", { enum: ["basic", "pro", "enterprise"] }).notNull(),
+  dockerImage: text("docker_image").notNull(),
+  port: integer("port").default(3000).notNull(),
+  envVarsEncrypted: text("env_vars_encrypted"),
+  coolifyAppId: text("coolify_app_id"),
+  hostedUrl: text("hosted_url"),
+  status: text("status", { enum: ["provisioning", "active", "failed", "cancelled"] }).default("provisioning").notNull(),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  monthlyCostPaise: integer("monthly_cost_paise").notNull(),
+  provisionedAt: timestamp("provisioned_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const managedHostingRelations = relations(managedHosting, ({ one }) => ({
+  seller: one(users, {
+    fields: [managedHosting.sellerId],
+    references: [users.id],
+  }),
+  agent: one(agents, {
+    fields: [managedHosting.agentId],
+    references: [agents.id],
+  }),
+}));
+
+// ─────────────────────────────────────────────────────────────
+// 8. REFUNDS — Dispute and refund tracking
+// ─────────────────────────────────────────────────────────────
+export const refunds = pgTable("refunds", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  subscriptionId: uuid("subscription_id")
+    .references(() => subscriptions.id),
+  purchaseId: uuid("purchase_id")
+    .references(() => purchases.id),
+  adminId: uuid("admin_id")
+    .notNull()
+    .references(() => users.id),
+  amountPaise: integer("amount_paise").notNull(),
+  stripeRefundId: text("stripe_refund_id"),
+  reason: text("reason"),
+  decision: text("decision", { enum: ["approved", "partial", "rejected"] }).notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const refundsRelations = relations(refunds, ({ one }) => ({
+  subscription: one(subscriptions, {
+    fields: [refunds.subscriptionId],
+    references: [subscriptions.id],
+  }),
+  purchase: one(purchases, {
+    fields: [refunds.purchaseId],
+    references: [purchases.id],
+  }),
+  admin: one(users, {
+    fields: [refunds.adminId],
+    references: [users.id],
   }),
 }));

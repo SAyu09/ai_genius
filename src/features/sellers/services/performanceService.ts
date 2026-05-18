@@ -67,12 +67,10 @@ export async function runPerformanceTest(
   const pass = avgMs < 2000 && errorRate < 5;
 
   // Store results
-  let newStatus = pass ? "pending_review" : "rejected_performance";
-  
-  // Auto-approve in development to make testing easier
-  if (process.env.NODE_ENV === "development" && pass) {
-    newStatus = "approved";
-  }
+  const newStatus: "pending_review" | "rejected_performance" | "approved" = 
+    (process.env.NODE_ENV === "development" && pass) ? "approved" :
+    pass ? "pending_review" : "rejected_performance";
+
   await db
     .update(agents)
     .set({

@@ -1,296 +1,132 @@
 /**
- * AI Genius — Tool Proxy Worker
+ * AI Genius Agent Proxy Worker — v4 SDK Architecture
  *
- * This Cloudflare Worker sits between the platform iframe and the seller's tool.
- * It provides:
- * 1. Request proxying with origin validation
- * 2. Branding strip via HTMLRewriter (removes seller-specific meta tags)
- * 3. Response caching (static assets)
- * 4. Performance monitoring via Analytics Engine
- * 5. Auto-suspension when error rate exceeds threshold
+ * Role: Authenticate platform requests, rate-limit per user, check agent
+ * suspension, and forward signed requests to seller SDK endpoints.
+ *
+ * This worker NEVER serves HTML. It is a pure request proxy.
+ * Buyer browsers never call this worker directly — only the platform API route does.
  */
 
 interface Env {
+  PLATFORM_WORKER_SECRET: string;
   AGENT_STATUS: KVNamespace;
+  RATE_LIMIT: KVNamespace;
   PERF_ANALYTICS: AnalyticsEngineDataset;
-  PLATFORM_ORIGIN: string;
-  ALLOWED_ORIGINS: string;
 }
 
-// ─── Constants ───────────────────────────────────────────────
-const SUSPENSION_THRESHOLD = 0.15; // 15% error rate
-const SUSPENSION_WINDOW = 300; // 5 minutes
-const CACHE_TTL_STATIC = 3600; // 1 hour for static assets
-const MAINTENANCE_HTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tool Unavailable - AI Genius</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f8f9fa;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      color: #1a1a2e;
-    }
-    .container {
-      text-align: center;
-      padding: 3rem;
-      max-width: 480px;
-    }
-    .icon {
-      width: 64px;
-      height: 64px;
-      background: #e8e9f3;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 1.5rem;
-      font-size: 28px;
-    }
-    h1 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: 0.75rem;
-    }
-    p {
-      color: #6b7280;
-      line-height: 1.6;
-      margin-bottom: 2rem;
-    }
-    a {
-      display: inline-block;
-      padding: 0.75rem 2rem;
-      background: #4f46e5;
-      color: white;
-      text-decoration: none;
-      border-radius: 12px;
-      font-weight: 500;
-      transition: background 0.2s;
-    }
-    a:hover { background: #4338ca; }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 2rem;
-      font-size: 0.75rem;
-      color: #9ca3af;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="icon">🔧</div>
-    <h1>Tool Temporarily Unavailable</h1>
-    <p>This tool is experiencing issues and has been temporarily paused. Our team has been notified and the creator is working on a fix.</p>
-    <a href="PLATFORM_URL/marketplace">Explore Other Tools</a>
-    <div class="badge">
-      <span>Powered by</span>
-      <strong>AI Genius</strong>
-    </div>
-  </div>
-</body>
-</html>`;
-
-// ─── HTMLRewriter: Strip seller branding ─────────────────────
-class BrandingStripper implements HTMLRewriterElementContentHandlers {
-  element(element: Element) {
-    const name = element.getAttribute("name");
-    const property = element.getAttribute("property");
-
-    // Remove seller-specific meta tags
-    if (
-      name === "author" ||
-      name === "generator" ||
-      property === "og:site_name" ||
-      property === "og:title" ||
-      name === "twitter:site" ||
-      name === "twitter:creator"
-    ) {
-      element.remove();
-    }
-  }
+interface AgentContext {
+  userId: string;
+  agentId: string;
+  plan: string;
+  metadata: Record<string, string>;
 }
 
-class TitleRewriter implements HTMLRewriterElementContentHandlers {
-  element(element: Element) {
-    element.setInnerContent("AI Genius Tool");
-  }
-}
-
-// ─── Helpers ─────────────────────────────────────────────────
-function isStaticAsset(pathname: string): boolean {
-  return /\.(css|js|png|jpg|jpeg|gif|webp|svg|woff2?|ttf|eot|ico)(\?.*)?$/i.test(
-    pathname
-  );
-}
-
-function extractAgentId(url: URL): string | null {
-  // URL format: /proxy/{agentId}/...
-  const match = url.pathname.match(/^\/proxy\/([a-f0-9-]+)/i);
-  return match ? match[1] : null;
-}
-
-// ─── Main Worker ─────────────────────────────────────────────
 export default {
-  async fetch(
-    request: Request,
-    env: Env,
-    ctx: ExecutionContext
-  ): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    // Only POST requests
+    if (request.method !== 'POST') {
+      return new Response('Method not allowed', { status: 405 });
+    }
+
     const url = new URL(request.url);
-    const agentId = extractAgentId(url);
+    const agentId = url.pathname.split('/').pop() ?? '';
+    const forwardTo = request.headers.get('X-Forward-To');
 
-    if (!agentId) {
-      return new Response("Bad Request: Missing agent ID", { status: 400 });
-    }
-
-    // 1. Check if agent is suspended via KV
-    const suspendedUntil = await env.AGENT_STATUS.get(`suspended:${agentId}`);
-    if (suspendedUntil && Date.now() < parseInt(suspendedUntil)) {
-      const html = MAINTENANCE_HTML.replace(
-        "PLATFORM_URL",
-        env.PLATFORM_ORIGIN
+    if (!forwardTo) {
+      return Response.json(
+        { type: 'error', error: { code: 'BAD_REQUEST', message: 'Missing forward target' } },
+        { status: 400 }
       );
-      return new Response(html, {
-        status: 503,
-        headers: {
-          "Content-Type": "text/html;charset=UTF-8",
-          "Retry-After": "300",
-        },
-      });
     }
 
-    // 2. Resolve seller's embed URL from KV
-    const embedUrl = await env.AGENT_STATUS.get(`embed:${agentId}`);
-    if (!embedUrl) {
-      return new Response("Agent not found", { status: 404 });
+    // ── 1. Verify request came from OUR platform ──────────────────────
+    const platformSig = request.headers.get('X-Platform-Worker-Secret');
+    if (platformSig !== env.PLATFORM_WORKER_SECRET) {
+      return new Response('Unauthorized', { status: 401 });
     }
 
-    // 3. Proxy the request to the seller's origin
-    const targetUrl = new URL(
-      url.pathname.replace(`/proxy/${agentId}`, ""),
-      embedUrl
+    // ── 2. Agent suspension check (KV — O(1)) ────────────────────────
+    const isSuspended = await env.AGENT_STATUS.get(`agent:${agentId}:suspended`);
+    if (isSuspended) {
+      return Response.json(
+        { type: 'error', error: { code: 'SUSPENDED', message: 'This agent is temporarily unavailable.' } },
+        { status: 503 }
+      );
+    }
+
+    // ── 3. Rate limit per userId per agentId (60 req/min) ────────────
+    let userId = 'unknown';
+    try {
+      const payload = request.headers.get('X-AIGenius-Payload') ?? '';
+      const decoded = JSON.parse(atob(payload)) as AgentContext;
+      userId = decoded.userId;
+    } catch {
+      // If we can't decode, proceed without rate limiting
+    }
+
+    const rateLimitKey = `ratelimit:${userId}:${agentId}`;
+    const currentRequests = parseInt(await env.RATE_LIMIT.get(rateLimitKey) ?? '0');
+
+    if (currentRequests >= 60) {
+      return Response.json(
+        { type: 'error', error: { code: 'RATE_LIMITED', message: 'Too many requests. Slow down.' } },
+        { status: 429 }
+      );
+    }
+
+    // Increment rate limit counter (fire and forget)
+    ctx.waitUntil(
+      env.RATE_LIMIT.put(rateLimitKey, String(currentRequests + 1), { expirationTtl: 60 })
     );
-    targetUrl.search = url.search;
 
+    // ── 4. Build clean forwarded request ─────────────────────────────
+    const forwardHeaders = new Headers(request.headers);
+    forwardHeaders.delete('X-Forward-To');
+    forwardHeaders.delete('X-Platform-Worker-Secret');
+
+    // ── 5. Forward to seller's SDK endpoint ──────────────────────────
     const startTime = Date.now();
-    let response: Response;
-    let isError = false;
+    let sellerResponse: Response;
 
     try {
-      response = await fetch(targetUrl.toString(), {
-        method: request.method,
-        headers: request.headers,
-        body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
-        redirect: "follow",
+      sellerResponse = await fetch(forwardTo, {
+        method: 'POST',
+        headers: forwardHeaders,
+        body: request.body,
+        signal: AbortSignal.timeout(30_000),
       });
-
-      if (response.status >= 500) {
-        isError = true;
-      }
-    } catch (err) {
-      isError = true;
-      response = new Response("Upstream Error", { status: 502 });
+    } catch {
+      const elapsed = Date.now() - startTime;
+      // Log timeout
+      ctx.waitUntil(
+        env.PERF_ANALYTICS.writeDataPoint({
+          indexes: [agentId],
+          doubles: [elapsed],
+          blobs: ['timeout', userId],
+        })
+      );
+      return Response.json(
+        { type: 'error', error: { code: 'TIMEOUT', message: 'Agent took too long to respond.' } },
+        { status: 504 }
+      );
     }
 
-    const latencyMs = Date.now() - startTime;
-    if (latencyMs > 2000) {
-      isError = true; // Mark slow responses as errors for suspension tracking
-    }
-
-    // 4. Log performance metrics to Analytics Engine
+    // ── 6. Log performance ───────────────────────────────────────────
+    const elapsed = Date.now() - startTime;
     ctx.waitUntil(
-      (async () => {
-        try {
-          env.PERF_ANALYTICS.writeDataPoint({
-            blobs: [agentId, isError ? "error" : "ok"],
-            doubles: [latencyMs, response.status],
-            indexes: [agentId],
-          });
-
-          // Track rolling error rate in KV
-          const errorKey = `errors:${agentId}`;
-          const currentErrors = parseInt(
-            (await env.AGENT_STATUS.get(errorKey)) || "0"
-          );
-          const totalKey = `total:${agentId}`;
-          const currentTotal = parseInt(
-            (await env.AGENT_STATUS.get(totalKey)) || "0"
-          );
-
-          const newTotal = currentTotal + 1;
-          const newErrors = currentErrors + (isError ? 1 : 0);
-
-          await env.AGENT_STATUS.put(totalKey, String(newTotal), {
-            expirationTtl: SUSPENSION_WINDOW,
-          });
-          await env.AGENT_STATUS.put(errorKey, String(newErrors), {
-            expirationTtl: SUSPENSION_WINDOW,
-          });
-
-          // Auto-suspend if error rate exceeds threshold (min 10 requests)
-          if (newTotal >= 10) {
-            const errorRate = newErrors / newTotal;
-            if (errorRate > SUSPENSION_THRESHOLD) {
-              const suspendUntil = Date.now() + SUSPENSION_WINDOW * 1000;
-              await env.AGENT_STATUS.put(
-                `suspended:${agentId}`,
-                String(suspendUntil),
-                { expirationTtl: SUSPENSION_WINDOW }
-              );
-              console.log(
-                `[AUTO-SUSPEND] Agent ${agentId} suspended. Error rate: ${(errorRate * 100).toFixed(1)}%`
-              );
-            }
-          }
-        } catch (e) {
-          console.error("Perf logging error:", e);
-        }
-      })()
+      env.PERF_ANALYTICS.writeDataPoint({
+        indexes: [agentId],
+        doubles: [elapsed],
+        blobs: [String(sellerResponse.status), userId],
+      })
     );
 
-    // 5. Apply HTMLRewriter for HTML responses (strip seller branding)
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("text/html")) {
-      const transformed = new HTMLRewriter()
-        .on("meta", new BrandingStripper())
-        .on("title", new TitleRewriter())
-        .transform(response.clone());
-
-      // Add platform headers
-      const headers = new Headers(transformed.headers);
-      headers.set("X-Powered-By", "AI Genius");
-      headers.set("X-Frame-Options", "SAMEORIGIN");
-      headers.delete("X-Powered-By"); // Remove seller's
-      headers.set("X-AI-Genius-Agent", agentId);
-
-      return new Response(transformed.body, {
-        status: transformed.status,
-        headers,
-      });
-    }
-
-    // 6. Cache static assets
-    if (isStaticAsset(url.pathname) && response.ok) {
-      const headers = new Headers(response.headers);
-      headers.set(
-        "Cache-Control",
-        `public, max-age=${CACHE_TTL_STATIC}, immutable`
-      );
-      return new Response(response.body, {
-        status: response.status,
-        headers,
-      });
-    }
-
-    return response;
+    // ── 7. Return seller response ────────────────────────────────────
+    // Pass through SSE streams and JSON responses directly
+    return new Response(sellerResponse.body, {
+      status: sellerResponse.status,
+      headers: sellerResponse.headers,
+    });
   },
 };
