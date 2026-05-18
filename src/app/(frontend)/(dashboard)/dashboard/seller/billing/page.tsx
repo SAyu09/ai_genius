@@ -68,158 +68,153 @@ export default async function SellerBillingPage() {
   const formatCurrency = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 
   return (
-    <div className="p-6 lg:p-8 max-w-5xl">
-      <div className="mb-8">
-        <h1 className="font-display text-3xl font-bold">Billing & Payout</h1>
-        <p className="text-muted-foreground text-sm mt-1">Track your earnings and manage payout settings.</p>
+    <div className="p-6 lg:p-8 max-w-[1000px] mx-auto">
+      <div className="page-header mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Billing & Payout</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Track your earnings and manage payout settings.</p>
       </div>
 
-      {/* Bank Setup Banner */}
-      {settlementStatus === "pending_details" && (
-        <Card className="mb-8 rounded-3xl border-orange-500/20 bg-orange-500/5 shadow-sm p-6 lg:p-8">
-          <div className="flex flex-col md:flex-row gap-6 items-start justify-between">
-            <div className="flex-1">
-              <h2 className="font-display text-2xl font-bold mb-2">Setup Payouts</h2>
-              <p className="text-muted-foreground text-sm max-w-xl mb-6">
+      <div className="flex flex-col lg:flex-row gap-8 mb-10">
+        {/* Left Column (60%): Forms & Bank Info */}
+        <div className="flex-1 space-y-6">
+          {/* Bank Setup Banner */}
+          {settlementStatus === "pending_details" && (
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">Setup Payouts</h2>
+              <p className="text-sm text-gray-500 mb-6">
                 Provide your bank account details to receive weekly payouts. You&apos;ll receive 85% of every transaction.
               </p>
               <SettlementDetailsForm />
             </div>
-          </div>
-        </Card>
-      )}
+          )}
 
-      {settlementStatus === "pending_verification" && (
-        <Card className="mb-8 rounded-3xl border-blue-500/20 bg-blue-500/5 shadow-sm p-6">
-          <div className="flex items-center gap-4">
-            <div className="shrink-0 p-3 bg-blue-500/10 rounded-full text-blue-600">
-              <Clock className="h-6 w-6" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-blue-800">Verification Pending</h3>
-              <p className="text-blue-600/80 text-sm">Your bank details are being verified. This usually takes 1-2 business days.</p>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Revenue Cards */}
-      <div className="grid gap-4 sm:grid-cols-3 mb-10">
-        <Card className="rounded-2xl border-none bg-background shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Earned</CardTitle>
-            <div className="rounded-lg bg-green-500/10 p-2 text-green-600"><TrendingUp className="h-4 w-4" /></div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalRevenueCents)}</div>
-            <p className="text-xs text-green-600 font-medium mt-1">Lifetime earnings</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-2xl border-none bg-background shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pending Payout</CardTitle>
-            <div className="rounded-lg bg-yellow-500/10 p-2 text-yellow-600"><Wallet className="h-4 w-4" /></div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(pendingPayoutCents)}</div>
-            <p className="text-xs text-yellow-600 font-medium mt-1">Settles on 1st of month</p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-2xl border-none bg-background shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Platform Fee</CardTitle>
-            <div className="rounded-lg bg-muted p-2 text-muted-foreground"><CreditCard className="h-4 w-4" /></div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(platformFeeCents)}</div>
-            <p className="text-xs text-muted-foreground mt-1">15% platform commission</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Bank Details Status */}
-      {bankDetails && (
-        <Card className="rounded-2xl mb-8">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          {settlementStatus === "pending_verification" && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 shadow-sm">
               <div className="flex items-center gap-4">
-                <div className="rounded-xl bg-primary/10 p-3 text-primary">
-                  <BanknoteIcon className="h-5 w-5" />
+                <div className="shrink-0 p-2.5 bg-blue-100 rounded-full text-blue-600">
+                  <Clock className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Bank Account</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {bankDetails.bankName} · ****{bankDetails.accountNumberEncrypted.slice(-4)} · {bankDetails.accountType}
-                  </p>
+                  <h3 className="font-semibold text-blue-900">Verification Pending</h3>
+                  <p className="text-blue-700 text-sm">Your bank details are being verified. This usually takes 1-2 business days.</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {bankDetails.isVerified ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-500/10 px-3 py-1 rounded-full">
-                    <CheckCircle className="h-3 w-3" /> Verified
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-yellow-600 bg-yellow-500/10 px-3 py-1 rounded-full">
-                    <Clock className="h-3 w-3" /> Pending
-                  </span>
-                )}
+            </div>
+          )}
+
+          {/* Bank Details Status */}
+          {bankDetails && (
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-lg bg-primary-subtle p-3 text-primary">
+                    <BanknoteIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Bank Account</h3>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      {bankDetails.bankName} · ****{bankDetails.accountNumberEncrypted.slice(-4)} · {bankDetails.accountType}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {bankDetails.isVerified ? (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-100 px-3 py-1 rounded-full">
+                      <CheckCircle className="h-3.5 w-3.5" /> Verified
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-yellow-700 bg-yellow-100 px-3 py-1 rounded-full">
+                      <Clock className="h-3.5 w-3.5" /> Pending
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </div>
+
+        {/* Right Column (40%): Revenue Cards */}
+        <div className="lg:w-[340px] flex flex-col gap-4">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="rounded-md bg-green-100 p-1.5 text-green-600"><TrendingUp className="h-4 w-4" /></div>
+              <h3 className="text-sm font-semibold text-gray-700">Total Earned</h3>
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{formatCurrency(totalRevenueCents)}</div>
+            <p className="text-xs text-green-600 font-medium mt-1">Lifetime earnings</p>
+          </div>
+          
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="rounded-md bg-yellow-100 p-1.5 text-yellow-600"><Wallet className="h-4 w-4" /></div>
+              <h3 className="text-sm font-semibold text-gray-700">Pending Payout</h3>
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{formatCurrency(pendingPayoutCents)}</div>
+            <p className="text-xs text-yellow-600 font-medium mt-1">Settles on 1st of month</p>
+          </div>
+
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="rounded-md bg-gray-200 p-1.5 text-gray-600"><CreditCard className="h-4 w-4" /></div>
+              <h3 className="text-sm font-semibold text-gray-700">Platform Fee</h3>
+            </div>
+            <div className="text-2xl font-bold text-gray-900">{formatCurrency(platformFeeCents)}</div>
+            <p className="text-xs text-gray-500 mt-1">15% platform commission</p>
+          </div>
+        </div>
+      </div>
 
       {/* Settlement History */}
       <section>
-        <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
-          <Wallet className="h-5 w-5 text-primary" />
-          Settlement History
-        </h2>
+        <div className="flex items-center gap-2 mb-4">
+          <Wallet className="h-4 w-4 text-primary" />
+          <h2 className="text-lg font-semibold text-gray-900">Settlement History</h2>
+        </div>
         {settlements.length > 0 ? (
-          <div className="rounded-2xl border border-border overflow-hidden">
+          <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Period</th>
-                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Gross</th>
-                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Deductions</th>
-                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Net Payout</th>
-                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Status</th>
-                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Reference</th>
+                <tr className="border-b border-gray-200 bg-gray-50/50">
+                  <th className="text-left font-medium px-5 py-3 text-xs uppercase tracking-wider text-gray-500">Period</th>
+                  <th className="text-left font-medium px-5 py-3 text-xs uppercase tracking-wider text-gray-500">Gross</th>
+                  <th className="text-left font-medium px-5 py-3 text-xs uppercase tracking-wider text-gray-500">Deductions</th>
+                  <th className="text-left font-medium px-5 py-3 text-xs uppercase tracking-wider text-gray-500">Net Payout</th>
+                  <th className="text-left font-medium px-5 py-3 text-xs uppercase tracking-wider text-gray-500">Status</th>
+                  <th className="text-left font-medium px-5 py-3 text-xs uppercase tracking-wider text-gray-500">Reference</th>
                 </tr>
               </thead>
               <tbody>
                 {settlements.map((s) => (
-                  <tr key={s.id} className="border-b last:border-b-0 hover:bg-muted/20 transition">
-                    <td className="px-4 py-3 text-xs">
+                  <tr key={s.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors">
+                    <td className="px-5 py-3 text-sm text-gray-900">
                       {new Date(s.periodStart).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – {new Date(s.periodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </td>
-                    <td className="px-4 py-3 font-medium">{formatCurrency(s.grossPayoutPaise / 100)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatCurrency((s.tdsDeductedPaise + s.refundDeductionsPaise) / 100)}</td>
-                    <td className="px-4 py-3 font-semibold text-green-600">{formatCurrency(s.netPayoutPaise / 100)}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                        s.status === "completed" ? "bg-green-500/10 text-green-600" :
-                        s.status === "processing" ? "bg-blue-500/10 text-blue-600" :
-                        "bg-red-500/10 text-red-500"
+                    <td className="px-5 py-3 font-medium text-gray-900">{formatCurrency(s.grossPayoutPaise / 100)}</td>
+                    <td className="px-5 py-3 text-gray-500">{formatCurrency((s.tdsDeductedPaise + s.refundDeductionsPaise) / 100)}</td>
+                    <td className="px-5 py-3 font-semibold text-green-600">{formatCurrency(s.netPayoutPaise / 100)}</td>
+                    <td className="px-5 py-3">
+                      <span className={`inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                        s.status === "completed" ? "bg-green-100 text-green-700" :
+                        s.status === "processing" ? "bg-blue-100 text-blue-700" :
+                        "bg-red-100 text-red-700"
                       }`}>
-                        {s.status === "completed" ? <CheckCircle className="h-2.5 w-2.5" /> : <Clock className="h-2.5 w-2.5" />}
+                        {s.status === "completed" ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                         {s.status.charAt(0).toUpperCase() + s.status.slice(1)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{s.bankReferenceNumber || "—"}</td>
+                    <td className="px-5 py-3 text-sm text-gray-400 font-mono">{s.bankReferenceNumber || "—"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <Card className="rounded-2xl border-dashed bg-transparent">
-            <CardContent className="p-10 text-center">
-              <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">No settlements yet. Payouts begin after your first sale.</p>
-            </CardContent>
-          </Card>
+          <div className="bg-white border border-gray-200 rounded-xl py-12 flex items-center justify-center">
+            <div className="text-center">
+              <AlertCircle className="h-8 w-8 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm text-gray-500">No settlements yet. Payouts begin after your first sale.</p>
+            </div>
+          </div>
         )}
       </section>
     </div>

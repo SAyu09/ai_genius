@@ -1,6 +1,6 @@
 import { Button } from "@/frontend/components/ui/button";
 import Link from "next/link";
-import { BarChart3, Edit3 } from "lucide-react";
+import { BarChart2, Edit2 } from "lucide-react";
 
 export function ActionButtons({ agentId }: { agentId: string }) {
   return (
@@ -8,11 +8,11 @@ export function ActionButtons({ agentId }: { agentId: string }) {
       <Button 
         asChild
         size="sm" 
-        variant="outline" 
-        className="h-8 rounded-lg text-xs gap-2"
+        variant="ghost" 
+        className="w-full justify-start h-8 rounded-md text-sm gap-2 text-gray-700"
       >
         <Link href={`/dashboard/seller/listings/${agentId}/edit`}>
-          <Edit3 className="h-3 w-3" />
+          <Edit2 className="h-4 w-4 text-gray-500" />
           Edit
         </Link>
       </Button>
@@ -20,10 +20,10 @@ export function ActionButtons({ agentId }: { agentId: string }) {
         asChild
         size="sm" 
         variant="ghost" 
-        className="h-8 rounded-lg text-xs text-primary gap-2"
+        className="w-full justify-start h-8 rounded-md text-sm gap-2 text-gray-700"
       >
         <Link href={`/dashboard/seller/listings/${agentId}/stats`}>
-          <BarChart3 className="h-3 w-3" />
+          <BarChart2 className="h-4 w-4 text-gray-500" />
           View Stats
         </Link>
       </Button>

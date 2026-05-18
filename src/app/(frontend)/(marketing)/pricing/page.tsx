@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Pricing",
   description: "Simple pricing. Start free, scale as you grow.",
   openGraph: {
-    title: "Pricing, SellGetAI",
+    title: "Pricing, AI Genius",
     description: "Simple pricing. Start free, scale as you grow.",
   },
 };

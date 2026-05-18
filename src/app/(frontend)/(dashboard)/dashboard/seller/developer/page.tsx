@@ -32,10 +32,10 @@ export default async function DeveloperDocsPage() {
   }));
 
   return (
-    <div className="p-6 lg:p-12 space-y-12 max-w-4xl mx-auto">
-      <div className="text-center space-y-4">
-        <h1 className="font-display text-4xl font-bold">Developer & API</h1>
-        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+    <div className="p-6 lg:p-8 space-y-12 max-w-[900px] mx-auto">
+      <div className="page-header text-center space-y-3 mb-10">
+        <h1 className="text-3xl font-bold text-gray-900">Developer & API</h1>
+        <p className="text-base text-gray-500 max-w-2xl mx-auto">
           Manage your SDK credentials and integrate your backend with the AI Genius Marketplace.
         </p>
       </div>
@@ -43,48 +43,50 @@ export default async function DeveloperDocsPage() {
       {/* Primary Action Panel at the top */}
       <DeveloperCredentialsCard agents={serializedAgents} />
 
-      <div className="relative pt-8">
-        <div className="absolute left-8 top-0 bottom-0 w-px bg-border hidden md:block"></div>
+      <div className="relative pt-6">
+        <div className="absolute left-[27px] top-0 bottom-0 w-px bg-gray-200 hidden md:block z-0"></div>
         
-        <div className="space-y-12">
-          <div className="relative md:pl-20">
-            <div className="absolute left-[1.15rem] top-6 w-5 h-5 rounded-full bg-primary border-4 border-background hidden md:block z-10"></div>
-            <Card className="rounded-3xl border-none shadow-sm overflow-hidden bg-card/50 backdrop-blur-sm border border-border/50">
-              <div className="bg-primary/5 p-6 border-b border-border/50">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Terminal className="h-5 w-5 text-primary" />
+        <div className="space-y-8">
+          {/* Step 1 */}
+          <div className="relative md:pl-16">
+            <div className="absolute left-5 top-5 w-[14px] h-[14px] rounded-full bg-primary border-4 border-white hidden md:block z-10 box-content shadow-[0_0_0_1px_rgba(0,0,0,0.1)]"></div>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden relative z-1">
+              <div className="bg-gray-50 p-4 border-b border-gray-200">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Terminal className="h-5 w-5 text-gray-500" />
                   Step 1: Install the SDK
                 </h2>
               </div>
-              <CardContent className="p-6">
-                <p className="text-sm text-muted-foreground mb-4">
+              <div className="p-6">
+                <p className="text-sm text-gray-600 mb-4">
                   The easiest way to integrate with our platform is to use the official AI Genius SDK in your Node.js backend. 
                   This handles all the complex HMAC signature verification and streaming for you.
                 </p>
-                <div className="bg-[#0D1117] rounded-xl p-4 flex justify-between items-center relative overflow-hidden">
+                <div className="bg-slate-900 rounded-xl p-4 flex justify-between items-center relative overflow-hidden">
                   <code className="text-sm text-green-400 font-mono">npm install @aigenius/sdk</code>
-                  <div className="absolute right-4 text-[10px] text-gray-500 uppercase tracking-widest font-bold">Terminal</div>
+                  <div className="absolute right-4 text-[10px] text-slate-500 uppercase tracking-widest font-bold">Terminal</div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
-          <div className="relative md:pl-20">
-            <div className="absolute left-[1.15rem] top-6 w-5 h-5 rounded-full bg-primary border-4 border-background hidden md:block z-10"></div>
-            <Card className="rounded-3xl border-none shadow-sm overflow-hidden bg-card/50 backdrop-blur-sm border border-border/50">
-              <div className="bg-primary/5 p-6 border-b border-border/50">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <Server className="h-5 w-5 text-primary" />
+          {/* Step 2 */}
+          <div className="relative md:pl-16">
+            <div className="absolute left-5 top-5 w-[14px] h-[14px] rounded-full bg-primary border-4 border-white hidden md:block z-10 box-content shadow-[0_0_0_1px_rgba(0,0,0,0.1)]"></div>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden relative z-1">
+              <div className="bg-gray-50 p-4 border-b border-gray-200">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Server className="h-5 w-5 text-gray-500" />
                   Step 2: Create your Endpoint
                 </h2>
               </div>
-              <CardContent className="p-6">
-                <p className="text-sm text-muted-foreground mb-4">
+              <div className="p-6">
+                <p className="text-sm text-gray-600 mb-4">
                   Create a POST route on your server (this should match the <code>Endpoint URL</code> you entered when creating your listing). 
                   Import the SDK and use the <code>verify</code> middleware to authenticate requests.
                 </p>
                 
-                <div className="bg-[#0D1117] rounded-xl p-5 overflow-x-auto">
+                <div className="bg-slate-900 rounded-xl p-5 overflow-x-auto">
                   <pre className="text-[13px] text-gray-300 font-mono leading-relaxed">
 {`import { createAgent } from "@aigenius/sdk";
 
@@ -114,34 +116,35 @@ app.post("/api/ai-genius-webhook", async (req, res) => {
 });`}
                   </pre>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
-          <div className="relative md:pl-20">
-            <div className="absolute left-[1.15rem] top-6 w-5 h-5 rounded-full bg-primary border-4 border-background hidden md:block z-10"></div>
-            <Card className="rounded-3xl border-none shadow-sm overflow-hidden bg-card/50 backdrop-blur-sm border border-border/50">
-              <div className="bg-primary/5 p-6 border-b border-border/50">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-primary" />
+          {/* Step 3 */}
+          <div className="relative md:pl-16">
+            <div className="absolute left-5 top-5 w-[14px] h-[14px] rounded-full bg-primary border-4 border-white hidden md:block z-10 box-content shadow-[0_0_0_1px_rgba(0,0,0,0.1)]"></div>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden relative z-1">
+              <div className="bg-gray-50 p-4 border-b border-gray-200">
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-gray-500" />
                   Step 3: Security & Testing
                 </h2>
               </div>
-              <CardContent className="p-6">
-                <p className="text-sm text-muted-foreground mb-4">
+              <div className="p-6">
+                <p className="text-sm text-gray-600 mb-4">
                   When a buyer uses your agent on our marketplace, our Cloudflare worker intercepts the request, verifies the buyer's subscription, and forwards the request to your endpoint.
                 </p>
-                <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground mb-6">
+                <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600 mb-6">
                   <li>Every request is securely signed with an <code>x-aigenius-signature</code> header.</li>
                   <li>The payload contains a timestamp. Requests older than 5 minutes will automatically be rejected by the SDK to prevent replay attacks.</li>
-                  <li>You <strong>must</strong> keep your <code>AIGenius_SECRET</code> completely private. Never expose it in frontend code.</li>
+                  <li>You <strong className="font-semibold text-gray-900">must</strong> keep your <code>AIGenius_SECRET</code> completely private. Never expose it in frontend code.</li>
                 </ul>
                 
-                <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-700 text-sm">
-                  <strong>Important:</strong> Your endpoint must respond within 10 seconds, otherwise the platform will timeout the request and mark an error on your agent's performance score.
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
+                  <strong className="font-semibold">Important:</strong> Your endpoint must respond within 10 seconds, otherwise the platform will timeout the request and mark an error on your agent's performance score.
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </div>

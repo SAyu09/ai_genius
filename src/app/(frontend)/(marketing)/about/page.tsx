@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "About",
   description: "We're building the global marketplace for AI agents.",
   openGraph: {
-    title: "About, SellGetAI",
+    title: "About, AI Genius",
     description: "We're building the global marketplace for AI agents.",
   },
 };
@@ -47,13 +47,13 @@ export default function AboutPage() {
           </h1>
           <div className="mt-8 grid gap-6 text-base sm:text-lg text-foreground/85 lg:grid-cols-2">
             <p>
-              SellGetAI was born out of a simple frustration. The best AI agents were locked inside a few
-              big platforms. Independent builders had no way to reach buyers, and teams had no easy way
-              to discover the agents that actually work in production.
+              AI Genius was born out of a simple frustration. The best AI agents were locked inside a few
+              corporations or scattered across obscure GitHub repos. They were inaccessible to the people
+              who needed them most.
             </p>
-            <p>
-              We are changing that. SellGetAI is the worldwide marketplace where 80,000+ teams discover,
-              deploy and pay for AI agents, and where 4,000+ creators monetize their work. We handle
+            <p className="text-gray-500 leading-relaxed mt-4">
+              We are changing that. AI Genius is the worldwide marketplace where 80,000+ teams discover,
+              purchase, and instantly deploy intelligent automation, and where 4,000+ creators monetize their work. We handle
               billing, infra and global payouts so builders can focus on building.
             </p>
           </div>

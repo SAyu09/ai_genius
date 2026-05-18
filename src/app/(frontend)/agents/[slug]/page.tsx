@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: agent.name,
     description: agent.desc,
     openGraph: {
-      title: `${agent.name}, SellGetAI`,
+      title: `${agent.name}, AI Genius`,
       description: agent.desc,
     },
   };

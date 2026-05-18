@@ -116,7 +116,7 @@ export function Header() {
               <Sparkles className="h-4 w-4" />
             </span>
             <span className="font-semibold text-[17px] tracking-tight text-slate-900">
-              sellget<span className="text-blue-600">ai</span>
+              AI Genius
             </span>
           </Link>
 

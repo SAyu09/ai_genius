@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/frontend/components/ui/button";
 import { Input } from "@/frontend/components/ui/input";
 import { Textarea } from "@/frontend/components/ui/textarea";
 import { Label } from "@/frontend/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/frontend/components/ui/card";
-import { ArrowLeft, Bot, CheckCircle, Workflow, MessageSquare, FormInput, ExternalLink, AlertCircle, Key, Copy } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, Bot, CheckCircle, CheckCircle2, Workflow, MessageSquare, LayoutTemplate, ExternalLink, AlertCircle, Key, Copy, Info } from "lucide-react";
 
 type AgentType = "chat" | "form" | "workflow";
 
@@ -106,12 +106,12 @@ export default function ListAgentPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
-        <Card className="max-w-md w-full text-center rounded-3xl border-none shadow-xl min-h-[400px] flex flex-col items-center justify-center p-8">
-          <div className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 mb-6 mx-auto">
-            <CheckCircle className="h-10 w-10" />
+      <div className="flex min-h-screen items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white border border-border rounded-xl shadow-sm text-center flex flex-col items-center justify-center p-8">
+          <div className="h-16 w-16 rounded-full bg-green-50 flex items-center justify-center text-green-600 mb-6 mx-auto">
+            <CheckCircle className="h-8 w-8" />
           </div>
-          <h2 className="text-2xl font-bold font-display mb-2">Listing Created!</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Listing Created!</h2>
           <p className="text-muted-foreground text-sm mb-6">
             Your listing has been successfully created and submitted for review.
           </p>
@@ -138,30 +138,30 @@ export default function ListAgentPage() {
           )}
 
           <div className="flex flex-col gap-3 w-full mt-2">
-            <Button onClick={() => router.push("/dashboard/seller/listings")} className="w-full rounded-xl h-12" size="lg">
+            <Button onClick={() => router.push("/dashboard/seller/listings")} className="w-full h-10" size="lg">
               View My Listings
             </Button>
             {agentType !== "workflow" && (
-              <Button variant="outline" onClick={() => router.push("/dashboard/seller/developer")} className="w-full rounded-xl h-12" size="lg">
-                Go to Developer Integration Docs
+              <Button variant="outline" onClick={() => router.push("/dashboard/seller/developer")} className="w-full h-10" size="lg">
+                Integration Docs
               </Button>
             )}
           </div>
-        </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 p-6 lg:p-12">
-      <div className="mx-auto w-full max-w-4xl">
-        <Link href="/dashboard/seller/listings" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition">
+    <div className="min-h-screen p-6 lg:p-8">
+      <div className="mx-auto w-full max-w-[760px]">
+        <Link href="/dashboard/seller/listings" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition">
           <ArrowLeft className="h-4 w-4" /> Back to Listings
         </Link>
         
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold sm:text-4xl">List a New Agent</h1>
-          <p className="text-muted-foreground mt-2">Publish your AI agent to thousands of buyers worldwide.</p>
+          <h1 className="text-2xl font-bold text-gray-900">List a New Agent</h1>
+          <p className="text-sm text-gray-500 mt-1">Publish your AI agent to thousands of buyers worldwide.</p>
         </div>
 
         {/* Agent Type Selector */}
@@ -169,166 +169,210 @@ export default function ListAgentPage() {
           <button
             type="button"
             onClick={() => { setAgentType("chat"); setError(""); }}
-            className={`flex flex-col items-start gap-2 p-5 rounded-3xl border-2 text-left transition-all ${
+            className={`relative flex flex-col items-start p-5 rounded-xl text-left transition-all duration-200 ${
               agentType === "chat" 
-                ? "border-primary bg-primary/5 shadow-sm" 
-                : "border-border bg-card hover:border-primary/30"
+                ? "border-2 border-primary bg-primary-subtle" 
+                : "border border-border bg-white hover:border-gray-300 hover:bg-gray-50 hover:shadow-xs cursor-pointer"
             }`}
           >
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${agentType === "chat" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+            {agentType === "chat" && <CheckCircle2 className="absolute top-4 right-4 h-4 w-4 text-primary" />}
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${agentType === "chat" ? "bg-primary text-white" : "bg-gray-100 text-gray-500"}`}>
               <MessageSquare className="h-5 w-5" />
             </div>
-            <div>
-              <h3 className="font-bold font-display text-sm">Chat Agent</h3>
-              <p className="text-[11px] text-muted-foreground mt-1 leading-snug">Streaming chatbot using your backend API.</p>
-            </div>
+            <h3 className={`font-semibold text-base mt-3 ${agentType === "chat" ? "text-primary" : "text-gray-800"}`}>Chat Agent</h3>
+            <p className="text-sm text-gray-500 mt-1 leading-snug">Streaming chatbot using your backend API.</p>
           </button>
 
           <button
             type="button"
             onClick={() => { setAgentType("form"); setError(""); }}
-            className={`flex flex-col items-start gap-2 p-5 rounded-3xl border-2 text-left transition-all ${
+            className={`relative flex flex-col items-start p-5 rounded-xl text-left transition-all duration-200 ${
               agentType === "form" 
-                ? "border-primary bg-primary/5 shadow-sm" 
-                : "border-border bg-card hover:border-primary/30"
+                ? "border-2 border-primary bg-primary-subtle" 
+                : "border border-border bg-white hover:border-gray-300 hover:bg-gray-50 hover:shadow-xs cursor-pointer"
             }`}
           >
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${agentType === "form" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-              <FormInput className="h-5 w-5" />
+            {agentType === "form" && <CheckCircle2 className="absolute top-4 right-4 h-4 w-4 text-primary" />}
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${agentType === "form" ? "bg-primary text-white" : "bg-gray-100 text-gray-500"}`}>
+              <LayoutTemplate className="h-5 w-5" />
             </div>
-            <div>
-              <h3 className="font-bold font-display text-sm">Form / Tool</h3>
-              <p className="text-[11px] text-muted-foreground mt-1 leading-snug">Data-processing tools with schema-based inputs.</p>
-            </div>
+            <h3 className={`font-semibold text-base mt-3 ${agentType === "form" ? "text-primary" : "text-gray-800"}`}>Form / Tool</h3>
+            <p className="text-sm text-gray-500 mt-1 leading-snug">Data-processing tools with schema-based inputs.</p>
           </button>
           
           <button
             type="button"
             onClick={() => { setAgentType("workflow"); setError(""); }}
-            className={`flex flex-col items-start gap-2 p-5 rounded-3xl border-2 text-left transition-all ${
+            className={`relative flex flex-col items-start p-5 rounded-xl text-left transition-all duration-200 ${
               agentType === "workflow" 
-                ? "border-primary bg-primary/5 shadow-sm" 
-                : "border-border bg-card hover:border-primary/30"
+                ? "border-2 border-primary bg-primary-subtle" 
+                : "border border-border bg-white hover:border-gray-300 hover:bg-gray-50 hover:shadow-xs cursor-pointer"
             }`}
           >
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${agentType === "workflow" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+            {agentType === "workflow" && <CheckCircle2 className="absolute top-4 right-4 h-4 w-4 text-primary" />}
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${agentType === "workflow" ? "bg-primary text-white" : "bg-gray-100 text-gray-500"}`}>
               <Workflow className="h-5 w-5" />
             </div>
-            <div>
-              <h3 className="font-bold font-display text-sm">n8n Workflow</h3>
-              <p className="text-[11px] text-muted-foreground mt-1 leading-snug">Upload n8n workflow. We handle hosting.</p>
-            </div>
+            <h3 className={`font-semibold text-base mt-3 ${agentType === "workflow" ? "text-primary" : "text-gray-800"}`}>n8n Workflow</h3>
+            <p className="text-sm text-gray-500 mt-1 leading-snug">Upload n8n workflow. We handle hosting.</p>
           </button>
         </div>
 
-        <Card className="rounded-3xl border-none shadow-sm">
-          <CardHeader className="bg-primary/5 border-b pb-6 px-8 rounded-t-3xl flex flex-row items-center justify-between">
-            <div className="flex items-center gap-4">
-               <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground">
-                 <Bot className="h-6 w-6" />
-               </div>
-               <div>
-                 <CardTitle>Agent Configuration</CardTitle>
-                 <CardDescription>Setup your agent and provide clear details for buyers.</CardDescription>
-               </div>
-            </div>
-            <Link href="/docs/sdk-integration" target="_blank" className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline bg-primary/10 px-3 py-1.5 rounded-full">
-              <ExternalLink className="h-3 w-3" /> Integration Docs
-            </Link>
-          </CardHeader>
-          <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {error && <div className="p-4 bg-destructive/10 text-destructive border border-destructive/20 rounded-xl text-sm font-medium flex items-center gap-3"><AlertCircle className="h-5 w-5 shrink-0" /> {error}</div>}
-              
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Agent Name <span className="text-destructive">*</span></Label>
-                  <Input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Apollo Sales Bot" className="h-12 rounded-xl" />
+        <form onSubmit={handleSubmit}>
+          {error && <div className="mb-6 p-4 bg-destructive/10 text-destructive border border-destructive/20 rounded-xl text-sm font-medium flex items-center gap-3"><AlertCircle className="h-5 w-5 shrink-0" /> {error}</div>}
+          
+          {/* SECTION 1: Agent Configuration */}
+          <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-primary-subtle flex items-center justify-center">
+                  <Bot className="h-4 w-4 text-primary" />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="tag">Tag <span className="text-destructive">*</span></Label>
-                  <Input id="tag" required value={form.tag} onChange={(e) => setForm({ ...form, tag: e.target.value })} placeholder="e.g. Sales, Marketing, Code" className="h-12 rounded-xl" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category <span className="text-destructive">*</span></Label>
-                  <select
-                    id="category"
-                    required
-                    value={form.category}
-                    onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    className="flex h-12 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <option value="" disabled>Select a category</option>
-                    <option value="productivity">Productivity</option>
-                    <option value="sales">Sales & Support</option>
-                    <option value="development">Development</option>
-                    <option value="content">Content Creation</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price">Monthly Price (USD) <span className="text-destructive">*</span></Label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-3.5 text-muted-foreground">$</span>
-                    <Input id="price" type="number" step="0.01" min="1" required value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="49.00" className="h-12 rounded-xl pl-8" />
-                  </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">Agent Configuration</h2>
+                  <p className="text-sm text-gray-500">Setup your agent and provide clear details for buyers.</p>
                 </div>
               </div>
-
               {agentType !== "workflow" && (
-                <div className="space-y-2 bg-muted/30 p-5 rounded-2xl border border-border">
-                  <Label htmlFor="endpointUrl" className="flex items-center justify-between">
-                    <span>Backend SDK Endpoint URL <span className="text-destructive">*</span></span>
-                  </Label>
-                  <p className="text-[11px] text-muted-foreground mb-3">
-                    The URL on your server where our platform will securely route requests to your agent. Your backend must implement the <code>@aigenius/sdk</code> to handle HMAC verification.
-                  </p>
-                  <Input id="endpointUrl" type="url" required value={form.endpointUrl} onChange={(e) => setForm({ ...form, endpointUrl: e.target.value })} placeholder="https://api.yourdomain.com/webhook/ai-genius" className="h-12 rounded-xl" />
-                </div>
+                <Link href="/dashboard/seller/developer" target="_blank" className="flex items-center gap-1.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-md px-3 py-1.5 hover:bg-gray-50 transition-colors">
+                  <ExternalLink className="h-3 w-3 text-gray-500" /> Integration Docs
+                </Link>
               )}
-
-              {agentType === "workflow" && (
-                <div className="space-y-2">
-                  <Label htmlFor="workflowJson">n8n Workflow JSON <span className="text-destructive">*</span></Label>
-                  <Textarea id="workflowJson" required value={form.workflowJson} onChange={(e) => setForm({ ...form, workflowJson: e.target.value })} placeholder="Paste your exported n8n workflow JSON here..." className="min-h-[120px] rounded-xl resize-none p-4 font-mono text-xs" />
+            </div>
+            <div className="border-t border-gray-100 my-4" />
+            
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="name">Agent Name <span className="text-destructive">*</span></Label>
+                <Input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Apollo Sales Bot" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tag">Tag <span className="text-destructive">*</span></Label>
+                <Input id="tag" required value={form.tag} onChange={(e) => setForm({ ...form, tag: e.target.value })} placeholder="e.g. Sales, Marketing, Code" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">Category <span className="text-destructive">*</span></Label>
+                <select
+                  id="category"
+                  required
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/15 focus-visible:border-primary"
+                >
+                  <option value="" disabled>Select a category</option>
+                  <option value="productivity">Productivity</option>
+                  <option value="sales">Sales & Support</option>
+                  <option value="development">Development</option>
+                  <option value="content">Content Creation</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="price">Monthly Price (USD) <span className="text-destructive">*</span></Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                  <Input id="price" type="number" step="0.01" min="1" required value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="49.00" className="pl-7" />
                 </div>
-              )}
+              </div>
+            </div>
+          </div>
 
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="description">Short Description (Punchline) <span className="text-destructive">*</span></Label>
-                  <Input id="description" required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="A one-sentence pitch for your agent." className="h-12 rounded-xl" />
+          {/* SECTION 2: Integration */}
+          {agentType !== "workflow" && (
+            <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-8 w-8 rounded-lg bg-primary-subtle flex items-center justify-center">
+                  <Key className="h-4 w-4 text-primary" />
                 </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">Integration</h2>
+                  <p className="text-sm text-gray-500">Configure connection to your backend server.</p>
+                </div>
+              </div>
+              <div className="border-t border-gray-100 my-4" />
+              
+              <div className="space-y-3">
+                <Label htmlFor="endpointUrl">Backend SDK Endpoint URL <span className="text-destructive">*</span></Label>
+                <Input id="endpointUrl" type="url" required value={form.endpointUrl} onChange={(e) => setForm({ ...form, endpointUrl: e.target.value })} placeholder="https://api.yourdomain.com/webhook/ai-genius" />
                 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="longDesc">Detailed Description <span className="text-destructive">*</span></Label>
-                    <span className={`text-xs font-semibold ${wordCount < minWords ? "text-destructive" : "text-green-600"}`}>
-                      {wordCount} / {minWords} words minimum
-                    </span>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2 mt-3">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm text-blue-900 font-medium">Your backend must implement @aigenius/sdk for HMAC verification</p>
+                    <Link href="/dashboard/seller/developer" className="text-sm text-blue-600 hover:underline mt-0.5 inline-block font-medium">
+                      View Integration Docs →
+                    </Link>
                   </div>
-                  <p className="text-[11px] text-muted-foreground mb-3">
-                    Provide a highly professional, detailed description of your agent. Explain the core features, the problem it solves, use-cases, and any setup requirements for the buyer. This ensures quality across the marketplace.
-                  </p>
-                  <Textarea 
-                    id="longDesc" 
-                    required 
-                    value={form.longDesc} 
-                    onChange={(e) => setForm({ ...form, longDesc: e.target.value })} 
-                    placeholder="Write a comprehensive guide and pitch for your agent..." 
-                    className={`min-h-[200px] rounded-xl p-4 ${wordCount > 0 && wordCount < minWords ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                  />
                 </div>
               </div>
+            </div>
+          )}
 
-              <div className="pt-6 border-t flex justify-end gap-3">
-                <Button type="button" variant="ghost" className="rounded-xl h-12 px-6" onClick={() => router.push("/dashboard/seller/listings")}>Cancel</Button>
-                <Button type="submit" disabled={loading} className="rounded-xl h-12 px-8 shadow-lg">
-                  {loading ? "Saving..." : "Create Listing"}
-                </Button>
+          {/* SECTION 3: Description & Media */}
+          {agentType === "workflow" && (
+            <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4 shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-8 w-8 rounded-lg bg-primary-subtle flex items-center justify-center">
+                  <Workflow className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900">Workflow JSON</h2>
+                  <p className="text-sm text-gray-500">Provide the exported n8n workflow.</p>
+                </div>
               </div>
-            </form>
-          </CardContent>
-        </Card>
+              <div className="border-t border-gray-100 my-4" />
+              <div className="space-y-2">
+                <Label htmlFor="workflowJson">n8n Workflow JSON <span className="text-destructive">*</span></Label>
+                <Textarea id="workflowJson" required value={form.workflowJson} onChange={(e) => setForm({ ...form, workflowJson: e.target.value })} placeholder="Paste your exported n8n workflow JSON here..." className="min-h-[120px] resize-none font-mono text-xs" />
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-8 w-8 rounded-lg bg-primary-subtle flex items-center justify-center">
+                <MessageSquare className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Description & Media</h2>
+                <p className="text-sm text-gray-500">How your agent will appear in the marketplace.</p>
+              </div>
+            </div>
+            <div className="border-t border-gray-100 my-4" />
+            
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="description">Short Description (Punchline) <span className="text-destructive">*</span></Label>
+                <Input id="description" required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="A one-sentence pitch for your agent." />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="longDesc">Detailed Description <span className="text-destructive">*</span></Label>
+                  <span className={`text-xs font-semibold ${wordCount < minWords ? "text-destructive" : "text-green-600"}`}>
+                    {wordCount} / {minWords} words minimum
+                  </span>
+                </div>
+                <Textarea 
+                  id="longDesc" 
+                  required 
+                  value={form.longDesc} 
+                  onChange={(e) => setForm({ ...form, longDesc: e.target.value })} 
+                  placeholder="Write a comprehensive guide and pitch for your agent..." 
+                  className={`min-h-[200px] ${wordCount > 0 && wordCount < minWords ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-6 flex flex-col items-end">
+            <Button type="submit" size="xl" disabled={loading} className="w-full sm:w-auto min-w-[200px]">
+              {loading ? "Publishing..." : "Publish Agent →"}
+            </Button>
+            <p className="text-xs text-gray-400 text-center sm:text-right mt-3 w-full sm:w-auto">
+              Your agent will be reviewed within 1–2 business days
+            </p>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -220,8 +220,7 @@ function AuthContent() {
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* ── LEFT: Showcase Panel ── */}
       <div
-        className="relative hidden overflow-hidden lg:block"
-        style={{ background: "var(--gradient-primary)" }}
+        className="relative hidden overflow-hidden lg:block bg-gradient-to-br from-blue-950 via-slate-900 to-slate-950"
       >
         {/* Glow effects */}
         <div
@@ -251,7 +250,7 @@ function AuthContent() {
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/20 backdrop-blur">
               <Sparkles className="h-4 w-4" />
             </span>
-            <span className="font-semibold tracking-tight">sellgetai</span>
+            <span className="font-semibold tracking-tight">AI Genius</span>
           </Link>
 
           {/* Floating agent cards */}
@@ -310,7 +309,7 @@ function AuthContent() {
             <Sparkles className="h-4 w-4" />
           </span>
             <span className="font-semibold tracking-tight">
-            sellget<span className="text-gradient">ai</span>
+            AI Genius
           </span>
         </Link>
 
@@ -632,7 +631,7 @@ function AuthContent() {
 
         {/* Footer */}
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} SellGetAI</p>
+          <p>© {new Date().getFullYear()} AI Genius</p>
           <p>
             By continuing you agree to our{" "}
             <Link href="/terms" className="underline underline-offset-2 hover:text-foreground">

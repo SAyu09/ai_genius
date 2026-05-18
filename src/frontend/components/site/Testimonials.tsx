@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 const items = [
   { name: "Priya R.", role: "Head of GTM, Northwind", quote: "We replaced an outsourced SDR team with Atlas. Booked meetings doubled in 6 weeks.", rating: 5, avatar: "https://i.pravatar.cc/150?u=a042581f4e29026024d" },
-  { name: "Marco D.", role: "Founder, Halcyon", quote: "Listing our ops agent on SellGetAI brought in $40k MRR in the first quarter.", rating: 5, avatar: "https://i.pravatar.cc/150?u=a04258a2462d826712d" },
+  { name: "Marco D.", role: "Founder, Halcyon", quote: "Listing our ops agent on AI Genius brought in $40k MRR in the first quarter.", rating: 5, avatar: "https://i.pravatar.cc/150?u=a04258a2462d826712d" },
   { name: "Yuki T.", role: "CX Lead, Lumen", quote: "Helio handles 72% of our tickets without escalation. Game changer for off-hours.", rating: 5, avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d" },
   { name: "Sara K.", role: "Editor, Inkstone", quote: "Quill writes in our voice better than half our junior staff. Genuinely scary.", rating: 5, avatar: "https://i.pravatar.cc/150?u=a048581f4e29026701d" },
 ];

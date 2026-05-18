@@ -19,17 +19,17 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Sell on SellGetAI, Monetize your AI agents",
+  title: "Sell on AI Genius, Monetize your AI agents",
   description: "List your AI agent on the world's largest agent marketplace. Keep 85% of every sale.",
   openGraph: {
-    title: "Sell on SellGetAI",
+    title: "Sell on AI Genius",
     description: "List once. Reach 80,000+ teams worldwide.",
   },
 };
 
 const benefits = [
   { icon: DollarSign, t: "Keep 85%", d: "Industry leading payout. We take a flat 15% to cover infra and distribution." },
-  { icon: Globe, t: "Global reach", d: "80,000+ teams in 140+ countries discover agents on SellGetAI weekly." },
+  { icon: Globe, t: "Global reach", d: "80,000+ teams in 140+ countries discover agents on AI Genius weekly." },
   { icon: ShieldCheck, t: "We handle billing", d: "Subscriptions, invoicing, taxes and chargebacks, all on us." },
   { icon: Sparkles, t: "Built in growth", d: "Featured placements, category boosts and homepage spotlights." },
 ];
@@ -96,7 +96,7 @@ const requirements = [
 ];
 
 const faqs = [
-  { q: "How much does it cost to list?", a: "Listing is free. We only earn when you earn. SellGetAI takes a flat 15% of every sale to cover billing, hosting, distribution and support." },
+  { q: "How much does it cost to list?", a: "Listing is free. We only earn when you earn. AI Genius takes a flat 15% of every sale to cover billing, hosting, distribution and support." },
   { q: "Do I need to host my agent?", a: "No. You can host your own endpoint or deploy directly to our managed runtime with auto scaling, logs and per request billing baked in." },
   { q: "Which pricing models are supported?", a: "Monthly subscriptions, annual plans, usage based pricing, one time purchases, free trials and discount codes." },
   { q: "When and how do I get paid?", a: "Payouts settle on the 1st of every month for the prior month's earnings. Choose bank transfer, Wise, Stripe Connect or crypto." },
@@ -116,7 +116,7 @@ export default function SellPage() {
               Turn your AI agent into <span className="text-gradient italic">global revenue.</span>
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base sm:text-lg text-muted-foreground">
-              List once, sell everywhere. SellGetAI handles billing, distribution, infra and payouts in 60+ currencies, so you can focus on building.
+              List once, sell everywhere. AI Genius handles billing, distribution, infra and payouts in 60+ currencies, so you can focus on building.
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-3">
               <Link href="/auth?tab=register"><Button size="lg" className="rounded-full">Become a seller</Button></Link>
@@ -147,7 +147,7 @@ export default function SellPage() {
               <p className="text-xs uppercase tracking-widest text-muted-foreground">The full process</p>
               <h2 className="mt-2 font-display text-3xl sm:text-5xl">From idea to first payout, step by step.</h2>
               <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-                Every successful seller on SellGetAI follows the same simple flow. Here is exactly what to expect.
+                Every successful seller on AI Genius follows the same simple flow. Here is exactly what to expect.
               </p>
             </div>
 

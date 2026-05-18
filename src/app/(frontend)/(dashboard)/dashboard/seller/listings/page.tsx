@@ -4,7 +4,7 @@ import { agents, purchases, users } from "@/backend/db/schema";
 import { eq, inArray, desc } from "drizzle-orm";
 import { Button } from "@/frontend/components/ui/button";
 import { Card, CardContent } from "@/frontend/components/ui/card";
-import { Bot, Package, TrendingUp, Globe, Workflow, Plus, Users, Clock, CheckCircle, XCircle, MessageSquare, FormInput } from "lucide-react";
+import { Bot, Package, TrendingUp, Globe, Workflow, Plus, Users, Clock, CheckCircle, XCircle, MessageSquare, FormInput, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
@@ -72,18 +72,20 @@ export default async function SellerListingsPage() {
   });
 
   return (
-    <div className="p-6 lg:p-8 space-y-8">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="page-header flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold">My Listings</h1>
-          <p className="text-muted-foreground text-sm mt-1">Manage your agents and track transaction performance.</p>
+          <h1 className="text-2xl font-bold text-gray-900">My Listings</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Manage your agents and track transaction performance.</p>
         </div>
-        <Button asChild className="rounded-xl gap-2 shadow-lg shadow-primary/20 self-start sm:self-auto">
-          <Link href="/dashboard/list-agent">
-            <Plus className="h-4 w-4" /> Create Listing
-          </Link>
-        </Button>
+        <div className="header-actions">
+          <Button asChild size="md" className="gap-2">
+            <Link href="/dashboard/list-agent">
+              <Plus className="h-4 w-4" /> Create Listing
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Agents list */}
@@ -97,113 +99,113 @@ export default async function SellerListingsPage() {
             const revenue = agentRevenue.get(agent.id) || 0;
 
             return (
-              <Card key={agent.id} className="rounded-2xl border shadow-sm overflow-hidden p-0">
-                <div className="flex flex-col md:flex-row">
-                  {/* Left: Agent info */}
-                  <div className="flex-1 p-5 flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                      <Bot className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h3 className="font-semibold text-lg truncate">{agent.name}</h3>
-                        {/* Type badge */}
-                        <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold ${typeCfg.className}`}>
-                          <TypeIcon className="h-2.5 w-2.5" />
-                          {typeCfg.label}
-                        </span>
-                        {/* Status badge */}
-                        <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold border ${statusCfg.className}`}>
-                          <StatusIcon className="h-2.5 w-2.5" />
-                          {statusCfg.label}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground line-clamp-1 mb-4">{agent.description}</p>
-
-                      {/* Stats & Integrations row */}
-                      <div className="flex flex-wrap items-center gap-4 text-xs">
-                        <div className="flex items-center gap-4 text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Users className="h-3.5 w-3.5" /> {agent.subscriberCount || 0} active
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <TrendingUp className="h-3.5 w-3.5" /> ${(revenue / 100).toFixed(2)} earned
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+              <div key={agent.id} className="flex flex-col md:flex-row items-center gap-4 bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-gray-300 transition-all duration-200">
+                {/* Left: Agent icon */}
+                <div className="h-12 w-12 rounded-xl bg-primary-subtle flex items-center justify-center shrink-0">
+                  <TypeIcon className="h-[22px] w-[22px] text-primary" />
+                </div>
+                
+                {/* Middle: Agent info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                    <h3 className="text-base font-semibold text-gray-900 truncate">{agent.name}</h3>
+                    <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">
+                      {typeCfg.label}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium ${statusCfg.className}`}>
+                      <StatusIcon className="h-3 w-3" />
+                      {statusCfg.label}
+                    </span>
                   </div>
+                  <p className="text-sm text-gray-500 line-clamp-1">{agent.description}</p>
 
-                  {/* Right: Actions */}
-                  <div className="flex md:flex-col items-center justify-end gap-2 p-4 md:p-5 md:border-l border-t md:border-t-0 border-border bg-muted/10 md:w-48 shrink-0">
-                    <ActionButtons agentId={agent.id} />
-                    {agent.status === "approved" && (
-                      <Button asChild size="sm" variant="ghost" className="h-8 rounded-lg text-xs w-full">
-                        <Link href={`/marketplace/${agent.id}`}>View Marketplace</Link>
-                      </Button>
-                    )}
+                  {/* Stats row */}
+                  <div className="flex flex-wrap items-center gap-4 mt-2">
+                    <span className="flex items-center gap-1.5 text-sm text-gray-500">
+                      <Users className="h-3.5 w-3.5 text-gray-400" /> {agent.subscriberCount || 0} active
+                    </span>
+                    <span className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
+                      <TrendingUp className="h-3.5 w-3.5 text-green-500" /> ${(revenue / 100).toFixed(2)} earned
+                    </span>
                   </div>
                 </div>
-              </Card>
+
+                {/* Right: Actions */}
+                <div className="flex flex-row md:flex-col items-center justify-end gap-1 shrink-0 mt-4 md:mt-0 w-full md:w-36">
+                  <ActionButtons agentId={agent.id} />
+                  {agent.status === "approved" && (
+                    <Button asChild size="sm" variant="ghost" className="w-full justify-start h-8 rounded-md text-sm gap-2 text-gray-700">
+                      <Link href={`/marketplace/${agent.id}`}>
+                        <ExternalLink className="h-4 w-4 text-gray-500" /> View Marketplace
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>
       ) : (
-        <Card className="rounded-3xl border-dashed border-2 bg-transparent shadow-none min-h-[400px] flex items-center justify-center">
-          <div className="text-center p-8">
-            <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-muted mb-6 opacity-50">
-              <Package className="h-8 w-8" />
-            </div>
-            <h3 className="text-xl font-bold font-display">No listings created yet</h3>
-            <p className="text-muted-foreground text-sm max-w-[300px] mx-auto mt-2">
-              Create your first agent listing to start accepting buyers.
+        <div className="bg-white border border-gray-200 rounded-xl py-16 flex items-center justify-center">
+          <div className="text-center">
+            <Bot className="h-12 w-12 text-gray-200 mx-auto mb-3" />
+            <h3 className="text-base font-semibold text-gray-500">No agents listed yet</h3>
+            <p className="text-sm text-gray-400 mt-1 max-w-[300px] mx-auto">
+              Create your first listing and start earning.
             </p>
-            <Button asChild className="mt-6 rounded-xl gap-2 shadow-lg shadow-primary/20">
+            <Button asChild size="md" className="mt-4 gap-2">
               <Link href="/dashboard/list-agent">
-                <Plus className="h-4 w-4" /> Create Listing
+                <Plus className="h-4 w-4" /> Create your first listing
               </Link>
             </Button>
           </div>
-        </Card>
+        </div>
       )}
 
-      {/* Transaction History (from old tools logic) */}
+      {/* Transaction History */}
       <section className="pt-4">
-        <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          Recent Transactions
-        </h2>
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="h-4 w-4 text-primary" />
+          <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
+        </div>
         {transactions.length > 0 ? (
-          <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Agent</th>
-                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Buyer</th>
-                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Amount</th>
-                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Your Payout</th>
-                  <th className="text-left font-semibold px-4 py-3 text-xs uppercase tracking-wider text-muted-foreground">Date</th>
+                <tr className="border-b border-gray-200 bg-gray-50/50">
+                  <th className="text-left font-medium px-5 py-3 text-xs uppercase tracking-wider text-gray-500">Agent</th>
+                  <th className="text-left font-medium px-5 py-3 text-xs uppercase tracking-wider text-gray-500">Buyer</th>
+                  <th className="text-left font-medium px-5 py-3 text-xs uppercase tracking-wider text-gray-500">Amount</th>
+                  <th className="text-left font-medium px-5 py-3 text-xs uppercase tracking-wider text-gray-500">Your Payout</th>
+                  <th className="text-left font-medium px-5 py-3 text-xs uppercase tracking-wider text-gray-500">Date</th>
                 </tr>
               </thead>
               <tbody>
                 {transactions.map(({ purchase, agent, buyer }) => (
-                  <tr key={purchase.id} className="border-b last:border-b-0 hover:bg-muted/10 transition">
-                    <td className="px-4 py-3 font-medium truncate max-w-[150px]">{agent.name}</td>
-                    <td className="px-4 py-3">
+                  <tr key={purchase.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors">
+                    <td className="px-5 py-3 font-medium text-gray-900 truncate max-w-[150px]">
                       <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold overflow-hidden flex-shrink-0">
+                        <div className="h-6 w-6 rounded-md bg-primary-subtle flex items-center justify-center shrink-0">
+                          <Bot className="h-3 w-3 text-primary" />
+                        </div>
+                        <span className="truncate">{agent.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600 overflow-hidden shrink-0">
                           {buyer.image ? (
                             <img src={buyer.image} alt="" className="h-full w-full object-cover" />
                           ) : (
                             (buyer.name || "U")[0].toUpperCase()
                           )}
                         </div>
-                        <span className="text-xs truncate max-w-[100px]">{buyer.name}</span>
+                        <span className="text-sm text-gray-700 truncate max-w-[100px]">{buyer.name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 font-medium">${(purchase.amountPaid / 100).toFixed(2)}</td>
-                    <td className="px-4 py-3 font-semibold text-green-600">${(purchase.sellerPayout / 100).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                    <td className="px-5 py-3 font-mono text-gray-700">${(purchase.amountPaid / 100).toFixed(2)}</td>
+                    <td className="px-5 py-3 font-mono font-semibold text-green-600">${(purchase.sellerPayout / 100).toFixed(2)}</td>
+                    <td className="px-5 py-3 text-sm text-gray-400">
                       {new Date(purchase.purchasedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </td>
                   </tr>
@@ -212,12 +214,12 @@ export default async function SellerListingsPage() {
             </table>
           </div>
         ) : (
-          <Card className="rounded-2xl border-dashed bg-transparent shadow-none">
-            <CardContent className="p-10 text-center">
-              <Package className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">No transactions yet. Sales will appear here as buyers subscribe.</p>
-            </CardContent>
-          </Card>
+          <div className="bg-white border border-gray-200 rounded-xl py-12 flex items-center justify-center">
+            <div className="text-center">
+              <Package className="h-8 w-8 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm text-gray-500">No transactions yet. Sales will appear here as buyers subscribe.</p>
+            </div>
+          </div>
         )}
       </section>
     </div>
