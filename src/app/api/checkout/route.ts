@@ -154,8 +154,17 @@ export const POST = withAuth(async ({ userId, req }) => {
 
     // 5. Create session using Stripe UI Mode Helpers
     const idempotencyKey = `checkout:${userId}:${agentId}:${planType}:${Date.now()}`;
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
     const uiParams = getCheckoutParams(checkoutMode, baseUrl);
+
+    const safeMetadata = {
+      buyerId: userId,
+      agentId: agentId,
+      sellerId: agent.sellerId || "system",
+      planType: planType || "monthly",
+      pricingModel: agent.pricingModel || "one_time",
+      platform: 'aigenius'
+    };
 
     const sessionParams: any = {
       ...uiParams,
@@ -164,17 +173,17 @@ export const POST = withAuth(async ({ userId, req }) => {
       line_items: [lineItemConfig],
       payment_method_types: getLocalizedPaymentMethods('usd'),
       expires_at: Math.floor(Date.now() / 1000) + 1800,
-      metadata: { buyerId: userId, agentId, sellerId: agent.sellerId, planType, pricingModel: agent.pricingModel, platform: 'aigenius' },
+      metadata: safeMetadata,
     };
 
     if (mode === "subscription") {
       sessionParams.subscription_data = {
         trial_period_days: planType === 'trial' ? 7 : undefined,
-        metadata: { buyerId: userId, agentId, sellerId: agent.sellerId, platform: 'aigenius' }
+        metadata: { buyerId: userId, agentId, sellerId: safeMetadata.sellerId, platform: 'aigenius' }
       };
     } else {
       sessionParams.payment_intent_data = {
-        metadata: { buyerId: userId, agentId, sellerId: agent.sellerId }
+        metadata: { buyerId: userId, agentId, sellerId: safeMetadata.sellerId }
       };
     }
 
@@ -190,10 +199,10 @@ export const POST = withAuth(async ({ userId, req }) => {
     }
 
     return NextResponse.json({ url: checkoutSession.url });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Checkout error:", error);
     return NextResponse.json(
-      { error: { code: "CHECKOUT_ERROR", message: "Failed to create checkout session" } },
+      { error: { code: "CHECKOUT_ERROR", message: error?.message || "Failed to create checkout session" } },
       { status: 500 }
     );
   }
