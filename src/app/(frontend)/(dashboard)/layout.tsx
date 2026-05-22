@@ -12,12 +12,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const role = session.user.role || "buyer";
 
-  // Buyer should never reach this layout — middleware redirects to /marketplace/my-agents
-  // But as a safety net:
-  if (role === "buyer") {
-    redirect("/marketplace/my-agents");
-  }
-
   return (
     <div className="flex min-h-screen bg-gray-50/30">
       {/* Premium Grayscale Contextual Sidebar */}

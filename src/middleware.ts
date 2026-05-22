@@ -72,10 +72,9 @@ export default auth((req) => {
     }
   }
 
-  // 5. Seller routes — redirect non-sellers to marketplace
-  if (SELLER_ROUTES.some((r) => pathname.startsWith(r)) && role !== "seller" && role !== "admin") {
-    return NextResponse.redirect(new URL("/marketplace", req.url));
-  }
+  // 5. Seller routes — access is now managed at the page level for dual-role support.
+  //    The role upgrade (buyer → seller) happens client-side before navigation,
+  //    and each page component performs its own server-side auth check.
 
   // 6. Admin routes — strict role check
   if (ADMIN_ROUTES.some((r) => pathname.startsWith(r)) && role !== "admin") {

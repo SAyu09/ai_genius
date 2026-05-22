@@ -9,7 +9,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-export function SettlementDetailsForm() {
+export function SettlementDetailsForm({ onSuccess }: { onSuccess?: () => void }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -36,7 +36,11 @@ export function SettlementDetailsForm() {
       }
 
       toast.success("Settlement details submitted for verification.");
-      router.refresh();
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.refresh();
+      }
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to submit details.");

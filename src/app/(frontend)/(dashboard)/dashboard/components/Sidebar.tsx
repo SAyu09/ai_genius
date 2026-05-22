@@ -3,14 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { 
   Bot, ShoppingBag, Settings, LayoutDashboard, Search, Grid, 
   CreditCard, Shield, Wallet, Code, DollarSign, Activity, 
-  Banknote, LogOut, Command, ChevronDown, Menu, X 
+  Banknote, LogOut, Command, ChevronDown, Menu, X, Loader2, Plus
 } from "lucide-react";
 import { Button } from "@/frontend/components/ui/button";
 import { cn } from "@/frontend/lib/utils";
+import { useAuthStore } from "@/store/authStore";
+import { toast } from "sonner";
 
 interface SidebarProps {
   session: {
@@ -34,27 +36,34 @@ interface NavLink {
 export function Sidebar({ session }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = React.useState(false);
+  const [upgrading, setUpgrading] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  const { activeRoleContext, setRoleContext } = useAuthStore();
 
   const role = session?.user?.role || "buyer";
   const email = session?.user?.email || "";
   const name = session?.user?.name || "User";
   const image = session?.user?.image;
 
-  // Determine active mode from current pathname
-  const getActiveModeFromPath = React.useCallback((): Mode => {
+  // Derive the visual active mode: admin is special, otherwise use the store context
+  const activeMode: Mode = React.useMemo(() => {
     if (pathname.startsWith("/admin")) return "admin";
-    if (pathname.startsWith("/dashboard/seller")) return "seller";
-    return "buyer";
-  }, [pathname]);
+    return activeRoleContext;
+  }, [pathname, activeRoleContext]);
 
-  const [activeMode, setActiveMode] = React.useState<Mode>(getActiveModeFromPath);
-
+  // Sync store context from pathname on mount / hard-nav
   React.useEffect(() => {
-    setActiveMode(getActiveModeFromPath());
-  }, [pathname, getActiveModeFromPath]);
+    if (pathname.startsWith("/admin")) return; // admin is independent
+    if (pathname.startsWith("/dashboard/seller") || pathname.startsWith("/dashboard/list-agent")) {
+      setRoleContext("seller");
+    } else if (pathname.startsWith("/marketplace")) {
+      setRoleContext("buyer");
+    }
+  }, []); // only on mount to not override user toggles
 
   // Handle outside click for user profile dropdown
   React.useEffect(() => {
@@ -67,22 +76,56 @@ export function Sidebar({ session }: SidebarProps) {
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
-  const handleModeSwitch = (mode: Mode) => {
-    setActiveMode(mode);
+  const handleModeSwitch = async (mode: Mode) => {
     setMobileOpen(false);
+
     if (mode === "admin") {
       router.push("/admin");
-    } else if (mode === "seller") {
+      return;
+    }
+
+    if (mode === "buyer") {
+      setRoleContext("buyer");
+      router.push("/marketplace");
+      return;
+    }
+
+    // mode === "seller"
+    if (role === "seller" || role === "admin") {
+      // Already a seller in the database — just switch context
+      setRoleContext("seller");
       router.push("/dashboard/seller");
-    } else {
-      router.push("/marketplace/my-agents");
+      return;
+    }
+
+    // Need to upgrade the user's role from buyer → seller
+    setUpgrading(true);
+    try {
+      const res = await fetch("/api/sellers/register", { method: "POST" });
+      const data = await res.json();
+
+      if (!res.ok && data.error?.code !== "ALREADY_SELLER") {
+        throw new Error(data.error?.message || "Failed to upgrade account");
+      }
+
+      // Refresh the NextAuth session so the JWT gets the new role
+      await updateSession();
+
+      setRoleContext("seller");
+      toast.success("Creator mode activated! 🎉");
+      router.push("/dashboard/seller");
+    } catch (err: any) {
+      console.error("Role upgrade error:", err);
+      toast.error(err.message || "Could not switch to Creator mode.");
+    } finally {
+      setUpgrading(false);
     }
   };
 
   // Define navigation lists for each mode
   const buyerLinks: NavLink[] = [
-    { href: "/marketplace/my-agents", label: "My Active Agents", icon: Grid },
-    { href: "/marketplace", label: "Discover Agents", icon: Search },
+    { href: "/marketplace", label: "Explore Marketplace", icon: Search },
+    { href: "/marketplace/my-agents", label: "My Purchases", icon: Grid },
     { href: "/marketplace/billing", label: "Billing & Subscriptions", icon: CreditCard },
     { href: "/settings", label: "Account Settings", icon: Settings }
   ];
@@ -90,9 +133,10 @@ export function Sidebar({ session }: SidebarProps) {
   const sellerLinks: NavLink[] = [
     { href: "/dashboard/seller", label: "Studio Overview", icon: LayoutDashboard },
     { href: "/dashboard/seller/listings", label: "My Listings", icon: ShoppingBag },
-    { href: "/dashboard/seller/billing", label: "Billing & Payouts", icon: Wallet },
+    { href: "/dashboard/list-agent", label: "Creator Studio", icon: Plus },
+    { href: "/dashboard/seller/earnings", label: "Earnings & Telemetry", icon: DollarSign },
     { href: "/dashboard/seller/developer", label: "Developer & API Keys", icon: Code },
-    { href: "/dashboard/seller/earnings", label: "Earnings & Telemetry", icon: DollarSign }
+    { href: "/dashboard/seller/billing", label: "Billing & Payouts", icon: Wallet },
   ];
 
   const adminLinks: NavLink[] = [
@@ -124,10 +168,12 @@ export function Sidebar({ session }: SidebarProps) {
     <div className="flex h-full flex-col bg-white border-r border-gray-150 p-4 select-none">
       {/* Brand Header */}
       <div className="flex h-12 items-center px-2 mb-6">
-        <Link href="/" className="flex items-center gap-2.5 font-display text-base font-bold text-gray-900">
-          <span className="grid h-7 w-7 place-items-center rounded-lg bg-indigo-600 text-white">
-            <Bot className="h-4 w-4" />
-          </span>
+        <Link href="/" className="flex items-center gap-2 font-display text-base font-bold text-gray-900">
+          <img
+            src="/logo.png"
+            alt="AI Genius Logo"
+            className="h-9 w-9 object-contain"
+          />
           AI Genius
         </Link>
       </div>
@@ -148,9 +194,10 @@ export function Sidebar({ session }: SidebarProps) {
       </button>
 
       {/* Grayscale Contextual Mode Switcher */}
-      <div className="bg-gray-100 p-1 rounded-lg grid grid-cols-3 gap-1 mb-6 text-[11px] font-semibold tracking-tight">
+      <div className="bg-gray-100 p-1 rounded-lg grid grid-cols-2 gap-1 mb-6 text-[11px] font-semibold tracking-tight">
         <button
           onClick={() => handleModeSwitch("buyer")}
+          disabled={upgrading}
           className={cn(
             "py-1.5 rounded-md text-center transition-all duration-150 cursor-pointer",
             activeMode === "buyer" 
@@ -161,39 +208,17 @@ export function Sidebar({ session }: SidebarProps) {
           Buyer
         </button>
         <button
-          onClick={() => {
-            if (role === "seller" || role === "admin") {
-              handleModeSwitch("seller");
-            } else {
-              router.push("/sell");
-            }
-          }}
+          onClick={() => handleModeSwitch("seller")}
+          disabled={upgrading}
           className={cn(
-            "py-1.5 rounded-md text-center transition-all duration-150 cursor-pointer",
+            "py-1.5 rounded-md text-center transition-all duration-150 cursor-pointer flex items-center justify-center gap-1",
             activeMode === "seller" 
               ? "bg-white text-gray-900 shadow-sm" 
               : "text-gray-500 hover:text-gray-900"
           )}
         >
+          {upgrading ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
           Creator
-        </button>
-        <button
-          onClick={() => {
-            if (role === "admin") {
-              handleModeSwitch("admin");
-            } else {
-              // Not admin
-            }
-          }}
-          disabled={role !== "admin"}
-          className={cn(
-            "py-1.5 rounded-md text-center transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed",
-            activeMode === "admin" 
-              ? "bg-white text-gray-900 shadow-sm" 
-              : "text-gray-500 hover:text-gray-900"
-          )}
-        >
-          Admin
         </button>
       </div>
 
@@ -292,9 +317,11 @@ export function Sidebar({ session }: SidebarProps) {
       {/* Mobile Top Header */}
       <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-gray-150 bg-white/80 px-4 backdrop-blur lg:hidden select-none">
         <Link href="/" className="flex items-center gap-2 font-display text-sm font-bold text-gray-900">
-          <span className="grid h-6 w-6 place-items-center rounded bg-indigo-600 text-white">
-            <Bot className="h-3.5 w-3.5" />
-          </span>
+          <img
+            src="/logo.png"
+            alt="AI Genius Logo"
+            className="h-8 w-8 object-contain"
+          />
           AI Genius
         </Link>
 

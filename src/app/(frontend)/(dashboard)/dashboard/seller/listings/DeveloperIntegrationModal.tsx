@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/frontend/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/frontend/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/frontend/components/ui/dialog";
 import { Code, Copy, RefreshCw, Key, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { Input } from "@/frontend/components/ui/input";
 
@@ -58,6 +58,9 @@ export function DeveloperIntegrationModal({ agentId, endpointUrl }: { agentId: s
       <DialogContent className="sm:max-w-md rounded-2xl">
         <DialogHeader>
           <DialogTitle>SDK Integration details</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Configure your backend endpoint and view your integration credentials.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6 pt-4">

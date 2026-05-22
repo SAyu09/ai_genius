@@ -247,9 +247,11 @@ function AuthContent() {
         <div className="relative flex h-full flex-col justify-between p-12 text-primary-foreground">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 font-display text-xl">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-white/20 backdrop-blur">
-              <Sparkles className="h-4 w-4" />
-            </span>
+            <img
+              src="/logo.png"
+              alt="AI Genius Logo"
+              className="h-10 w-10 object-contain"
+            />
             <span className="font-semibold tracking-tight">AI Genius</span>
           </Link>
 
@@ -305,9 +307,11 @@ function AuthContent() {
       <div className="flex flex-col justify-between p-6 sm:p-8 lg:p-12">
         {/* Mobile logo */}
         <Link href="/" className="flex items-center gap-2 font-display text-xl lg:hidden">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary-glow text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
-          </span>
+          <img
+            src="/logo.png"
+            alt="AI Genius Logo"
+            className="h-10 w-10 object-contain"
+          />
             <span className="font-semibold tracking-tight">
             AI Genius
           </span>

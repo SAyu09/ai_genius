@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/frontend/components/ui/button";
 import {
-  Sparkles, Menu, X, Bot, CreditCard, LogOut,
-  ChevronDown, LayoutDashboard, ShoppingBag, User,
+  Menu, X, Bot, CreditCard, LogOut,
+  ChevronDown, LayoutDashboard, ShoppingBag, User, Loader2
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
+import { useAuthStore } from "@/store/authStore";
 
 /* ─── helpers ─────────────────────────────────────────── */
 function Avatar({ image, name }: { image?: string | null; name?: string | null }) {
@@ -31,8 +33,11 @@ export function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { data: session, status, update: updateSession } = useSession();
   const [scrolled, setScrolled] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
+  const { activeRoleContext, setRoleContext } = useAuthStore();
 
   const isLoggedIn = status === "authenticated" && !!session?.user;
   const role = session?.user?.role || "buyer";
@@ -56,7 +61,37 @@ export function Header() {
   /* close mobile menu on route change */
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
-  /* nav links */
+  const handleModeSwitch = async (mode: "buyer" | "seller") => {
+    setMobileOpen(false);
+    if (mode === "buyer") {
+      setRoleContext("buyer");
+      router.push("/marketplace");
+      return;
+    }
+    if (role === "seller" || role === "admin") {
+      setRoleContext("seller");
+      router.push("/dashboard/seller");
+      return;
+    }
+    setUpgrading(true);
+    try {
+      const res = await fetch("/api/sellers/register", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok && data.error?.code !== "ALREADY_SELLER") {
+        throw new Error(data.error?.message || "Failed to upgrade");
+      }
+      await updateSession();
+      setRoleContext("seller");
+      toast.success("Creator mode activated! 🎉");
+      router.push("/dashboard/seller");
+    } catch (err: any) {
+      toast.error(err.message || "Could not switch to Creator mode.");
+    } finally {
+      setUpgrading(false);
+    }
+  };
+
+  /* nav links — driven by activeRoleContext for dual-role support */
   const links = (() => {
     if (!isLoggedIn)
       return [
@@ -65,7 +100,7 @@ export function Header() {
         { href: "/pricing", label: "Pricing" },
         { href: "/about", label: "About" },
       ];
-    if (role === "seller" || role === "admin")
+    if (activeRoleContext === "seller")
       return [
         { href: "/marketplace", label: "Marketplace" },
         { href: "/dashboard/seller", label: "Dashboard" },
@@ -75,23 +110,24 @@ export function Header() {
       { href: "/marketplace", label: "Marketplace" },
       { href: "/marketplace/my-agents", label: "My Agents" },
       { href: "/marketplace/billing", label: "Billing" },
+      { href: "/sell", label: "Sell" },
     ];
   })();
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
 
-  /* dropdown items per role */
+  /* dropdown items — driven by activeRoleContext for dual-role support */
   const dropdownItems =
-    role === "buyer"
+    activeRoleContext === "seller"
       ? [
-          { href: "/marketplace/my-agents", icon: Bot, label: "My Agents" },
-          { href: "/marketplace/billing", icon: CreditCard, label: "Billing" },
-        ]
-      : [
           { href: "/dashboard/seller", icon: LayoutDashboard, label: "Dashboard" },
           { href: "/dashboard/seller/listings", icon: ShoppingBag, label: "My Listings" },
           { href: "/marketplace/my-agents", icon: Bot, label: "My Agents" },
+        ]
+      : [
+          { href: "/marketplace/my-agents", icon: Bot, label: "My Agents" },
+          { href: "/marketplace/billing", icon: CreditCard, label: "Billing" },
         ];
 
   /* ── render ─────────────────────────────────────────── */
@@ -110,11 +146,13 @@ export function Header() {
           {/* ── Logo ──────────────────────────────────────── */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 group select-none"
+            className="flex items-center gap-2 group select-none"
           >
-            <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-blue-600 text-white shadow-[0_2px_8px_rgba(37,99,235,0.4)] transition-transform duration-200 group-hover:scale-105">
-              <Sparkles className="h-4 w-4" />
-            </span>
+            <img
+              src="/logo.png"
+              alt="AI Genius Logo"
+              className="h-10 w-10 object-contain transition-transform duration-200 group-hover:scale-105"
+            />
             <span className="font-semibold text-[17px] tracking-tight text-slate-900">
               AI Genius
             </span>
@@ -143,6 +181,26 @@ export function Header() {
 
           {/* ── Right side actions ────────────────────────── */}
           <div className="flex items-center gap-2">
+
+            {/* Mode Switcher Toggle for Desktop */}
+            {isLoggedIn && (
+              <div className="hidden sm:flex bg-slate-100/80 p-0.5 rounded-[10px] mr-2 border border-slate-200/60 shadow-inner">
+                <button
+                  onClick={() => handleModeSwitch("buyer")}
+                  className={["px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "buyer" ? "bg-white text-blue-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800"].join(" ")}
+                >
+                  Buyer
+                </button>
+                <button
+                  onClick={() => handleModeSwitch("seller")}
+                  disabled={upgrading}
+                  className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? "bg-white text-indigo-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800"].join(" ")}
+                >
+                  {upgrading && <Loader2 className="h-3 w-3 animate-spin" />}
+                  Creator
+                </button>
+              </div>
+            )}
 
             {/* Guest buttons */}
             {!isLoggedIn && (
@@ -281,6 +339,25 @@ export function Header() {
 
             {/* Nav links */}
             <nav className="flex flex-col gap-0.5 px-2 py-2">
+              {/* Mobile Mode Switcher */}
+              {isLoggedIn && (
+                <div className="mb-2 p-1 bg-slate-100 rounded-lg flex border border-slate-200/60 shadow-inner">
+                  <button
+                    onClick={() => handleModeSwitch("buyer")}
+                    className={["flex-1 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "buyer" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"].join(" ")}
+                  >
+                    Buyer
+                  </button>
+                  <button
+                    onClick={() => handleModeSwitch("seller")}
+                    disabled={upgrading}
+                    className={["flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "seller" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"].join(" ")}
+                  >
+                    {upgrading && <Loader2 className="h-3 w-3 animate-spin" />}
+                    Creator
+                  </button>
+                </div>
+              )}
               {links.map((l) => (
                 <Link
                   key={l.href}

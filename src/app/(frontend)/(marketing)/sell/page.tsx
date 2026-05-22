@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { auth } from "@/backend/lib/auth";
+import { BecomeSellerButton } from "@/frontend/components/shared/BecomeSellerButton";
 import { Header } from "@/frontend/components/site/Header";
 import { Footer } from "@/frontend/components/site/Footer";
 import { Button } from "@/frontend/components/ui/button";
@@ -103,7 +105,10 @@ const faqs = [
   { q: "Who owns the customer relationship?", a: "You do. You see your buyers, can message subscribers and export your customer list at any time." },
 ];
 
-export default function SellPage() {
+export default async function SellPage() {
+  const session = await auth();
+  const isLoggedIn = !!session?.user;
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -119,7 +124,7 @@ export default function SellPage() {
               List once, sell everywhere. AI Genius handles billing, distribution, infra and payouts in 60+ currencies, so you can focus on building.
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-3">
-              <Link href="/auth?tab=register"><Button size="lg" className="rounded-full">Become a seller</Button></Link>
+              <BecomeSellerButton isLoggedIn={isLoggedIn} />
               <Link href="/marketplace"><Button size="lg" variant="outline" className="rounded-full">See examples</Button></Link>
             </div>
           </div>
@@ -189,9 +194,9 @@ export default function SellPage() {
               <p className="mt-4 text-muted-foreground">
                 We keep the bar high so buyers can trust every agent they install. Here is what we look for during review.
               </p>
-              <Link href="/auth?tab=register" className="mt-6 inline-block">
-                <Button size="lg" className="rounded-full">Start your application</Button>
-              </Link>
+              <div className="mt-6 inline-block">
+                <BecomeSellerButton isLoggedIn={isLoggedIn} text="Start your application" />
+              </div>
             </div>
             <ul className="grid gap-3">
               {requirements.map((r) => (
@@ -224,9 +229,9 @@ export default function SellPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/auth?tab=register" className="mt-8 inline-block">
-                <Button size="lg" className="rounded-full bg-background text-foreground hover:bg-background/90">Start selling</Button>
-              </Link>
+              <div className="mt-8 inline-block">
+                <BecomeSellerButton isLoggedIn={isLoggedIn} text="Start selling" className="rounded-full bg-background text-foreground hover:bg-background/90" />
+              </div>
             </div>
           </div>
         </section>

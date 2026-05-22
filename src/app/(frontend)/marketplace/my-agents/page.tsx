@@ -59,39 +59,42 @@ export default async function MyAgentsPage() {
               {activeSubs.map(({ sub, agent, seller }) => (
                 <div
                   key={sub.id}
-                  className="group relative flex flex-col rounded-3xl border border-border bg-card overflow-hidden transition hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+                  className="group relative flex flex-col rounded-3xl border border-border bg-card/80 backdrop-blur-md overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/20"
                 >
-                  {/* Top gradient bar */}
-                  <div className="h-1.5 w-full bg-gradient-to-r from-primary to-primary-glow" />
+                  {/* Top gradient bar with glow effect on hover */}
+                  <div className="h-1.5 w-full bg-gradient-to-r from-primary to-primary-glow transition-all duration-300 group-hover:h-2 group-hover:opacity-100 opacity-90" />
+                  
+                  {/* Background radial gradient reveal on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-                  <div className="p-6 flex flex-col flex-1">
+                  <div className="p-6 flex flex-col flex-1 relative z-10">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+                      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary shadow-inner group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
                         <Bot className="h-6 w-6" />
                       </div>
                       <SubscriptionBadge status={sub.status as "active" | "trial" | "expired" | "cancelled"} />
                     </div>
 
-                    <h3 className="font-display text-xl font-semibold">{agent.name}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">by {seller.name}</p>
-                    <p className="mt-3 text-sm text-foreground/70 line-clamp-2 flex-1">{agent.description}</p>
+                    <h3 className="font-display text-xl font-semibold group-hover:text-primary transition-colors">{agent.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">by <span className="font-medium text-foreground/80">{seller.name}</span></p>
+                    <p className="mt-3 text-sm text-foreground/70 line-clamp-2 flex-1 leading-relaxed">{agent.description}</p>
 
                     <div className="flex items-center gap-3 mt-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-md border border-border/50">
                         <Star className="h-3 w-3 fill-primary text-primary" /> {agent.avgRating || "New"}
                       </span>
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-md border border-border/50">
                         <Zap className="h-3 w-3 text-primary" /> {agent.tag || "Tool"}
                       </span>
-                      <span className="capitalize">{sub.planType} plan</span>
+                      <span className="capitalize bg-muted/50 px-2 py-1 rounded-md border border-border/50">{sub.planType} plan</span>
                     </div>
 
                     <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
                       <div>
-                        <span className="font-display text-lg font-semibold">${(agent.monthlyPricePaise || 0) / 100}</span>
-                        <span className="text-xs text-muted-foreground">/mo</span>
+                        <span className="font-display text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">${(agent.monthlyPricePaise || 0) / 100}</span>
+                        <span className="text-xs text-muted-foreground font-medium">/mo</span>
                       </div>
-                      <Button asChild className="rounded-full gap-2 group-hover:bg-primary group-hover:text-primary-foreground transition">
+                      <Button asChild className="rounded-full gap-2 transition-all duration-300 shadow-md group-hover:shadow-primary/25 group-hover:bg-primary hover:scale-105">
                         <Link href={`/tools/${agent.id}`}>
                           <Play className="h-3.5 w-3.5" /> Launch
                         </Link>

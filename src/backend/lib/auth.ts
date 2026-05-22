@@ -107,10 +107,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id!;
         token.role = (user.role as UserRole) || "buyer";
+      } else if (trigger === "update" && token.id) {
+        // Re-fetch role from DB when session.update() is called (e.g. after role upgrade)
+        const [dbUser] = await db
+          .select({ role: users.role })
+          .from(users)
+          .where(eq(users.id, token.id as string))
+          .limit(1);
+        if (dbUser) {
+          token.role = dbUser.role as UserRole;
+        }
       }
       return token;
     },

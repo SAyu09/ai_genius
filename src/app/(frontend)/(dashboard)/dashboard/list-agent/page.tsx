@@ -41,8 +41,11 @@ export default function CreatorStudioPage() {
         monthlyPrice: form.price || "0",
       };
 
-      const res = await fetch("/api/agents", {
-        method: "POST",
+      const url = draftId ? `/api/agents/${draftId}` : "/api/agents";
+      const method = draftId ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -50,7 +53,9 @@ export default function CreatorStudioPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save draft");
 
-      setDraftId(data.agent.id);
+      if (!draftId) {
+        setDraftId(data.agent.id);
+      }
       
       // Auto-generate SDK Secret
       try {
