@@ -61,6 +61,23 @@ export const POST = withAuth(async ({ userId, req }) => {
 
     // 3. Ensure Stripe customer
     let stripeCustomerId = user!.stripeCustomerId;
+    
+    // Verify customer exists in Stripe if we have an ID
+    if (stripeCustomerId) {
+      try {
+        const existingCustomer = await stripe.customers.retrieve(stripeCustomerId);
+        if (existingCustomer.deleted) {
+          stripeCustomerId = null;
+        }
+      } catch (err: any) {
+        if (err.code === 'resource_missing') {
+          stripeCustomerId = null;
+        } else {
+          throw err;
+        }
+      }
+    }
+
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({
         email: user!.email,
