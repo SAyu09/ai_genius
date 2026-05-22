@@ -4,10 +4,10 @@ import { db } from "@/backend/db";
 import { reviews, agents, purchases } from "@/backend/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ agentId: string }> };
 
 /**
- * POST /api/agents/[slug]/reviews
+ * POST /api/agents/[agentId]/reviews
  * Submit a review. Only buyers who purchased the agent can review.
  */
 export async function POST(req: NextRequest, { params }: Props) {
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest, { params }: Props) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { slug } = await params;
+  const { agentId } = await params;
   const { stars, comment } = await req.json();
 
   if (!stars || stars < 1 || stars > 5) {
@@ -27,11 +27,13 @@ export async function POST(req: NextRequest, { params }: Props) {
     );
   }
 
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(agentId);
+
   // Fetch agent
   const [agent] = await db
     .select()
     .from(agents)
-    .where(eq(agents.slug, slug))
+    .where(isUuid ? eq(agents.id, agentId) : eq(agents.slug, agentId))
     .limit(1);
 
   if (!agent) {

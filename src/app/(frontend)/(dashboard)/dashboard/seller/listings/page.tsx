@@ -1,6 +1,6 @@
 import { auth } from "@/backend/lib/auth";
 import { db } from "@/backend/db";
-import { agents, purchases, users } from "@/backend/db/schema";
+import { agents, purchases, users, sellerProfiles } from "@/backend/db/schema";
 import { eq, inArray, desc } from "drizzle-orm";
 import { Button } from "@/frontend/components/ui/button";
 import { Card, CardContent } from "@/frontend/components/ui/card";
@@ -43,8 +43,11 @@ export default async function SellerListingsPage() {
   });
 
   const agentIds = myAgents.map((a) => a.id);
-  const approvedCount = myAgents.filter((a) => a.status === "approved").length;
+  const approvedCount = myAgents.filter((a) => a.status === "approved" || a.status === "published").length;
   const totalSubscribers = myAgents.reduce((sum, a) => sum + (a.subscriberCount || 0), 0);
+
+  const [profile] = await db.select({ settlementStatus: sellerProfiles.settlementStatus }).from(sellerProfiles).where(eq(sellerProfiles.userId, session.user.id)).limit(1);
+  const isKycVerified = profile?.settlementStatus !== "pending_details";
 
   // Fetch transactions for these agents
   let transactions: {
@@ -132,7 +135,7 @@ export default async function SellerListingsPage() {
 
                 {/* Right: Actions */}
                 <div className="flex flex-row md:flex-col items-center justify-end gap-1 shrink-0 mt-4 md:mt-0 w-full md:w-36">
-                  <ActionButtons agentId={agent.id} />
+                  <ActionButtons agentId={agent.id} status={agent.status} isKycVerified={isKycVerified} />
                   {agent.status === "approved" && (
                     <Button asChild size="sm" variant="ghost" className="w-full justify-start h-8 rounded-md text-sm gap-2 text-gray-700">
                       <Link href={`/marketplace/${agent.id}`}>

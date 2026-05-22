@@ -1,12 +1,13 @@
 import { auth } from "@/backend/lib/auth";
 import { db } from "@/backend/db";
-import { purchases, sellerSettlements, agents, sellerBankDetails } from "@/backend/db/schema";
-import { eq, and, sum, count, inArray, desc } from "drizzle-orm";
+import { purchases, sellerSettlements, sellerBankDetails } from "@/backend/db/schema";
+import { eq, and, sum, count, desc } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/frontend/components/ui/card";
 import { Button } from "@/frontend/components/ui/button";
-import { DollarSign, Clock, CheckCircle, Wallet, ArrowRight, AlertTriangle } from "lucide-react";
+import { DollarSign, CheckCircle, Wallet, ArrowRight, AlertTriangle, Activity } from "lucide-react";
 import Link from "next/link";
+import { TelemetryCharts } from "./TelemetryCharts";
 
 export default async function SellerEarningsPage() {
   const session = await auth();
@@ -46,22 +47,39 @@ export default async function SellerEarningsPage() {
     <div className="p-6 lg:p-8 space-y-8">
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <DollarSign className="h-5 w-5 text-primary" />
-          <span className="text-xs font-semibold uppercase tracking-widest text-primary">Seller</span>
+          <Activity className="h-5 w-5 text-primary" />
+          <span className="text-xs font-semibold uppercase tracking-widest text-primary">Creator Studio</span>
         </div>
-        <h1 className="font-display text-3xl font-bold">Earnings & Settlements</h1>
-        <p className="text-muted-foreground text-sm mt-1">Track your earnings, pending payouts, and settlement history.</p>
+        <h1 className="font-display text-3xl font-bold">Telemetry & Earnings</h1>
+        <p className="text-muted-foreground text-sm mt-1">Track actionable performance metrics and revenue settlements.</p>
       </div>
+
+      {/* Actionable Insights Bar */}
+      <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 shrink-0">
+            <Activity className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-indigo-900">Actionable Insight: Optimization Opportunity</h3>
+            <p className="text-xs text-indigo-700">"Acme Sales Agent" has a 40% user drop-off at prompt #3. Consider simplifying the required inputs.</p>
+          </div>
+        </div>
+        <Button variant="outline" className="shrink-0 bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-100">View Logs</Button>
+      </div>
+
+      {/* Telemetry Charts (Client Component) */}
+      <TelemetryCharts />
 
       {/* Bank details warning */}
       {!bankDetails?.isVerified && (
-        <Card className="rounded-2xl border-yellow-500/30 bg-yellow-500/5">
+        <Card className="rounded-2xl border-yellow-500/30 bg-yellow-500/5 mt-8">
           <CardContent className="p-4 flex items-center gap-3">
             <AlertTriangle className="h-5 w-5 text-yellow-600 shrink-0" />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-yellow-700">Bank details not verified</p>
+              <p className="text-sm font-semibold text-yellow-700">Bank details required for payouts</p>
               <p className="text-xs text-yellow-600 mt-0.5">
-                Add and verify your bank details to receive settlements.
+                Complete your KYC progressively to receive the earnings below.
               </p>
             </div>
             <Button asChild variant="outline" size="sm" className="rounded-xl shrink-0 border-yellow-500/30 text-yellow-700 hover:bg-yellow-50">
@@ -72,7 +90,7 @@ export default async function SellerEarningsPage() {
       )}
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3 mt-8">
         <Card className="rounded-2xl border-none shadow-sm bg-primary/5">
           <CardContent className="p-5">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
@@ -113,11 +131,8 @@ export default async function SellerEarningsPage() {
               <thead>
                 <tr className="border-b">
                   <th className="text-left px-4 py-2 text-xs uppercase text-muted-foreground">Period</th>
-                  <th className="text-right px-4 py-2 text-xs uppercase text-muted-foreground">Gross</th>
-                  <th className="text-right px-4 py-2 text-xs uppercase text-muted-foreground">TDS</th>
                   <th className="text-right px-4 py-2 text-xs uppercase text-muted-foreground">Net</th>
                   <th className="text-left px-4 py-2 text-xs uppercase text-muted-foreground">Status</th>
-                  <th className="text-left px-4 py-2 text-xs uppercase text-muted-foreground">Bank Ref</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,8 +141,6 @@ export default async function SellerEarningsPage() {
                     <td className="px-4 py-3 text-xs">
                       {s.periodStart.toLocaleDateString()} — {s.periodEnd.toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-3 text-right font-mono">{fmt(s.grossPayoutPaise)}</td>
-                    <td className="px-4 py-3 text-right font-mono text-muted-foreground">{fmt(s.tdsDeductedPaise)}</td>
                     <td className="px-4 py-3 text-right font-mono font-bold">{fmt(s.netPayoutPaise)}</td>
                     <td className="px-4 py-3">
                       <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${
@@ -136,7 +149,6 @@ export default async function SellerEarningsPage() {
                         "bg-yellow-500/10 text-yellow-600"
                       }`}>{s.status}</span>
                     </td>
-                    <td className="px-4 py-3 text-xs font-mono text-muted-foreground">{s.bankReferenceNumber || "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -146,13 +158,6 @@ export default async function SellerEarningsPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Info */}
-      <div className="text-xs text-muted-foreground space-y-1">
-        <p>• You earn 85% of each transaction. Platform retains 15% as commission.</p>
-        <p>• Settlements are processed weekly via NEFT/IMPS to your verified bank account.</p>
-        <p>• TDS is deducted at source as per applicable tax laws.</p>
-      </div>
     </div>
   );
 }

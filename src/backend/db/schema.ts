@@ -102,6 +102,7 @@ export const sellerProfiles = pgTable("seller_profiles", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   businessName: text("business_name"),
+  gamificationTier: text("gamification_tier", { enum: ["Novice Creator", "Verified Builder", "Elite Architect"] }).default("Novice Creator").notNull(),
   settlementStatus: text("settlement_status", { enum: ["pending_details", "pending_verification", "verified"] }).default("pending_details"),
   tosAcceptedAt: timestamp("tos_accepted_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -165,7 +166,8 @@ export const agents = pgTable("agents", {
   description: text("description").notNull(),
   longDesc: text("long_desc").notNull(),
 
-  pricingModel: text("pricing_model", { enum: ["subscription", "one_time"] }).default("subscription").notNull(),
+  pricingModel: text("pricing_model", { enum: ["subscription", "one_time", "usage_based", "tiered_subscription", "outcome_based"] }).default("subscription").notNull(),
+  pricingConfig: jsonb("pricing_config"),
   monthlyPricePaise: integer("monthly_price_paise"),
   annualPricePaise: integer("annual_price_paise"),
   stripePriceIdMonthly: text("stripe_price_id_monthly"),
@@ -183,7 +185,7 @@ export const agents = pgTable("agents", {
   agentConfig: jsonb("agent_config"),           // { inputSchema?, starterMessage?, inputPlaceholder?, outputLabel? }
 
   category: text("category"), // Category for marketplace
-  status: text("status", { enum: ["pending", "testing", "pending_review", "approved", "rejected_performance", "rejected_admin", "rejected_manual", "suspended"] }).default("approved").notNull(),
+  status: text("status", { enum: ["pending", "testing", "pending_review", "approved", "rejected_performance", "rejected_admin", "rejected_manual", "suspended", "draft", "staging", "published", "flagged"] }).default("draft").notNull(),
   isFeatured: boolean("is_featured").default(false),
   featureOrder: integer("feature_order"),
   approvedAt: timestamp("approved_at"),

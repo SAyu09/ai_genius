@@ -1,25 +1,28 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/backend/lib/api";
-import { stripe } from "@/backend/lib/stripe";
+import { stripe, getCheckoutParams, getLocalizedPaymentMethods } from "@/backend/lib/stripe";
 import { db } from "@/backend/db";
 import { agents, users } from "@/backend/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { getActiveSubscription } from "@/backend/lib/subscriptions";
 
 export const POST = withAuth(async ({ userId, req }) => {
   try {
     let agentId: string | undefined;
     let planType: "monthly" | "annual" | "one_time" | "trial" = "monthly";
+    let checkoutMode: "embedded" | "hosted" = "hosted";
 
     const contentType = req.headers.get("content-type") || "";
     if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
       const formData = await req.formData();
       agentId = formData.get("agentId") as string;
       planType = (formData.get("planType") as "monthly" | "annual" | "one_time" | "trial") || "monthly";
+      checkoutMode = (formData.get("checkoutMode") as "embedded" | "hosted") || "hosted";
     } else {
       const body = await req.json();
       agentId = body.agentId;
       planType = body.planType || "monthly";
+      checkoutMode = body.checkoutMode || "hosted";
     }
 
     if (!agentId) {
@@ -36,10 +39,10 @@ export const POST = withAuth(async ({ userId, req }) => {
       return NextResponse.json({ alreadySubscribed: true, url: redirectUrl.toString() });
     }
 
-    // 2. Fetch agent + user in parallel (not sequential)
+    // 2. Fetch agent + user in parallel
     const [agent, user] = await Promise.all([
       db.query.agents.findFirst({
-        where: and(eq(agents.id, agentId), eq(agents.status, 'approved')),
+        where: and(eq(agents.id, agentId), inArray(agents.status, ['approved', 'published'])),
         columns: { 
           id: true, name: true, description: true, pricingModel: true, 
           monthlyPricePaise: true, annualPricePaise: true, 
@@ -53,10 +56,10 @@ export const POST = withAuth(async ({ userId, req }) => {
     ]);
 
     if (!agent) {
-      return NextResponse.json({ error: { code: "NOT_FOUND", message: "Agent not found" } }, { status: 404 });
+      return NextResponse.json({ error: { code: "NOT_FOUND", message: "Agent not found or unavailable" } }, { status: 404 });
     }
 
-    // 3. Ensure Stripe customer (upsert pattern)
+    // 3. Ensure Stripe customer
     let stripeCustomerId = user!.stripeCustomerId;
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({
@@ -68,11 +71,12 @@ export const POST = withAuth(async ({ userId, req }) => {
       await db.update(users).set({ stripeCustomerId }).where(eq(users.id, userId));
     }
 
+    // 4. Map Pricing Model
     let unitAmount = 0;
     let mode: "subscription" | "payment" = "subscription";
     let lineItemConfig: any = {};
 
-    if (agent.pricingModel === "subscription") {
+    if (agent.pricingModel === "subscription" || agent.pricingModel === "tiered_subscription") {
       mode = "subscription";
       const interval: "month" | "year" = planType === "annual" ? "year" : "month";
       unitAmount = planType === "annual"
@@ -89,6 +93,28 @@ export const POST = withAuth(async ({ userId, req }) => {
           product_data: { name: agent.name, description: agent.description },
           unit_amount: unitAmount,
           recurring: { interval },
+        },
+        quantity: 1,
+      };
+    } else if (agent.pricingModel === "usage_based") {
+      mode = "subscription";
+      lineItemConfig = {
+        price_data: {
+          currency: "usd",
+          product_data: { name: `${agent.name} (Usage-Based)`, description: "Pay per successful transaction or token." },
+          unit_amount: 0, // Setup base zero-dollar subscription; usage is metered subsequently via webhooks
+          recurring: { interval: "month" },
+        },
+        quantity: 1,
+      };
+    } else if (agent.pricingModel === "outcome_based") {
+      mode = "payment"; // Escrow setup
+      unitAmount = agent.monthlyPricePaise || 5000; // Use an initial escrow amount
+      lineItemConfig = {
+        price_data: {
+          currency: "usd",
+          product_data: { name: `${agent.name} (Outcome Escrow)`, description: "Escrow payment for promised outcome." },
+          unit_amount: unitAmount,
         },
         quantity: 1,
       };
@@ -109,17 +135,17 @@ export const POST = withAuth(async ({ userId, req }) => {
       };
     }
 
-    // 5. Create session
-    // We shouldn't use a daily idempotency key if we are passing dynamic parameters like `expires_at`
-    // which changes every second. Generating a new checkout session on each click is fine.
+    // 5. Create session using Stripe UI Mode Helpers
     const idempotencyKey = `checkout:${userId}:${agentId}:${planType}:${Date.now()}`;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const uiParams = getCheckoutParams(checkoutMode, baseUrl);
 
     const sessionParams: any = {
+      ...uiParams,
       mode,
       customer: stripeCustomerId,
       line_items: [lineItemConfig],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/marketplace/my-agents?checkout=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/marketplace/${agent.id}?checkout=cancelled`,
+      payment_method_types: getLocalizedPaymentMethods('usd'),
       expires_at: Math.floor(Date.now() / 1000) + 1800,
       metadata: { buyerId: userId, agentId, sellerId: agent.sellerId, planType, pricingModel: agent.pricingModel, platform: 'aigenius' },
     };
@@ -129,15 +155,18 @@ export const POST = withAuth(async ({ userId, req }) => {
         trial_period_days: planType === 'trial' ? 7 : undefined,
         metadata: { buyerId: userId, agentId, sellerId: agent.sellerId, platform: 'aigenius' }
       };
-      sessionParams.payment_intent_data = undefined;
     } else {
       sessionParams.payment_intent_data = {
         metadata: { buyerId: userId, agentId, sellerId: agent.sellerId }
       };
-      sessionParams.subscription_data = undefined;
     }
 
     const checkoutSession = await stripe.checkout.sessions.create(sessionParams, { idempotencyKey });
+
+    // Return embedded client secret if requested, otherwise URL
+    if (checkoutMode === 'embedded') {
+      return NextResponse.json({ clientSecret: checkoutSession.client_secret });
+    }
 
     if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
       return NextResponse.redirect(checkoutSession.url!, { status: 303 });

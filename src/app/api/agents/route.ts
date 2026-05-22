@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
       agentType: agentType || "chat", // Default to chat
       assetKey: assetKey || "",
       endpointUrl,
-      status: "approved", // SDK agents are approved, but must pass connection ping from Developer dashboard later
+      status: "draft", // Changed from approved to draft for Staging/Safe zone
       features: features || [],
       integrations: integrations || [],
       useCases: useCases || [],

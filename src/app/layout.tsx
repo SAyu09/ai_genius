@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Providers } from "@/frontend/components/Providers";
+import { Omnibar } from "@/frontend/components/ui/command";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
@@ -32,8 +33,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${geist.variable}`}>
       <body className="font-sans antialiased" suppressHydrationWarning>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <Omnibar />
+        </Providers>
       </body>
     </html>
   );
 }
+

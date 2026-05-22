@@ -3,7 +3,7 @@ import { Header } from "@/frontend/components/site/Header";
 import { Footer } from "@/frontend/components/site/Footer";
 import { Button } from "@/frontend/components/ui/button";
 import { Input } from "@/frontend/components/ui/input";
-import { Star, Zap, Search } from "lucide-react";
+import { Star, Zap, Search, ShieldCheck, Activity } from "lucide-react";
 import { db } from "@/backend/db";
 import { agents, users } from "@/backend/db/schema";
 import { eq, ilike, and, sql } from "drizzle-orm";
@@ -57,9 +57,14 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ q
       <main className="pt-12">
         <div className="mx-auto w-[min(1200px,92%)]">
           <div className="max-w-2xl">
-            <p className="text-sm uppercase tracking-widest text-muted-foreground">Marketplace</p>
-            <h1 className="mt-2 font-display text-5xl sm:text-6xl">Discover the world&apos;s best AI agents.</h1>
-            <p className="mt-4 text-muted-foreground">Filter by category, search by use case, deploy in one click.</p>
+            <p className="text-sm uppercase tracking-widest text-emerald-600 font-semibold flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4" /> Enterprise App Store
+            </p>
+            <h1 className="mt-3 font-display text-5xl sm:text-6xl font-bold leading-tight">Discover verified AI agents.</h1>
+            <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
+              Every agent is 100% Sandbox Tested, latency-verified, and guaranteed by our pre-flight moderation. 
+              Test with your own data in the Safe Zone before checkout.
+            </p>
           </div>
 
           <div className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center">
@@ -115,9 +120,22 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ q
                     <span className="opacity-50">· {agent.salesCount}</span>
                   </div>
                 </div>
-                <h3 className="mt-4 font-display text-2xl">{agent.name}</h3>
+                <h3 className="mt-4 font-display text-2xl font-bold">{agent.name}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">by {seller.name}</p>
                 <p className="mt-3 text-sm leading-relaxed text-foreground/80 line-clamp-2">{agent.description}</p>
+                
+                {/* Telemetry Tags */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100">
+                    <ShieldCheck className="h-3 w-3" /> Tested
+                  </span>
+                  {agent.performancePass && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100">
+                      <Activity className="h-3 w-3" /> {agent.performanceAvgMs || 250}ms
+                    </span>
+                  )}
+                </div>
+
                 <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
                   <div>
                     <span className="font-display text-2xl">${(agent.monthlyPricePaise || 0) / 100}</span>

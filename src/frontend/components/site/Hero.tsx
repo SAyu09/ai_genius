@@ -2,101 +2,93 @@
 
 import Link from "next/link";
 import { Button } from "@/frontend/components/ui/button";
-import { ArrowRight, Search, TrendingUp, LifeBuoy, PieChart, Feather } from "lucide-react";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
-
-type Chip = {
-  name: string;
-  role: string;
-  icon: React.ComponentType<{ className?: string }>;
-  className: string;
-  delay: number;
-};
-
-const chips: Chip[] = [
-  { name: "Atlas SDR", role: "Sales · live", icon: TrendingUp, className: "left-[10%] top-[20%] xl:left-[15%]", delay: 0 },
-  { name: "Helio Support", role: "Support · live", icon: LifeBuoy, className: "right-[10%] top-[25%] xl:right-[15%]", delay: 1.5 },
-  { name: "Pulse", role: "Analytics · live", icon: PieChart, className: "left-[15%] bottom-[25%] xl:left-[20%]", delay: 3 },
-  { name: "Quill", role: "Content · live", icon: Feather, className: "right-[15%] bottom-[20%] xl:right-[20%]", delay: 4.5 },
-];
+import { ArrowRight, Search, Activity, ShieldCheck, Cpu, CreditCard } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function Hero() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const trustCues = [
+    { label: "Enterprise Deployments", value: "4,200+", icon: Cpu },
+    { label: "Average Response Time", value: "850ms", icon: Activity },
+    { label: "De-branded Secure Sandbox", value: "100%", icon: ShieldCheck },
+    { label: "Payment & AutoPay Secured", value: "Stripe & UPI", icon: CreditCard },
+  ];
 
   return (
-    <section ref={containerRef} className="relative overflow-hidden pt-20 pb-24 sm:pt-32 sm:pb-36 bg-white min-h-[90vh] flex items-center justify-center">
-      {/* Background Grid */}
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+    <section className="relative overflow-hidden pt-24 pb-20 sm:pt-32 sm:pb-28 bg-white min-h-[85vh] flex items-center justify-center select-none">
+      {/* High-end Subtle Enterprise Grid Background */}
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#00000005_1px,transparent_1px),linear-gradient(to_bottom,#00000005_1px,transparent_1px)] bg-[size:32px_32px]"></div>
       
-      {/* Floating Cards */}
-      {chips.map((c) => (
-        <div
-          key={c.name}
-          className={`absolute z-10 hidden lg:flex items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 shadow-md animate-float w-44 ${c.className}`}
-          style={{ animationDelay: `${c.delay}s` }}
-        >
-          <div className="grid h-5 w-5 place-items-center text-primary">
-            <c.icon className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-sm font-medium text-foreground">{c.name}</div>
-            <div className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5 mt-0.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              {c.role}
+      {/* Decorative Radial Overlay for linear design glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[300px] bg-indigo-50/20 blur-3xl rounded-full z-0"></div>
+
+      <div className="relative z-10 mx-auto w-full max-w-[960px] text-center px-4 flex flex-col items-center">
+        {/* Sleek Announcement Badge */}
+        <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-500 mb-8 tracking-tight">
+          <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-pulse" />
+          Enterprise Redesign Live: v4.0 Secure SDK Protocol
+        </div>
+
+        {/* Headline exactly as requested */}
+        <h1 className="font-display text-4xl tracking-tight sm:text-[54px] text-gray-900 font-bold max-w-[800px] leading-[1.1]">
+          The App Store for Business Automation.
+        </h1>
+        
+        <p className="mt-6 max-w-[620px] text-lg sm:text-xl leading-relaxed text-gray-500 font-normal">
+          Discover, test, and deploy verified AI agents in seconds.
+        </p>
+
+        {/* Search & Omnibar interactive shortcut cue */}
+        <div className="mx-auto mt-10 w-full max-w-[520px] relative">
+          <div className="relative flex items-center h-[52px] rounded-xl border border-gray-200 bg-white transition-all shadow-sm focus-within:border-indigo-600 focus-within:shadow-[0_0_0_3px_rgba(79,70,229,0.1)] overflow-hidden">
+            <Search className="ml-4 h-4 w-4 text-gray-400 shrink-0" />
+            <input
+              placeholder="Search 2,400+ enterprise agents..."
+              className="flex-1 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+              onClick={() => {
+                const event = new KeyboardEvent("keydown", {
+                  key: "k",
+                  metaKey: true,
+                  bubbles: true,
+                  cancelable: true
+                });
+                document.dispatchEvent(event);
+              }}
+            />
+            <div className="absolute right-2 flex items-center gap-1.5 text-[10px] text-gray-400 font-mono bg-gray-50 border border-gray-150 px-2 py-1 rounded">
+              <span>Press</span>
+              <span className="font-semibold text-gray-600">⌘K</span>
             </div>
           </div>
         </div>
-      ))}
-
-      <div className="relative z-10 mx-auto w-full max-w-[720px] text-center px-4">
-        {/* Announcement Bar */}
-        <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-          Live in 140+ countries
-        </div>
-
-        {/* Headline */}
-        <h1 className="mt-8 font-display text-5xl leading-tight tracking-tight sm:text-[48px] text-gray-900 font-bold">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both delay-0">Buy, sell & deploy</div>
-          <div className="text-primary italic animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both delay-100">intelligent agents</div>
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both delay-200">from anywhere.</div>
-        </h1>
-
-        <p className="mx-auto mt-5 max-w-[480px] text-lg leading-relaxed text-gray-500 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both delay-[300ms]">
-          AI Genius is the worldwide marketplace where builders monetize AI agents and teams discover ready to run automation.
-        </p>
 
         {/* CTA Group */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both delay-[400ms]">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           <Link href="/marketplace">
-            <Button size="xl" className="rounded-md">
-              Browse marketplace <ArrowRight className="ml-2 h-4 w-4" />
+            <Button size="xl" className="rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm h-11 px-6 text-sm">
+              Explore Enterprise Marketplace <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
           <Link href="/sell">
-            <Button size="xl" variant="outline" className="rounded-md border-border bg-white text-gray-700">
-              List your agent
+            <Button size="xl" variant="outline" className="rounded-lg border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 h-11 px-6 text-sm">
+              List Your Agent
             </Button>
           </Link>
         </div>
 
-        {/* Search */}
-        <div className="mx-auto mt-12 max-w-[480px] relative animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both delay-[500ms]">
-          <div className="relative flex items-center h-[52px] rounded-xl border-2 border-gray-200 bg-white transition-all focus-within:border-primary focus-within:shadow-focus overflow-hidden">
-            <Search className="ml-4 h-4 w-4 text-gray-400 shrink-0" />
-            <input
-              placeholder="Search 2,400+ agents..."
-              className="flex-1 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none placeholder:text-gray-400"
-            />
-            <div className="absolute right-1.5">
-              <Link href="/marketplace">
-                <Button className="h-9 px-4 rounded-lg bg-primary hover:bg-primary-glow font-medium text-white shadow-none text-sm">
-                  Search
-                </Button>
-              </Link>
+        {/* Divider line for spatial design */}
+        <div className="w-full max-w-[760px] h-[1px] bg-gray-100 my-16"></div>
+
+        {/* Heuristic Trust Cues & Verified Stats Grid */}
+        <div className="w-full max-w-[800px] grid grid-cols-2 md:grid-cols-4 gap-6">
+          {trustCues.map((cue) => (
+            <div key={cue.label} className="flex flex-col items-center p-4 rounded-xl border border-gray-100 bg-white shadow-xs">
+              <div className="p-2 rounded-lg bg-gray-50 border border-gray-150 text-indigo-600 mb-3">
+                <cue.icon className="h-4 w-4" />
+              </div>
+              <span className="font-display text-xl font-bold text-gray-900 leading-none">{cue.value}</span>
+              <span className="text-[11px] font-semibold text-gray-400 mt-2 uppercase tracking-wider text-center">{cue.label}</span>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>

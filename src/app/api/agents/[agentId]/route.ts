@@ -3,19 +3,21 @@ import { db } from "@/backend/db";
 import { agents, users, reviews } from "@/backend/db/schema";
 import { eq } from "drizzle-orm";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ agentId: string }> };
 
 /**
- * GET /api/agents/[slug]
- * Fetch a single agent by slug, including seller info and reviews.
+ * GET /api/agents/[agentId]
+ * Fetch a single agent by ID or slug, including seller info and reviews.
  */
 export async function GET(req: NextRequest, { params }: Props) {
-  const { slug } = await params;
+  const { agentId } = await params;
+
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(agentId);
 
   const [agent] = await db
     .select()
     .from(agents)
-    .where(eq(agents.slug, slug))
+    .where(isUuid ? eq(agents.id, agentId) : eq(agents.slug, agentId))
     .limit(1);
 
   if (!agent) {
