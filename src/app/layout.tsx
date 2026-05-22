@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Inter } from "next/font/google";
 import { Providers } from "@/frontend/components/Providers";
 import { Omnibar } from "@/frontend/components/ui/command";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: {
@@ -31,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geist.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${geist.variable} ${inter.variable}`}>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <Providers>
           {children}

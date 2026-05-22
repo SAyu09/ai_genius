@@ -89,7 +89,7 @@ export default function CreatorStudioPage() {
             <div className="h-6 w-px bg-border" />
             <h1 className="font-semibold text-lg flex items-center gap-2">
               <Bot className="h-5 w-5 text-primary" />
-              Creator Studio
+              Agent Details
             </h1>
             {draftId && (
               <span className="px-2 py-0.5 rounded-md bg-yellow-500/10 text-yellow-700 text-xs font-medium border border-yellow-500/20">

@@ -11,7 +11,7 @@ import { Footer } from "@/frontend/components/site/Footer";
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <Header />
       <main>
         <Hero />

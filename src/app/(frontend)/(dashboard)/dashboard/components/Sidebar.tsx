@@ -131,9 +131,9 @@ export function Sidebar({ session }: SidebarProps) {
   ];
 
   const sellerLinks: NavLink[] = [
-    { href: "/dashboard/seller", label: "Studio Overview", icon: LayoutDashboard },
+    { href: "/dashboard/seller", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/seller/listings", label: "My Listings", icon: ShoppingBag },
-    { href: "/dashboard/list-agent", label: "Creator Studio", icon: Plus },
+    { href: "/dashboard/list-agent", label: "Add Agent", icon: Plus },
     { href: "/dashboard/seller/earnings", label: "Earnings & Telemetry", icon: DollarSign },
     { href: "/dashboard/seller/developer", label: "Developer & API Keys", icon: Code },
     { href: "/dashboard/seller/billing", label: "Billing & Payouts", icon: Wallet },
@@ -167,7 +167,7 @@ export function Sidebar({ session }: SidebarProps) {
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-white border-r border-gray-150 p-4 select-none">
       {/* Brand Header */}
-      <div className="flex h-12 items-center px-2 mb-6">
+      <div className="flex h-12 items-center px-2 mb-4">
         <Link href="/" className="flex items-center gap-2 font-display text-base font-bold text-gray-900">
           <img
             src="/logo.png"
@@ -181,28 +181,28 @@ export function Sidebar({ session }: SidebarProps) {
       {/* Cmd+K Omnibar Trigger button */}
       <button
         onClick={handleTriggerOmnibar}
-        className="flex items-center justify-between w-full h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-1.5 text-xs text-gray-400 font-medium hover:bg-gray-50 transition-colors mb-6"
+        className="flex items-center justify-between w-full h-10 rounded-xl border border-gray-200 bg-gray-50/80 px-3 py-2 text-[11px] text-gray-500 font-medium hover:bg-gray-100 transition-colors mb-4 shadow-sm"
       >
-        <span className="flex items-center gap-2">
-          <Search className="h-3.5 w-3.5 text-gray-400" />
-          Search or run command...
+        <span className="flex items-center gap-2 truncate">
+          <Search className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+          <span className="truncate">Search or command...</span>
         </span>
-        <span className="flex items-center gap-0.5 border border-gray-200 bg-white px-1.5 py-0.5 rounded font-mono text-[9px]">
-          <Command className="h-2 w-2" />
+        <span className="flex items-center gap-0.5 border border-gray-200 bg-white px-1.5 py-0.5 rounded font-mono text-[9px] shadow-sm shrink-0">
+          <Command className="h-2.5 w-2.5 text-gray-400" />
           <span>K</span>
         </span>
       </button>
 
-      {/* Grayscale Contextual Mode Switcher */}
-      <div className="bg-gray-100 p-1 rounded-lg grid grid-cols-2 gap-1 mb-6 text-[11px] font-semibold tracking-tight">
+      {/* Contextual Mode Switcher */}
+      <div className="bg-gray-100/80 p-1 rounded-xl grid grid-cols-2 gap-1 mb-3 text-[11px] font-semibold tracking-tight border border-gray-200/60 shadow-sm">
         <button
           onClick={() => handleModeSwitch("buyer")}
           disabled={upgrading}
           className={cn(
-            "py-1.5 rounded-md text-center transition-all duration-150 cursor-pointer",
+            "py-1.5 rounded-lg text-center transition-all duration-200 cursor-pointer",
             activeMode === "buyer" 
-              ? "bg-white text-gray-900 shadow-sm" 
-              : "text-gray-500 hover:text-gray-900"
+              ? "bg-white text-gray-900 shadow-sm ring-1 ring-black/5" 
+              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
           )}
         >
           Buyer
@@ -211,24 +211,15 @@ export function Sidebar({ session }: SidebarProps) {
           onClick={() => handleModeSwitch("seller")}
           disabled={upgrading}
           className={cn(
-            "py-1.5 rounded-md text-center transition-all duration-150 cursor-pointer flex items-center justify-center gap-1",
+            "py-1.5 rounded-lg text-center transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5",
             activeMode === "seller" 
-              ? "bg-white text-gray-900 shadow-sm" 
-              : "text-gray-500 hover:text-gray-900"
+              ? "bg-white text-gray-900 shadow-sm ring-1 ring-black/5" 
+              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
           )}
         >
           {upgrading ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
-          Creator
+          Seller
         </button>
-      </div>
-
-      {/* Secondary Mode / Workspace Title */}
-      <div className="px-2 mb-3">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-          {activeMode === "admin" && "Operations Desk"}
-          {activeMode === "seller" && "Creator Studio"}
-          {activeMode === "buyer" && "Client Space"}
-        </span>
       </div>
 
       {/* Navigation List - 8-point spatial grid styling */}
