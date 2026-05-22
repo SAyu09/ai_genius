@@ -28,7 +28,7 @@ export function getCheckoutParams(mode: 'embedded' | 'hosted', baseUrl: string) 
     };
   }
   return {
-    ui_mode: 'hosted' as const,
+    ui_mode: 'hosted_page' as const,
     success_url: `${baseUrl}/marketplace/my-agents?checkout=success`,
     cancel_url: `${baseUrl}/marketplace?checkout=cancelled`,
   };
