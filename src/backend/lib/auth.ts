@@ -40,7 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       name: "Google",
       type: "oauth",
       issuer: "https://accounts.google.com",
-      checks: ["pkce", "state"],
+      checks: ["pkce"],
       authorization: {
         url: "https://accounts.google.com/o/oauth2/v2/auth",
         params: { scope: "openid profile email", access_type: "offline", prompt: "consent" },
