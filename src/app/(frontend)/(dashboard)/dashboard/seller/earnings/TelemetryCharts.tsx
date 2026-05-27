@@ -3,6 +3,7 @@
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/frontend/components/ui/card";
 import { Activity, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const telemetryData = [
   { day: 'Mon', latency: 320, dropoff: 10 },
@@ -15,6 +16,14 @@ const telemetryData = [
 ];
 
 export function TelemetryCharts() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <div className="grid lg:grid-cols-2 gap-6 mt-6">
       <Card className="rounded-3xl border shadow-sm">
@@ -26,7 +35,7 @@ export function TelemetryCharts() {
         </CardHeader>
         <CardContent>
           <div className="h-64 w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <LineChart data={telemetryData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#6b7280" }} />
@@ -48,7 +57,7 @@ export function TelemetryCharts() {
         </CardHeader>
         <CardContent>
           <div className="h-64 w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <BarChart data={telemetryData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#6b7280" }} />

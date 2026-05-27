@@ -62,6 +62,16 @@ export function Header() {
   /* close mobile menu on route change */
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
+  /* sync role context based on route when navigating via back button */
+  useEffect(() => {
+    if (pathname.startsWith("/marketplace")) {
+      setRoleContext("buyer");
+    } else if (pathname.startsWith("/dashboard/seller") || pathname.startsWith("/dashboard/list-agent")) {
+      setRoleContext("seller");
+    }
+  }, [pathname, setRoleContext]);
+
+
   const handleModeSwitch = async (mode: "buyer" | "seller") => {
     setMobileOpen(false);
     if (mode === "buyer") {
@@ -146,7 +156,7 @@ export function Header() {
 
           {/* ── Logo ──────────────────────────────────────── */}
           <Link
-            href="/"
+            href={isLoggedIn ? "/marketplace" : "/"}
             className="flex items-center gap-2 group select-none"
           >
             <img

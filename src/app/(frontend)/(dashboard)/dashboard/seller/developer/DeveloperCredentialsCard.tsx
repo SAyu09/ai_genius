@@ -13,7 +13,8 @@ type Agent = {
 };
 
 export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
-  const [selectedAgentId, setSelectedAgentId] = useState<string>("");
+  const [selectedAgentId, setSelectedAgentId] = useState<string>(agents[0]?.id || "");
+  const [endpointInput, setEndpointInput] = useState<string>(agents[0]?.endpointUrl || '');
   const [secret, setSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -25,6 +26,8 @@ export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
     setSelectedAgentId(id);
     setSecret(null);
     setTestResult(null);
+    const agent = agents.find(a => a.id === id);
+    setEndpointInput(agent?.endpointUrl || '');
   };
 
   const fetchSecret = async () => {
@@ -46,15 +49,19 @@ export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await fetch(`/api/sellers/agents/${selectedAgentId}/test-endpoint`, { method: "POST" });
+      const res = await fetch(`/api/sellers/agents/${selectedAgentId}/test-endpoint`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpointUrl: endpointInput })
+      });
       const data = await res.json();
-      if (res.ok && data.success) {
-        setTestResult("success");
+      if (res.ok && data.passed) {
+        setTestResult('success');
       } else {
-        setTestResult("failed");
+        setTestResult('failed');
       }
     } catch {
-      setTestResult("failed");
+      setTestResult('failed');
     } finally {
       setTesting(false);
     }
@@ -108,9 +115,37 @@ export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
             {selectedAgent && (
               <div className="space-y-2 animate-in fade-in duration-500 pt-2">
                 <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Target Endpoint</label>
-                <div className="flex items-center gap-3 bg-white/60 border border-primary/20 rounded-lg px-4 py-2.5">
-                  <Link2 className="h-4 w-4 text-gray-500 shrink-0" />
-                  <span className="text-sm font-medium text-gray-900 truncate">{selectedAgent.endpointUrl || "No endpoint provided"}</span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="flex-1 flex items-center gap-2 bg-white/60 border border-primary/20 rounded-lg px-3 py-1 w-full overflow-hidden">
+                    <Link2 className="h-4 w-4 text-gray-500 shrink-0" />
+                    <input
+                      type="url"
+                      value={endpointInput}
+                      onChange={(e) => setEndpointInput(e.target.value)}
+                      placeholder="https://api.yourdomain.com/webhook"
+                      className="flex-1 min-w-0 text-sm font-medium text-gray-900 bg-transparent outline-none placeholder:text-gray-400 h-8"
+                    />
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="shrink-0 w-full sm:w-auto rounded-lg text-xs h-8"
+                    disabled={endpointInput === (selectedAgent.endpointUrl || '')}
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(`/api/sellers/agents/${selectedAgentId}/test-endpoint`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ endpointUrl: endpointInput })
+                        });
+                        if (res.ok) {
+                          alert('Endpoint saved!');
+                        }
+                      } catch { alert('Failed to save'); }
+                    }}
+                  >
+                    Save
+                  </Button>
                 </div>
               </div>
             )}
@@ -169,7 +204,7 @@ export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
                       )}
                     </div>
                     
-                    <Button onClick={testConnection} variant="secondary" disabled={testing || !selectedAgent.endpointUrl} className="rounded-lg shrink-0 gap-2">
+                    <Button onClick={testConnection} variant="secondary" disabled={testing || !endpointInput} className="rounded-lg shrink-0 gap-2 w-full sm:w-auto">
                       {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                       Send Ping Test
                     </Button>

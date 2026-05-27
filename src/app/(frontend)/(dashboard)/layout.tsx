@@ -13,12 +13,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const role = session.user.role || "buyer";
 
   return (
-    <div className="flex min-h-screen bg-gray-50/30">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50/30 w-full overflow-x-hidden">
       {/* Premium Grayscale Contextual Sidebar */}
       <Sidebar session={session} />
 
       {/* Main Panel */}
-      <div className="flex-1 lg:ml-60 flex flex-col min-h-screen">
+      <div className="flex-1 lg:ml-60 flex flex-col min-h-screen min-w-0">
         {/* Sleek Enterprise Top Bar (Linear/Stripe style) */}
         <header className="sticky top-0 z-10 hidden lg:flex h-14 items-center border-b border-gray-150 bg-white/80 px-8 backdrop-blur select-none">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400">

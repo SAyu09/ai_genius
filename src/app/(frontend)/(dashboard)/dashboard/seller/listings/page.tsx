@@ -134,7 +134,7 @@ export default async function SellerListingsPage() {
                 </div>
 
                 {/* Right: Actions */}
-                <div className="flex flex-row md:flex-col items-center justify-end gap-1 shrink-0 mt-4 md:mt-0 w-full md:w-36">
+                <div className="flex flex-col items-stretch justify-center gap-2 shrink-0 mt-4 md:mt-0 w-full md:w-36">
                   <ActionButtons agentId={agent.id} status={agent.status} isKycVerified={isKycVerified} />
                   {agent.status === "approved" && (
                     <Button asChild size="sm" variant="ghost" className="w-full justify-start h-8 rounded-md text-sm gap-2 text-gray-700">
