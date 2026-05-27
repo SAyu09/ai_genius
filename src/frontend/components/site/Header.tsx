@@ -212,7 +212,7 @@ export function Header() {
                   className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? "bg-white text-indigo-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800"].join(" ")}
                 >
                   {upgrading && <Loader2 className="h-3 w-3 animate-spin" />}
-                  Creator
+                  Seller
                 </button>
               </div>
             )}
@@ -384,7 +384,7 @@ export function Header() {
                       className={["flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "seller" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"].join(" ")}
                     >
                       {upgrading && <Loader2 className="h-3 w-3 animate-spin" />}
-                      Creator
+                      Seller
                     </button>
                   </div>
                 )}

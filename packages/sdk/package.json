@@ -1,22 +1,30 @@
 {
-  "name": "@aigenius/sdk",
+  "name": "aigenius-agent-sdk",
   "version": "1.0.0",
   "description": "AI Genius Marketplace SDK — Connect your AI backend to the platform",
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
     }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "license": "MIT",
   "devDependencies": {
+    "tsup": "^8.5.1",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "aigenius-agent-sdk": "^1.0.0"
   }
 }

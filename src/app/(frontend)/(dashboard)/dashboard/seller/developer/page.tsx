@@ -63,7 +63,7 @@ export default async function DeveloperDocsPage() {
                   This handles all the complex HMAC signature verification and streaming for you.
                 </p>
                 <div className="bg-slate-900 rounded-xl p-4 flex justify-between items-center relative overflow-hidden">
-                  <code className="text-sm text-green-400 font-mono">npm install @aigenius/sdk</code>
+                  <code className="text-sm text-green-400 font-mono">npm install aigenius-agent-sdk</code>
                   <div className="absolute right-4 text-[10px] text-slate-500 uppercase tracking-widest font-bold">Terminal</div>
                 </div>
               </div>
@@ -88,7 +88,7 @@ export default async function DeveloperDocsPage() {
                 
                 <div className="bg-slate-900 rounded-xl p-5 overflow-x-auto">
                   <pre className="text-[13px] text-gray-300 font-mono leading-relaxed">
-{`import { createAgent } from "@aigenius/sdk";
+{`import { createAgent } from "aigenius-agent-sdk";
 
 // Initialize with your unique agent secret (from the panel above)
 const agent = createAgent({

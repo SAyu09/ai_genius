@@ -74,7 +74,7 @@ export function DeveloperIntegrationModal({ agentId, endpointUrl }: { agentId: s
 
           <div className="space-y-2">
             <div className="text-sm font-semibold">AIGenius_SECRET</div>
-            <div className="text-xs text-muted-foreground mb-1">Use this secret to verify the HMAC signature in your backend using the <code>@aigenius/sdk</code>.</div>
+            <div className="text-xs text-muted-foreground mb-1">Use this secret to verify the HMAC signature in your backend using the <code>aigenius-agent-sdk</code>.</div>
             
             {secret ? (
               <div className="flex gap-2">

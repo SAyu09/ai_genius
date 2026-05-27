@@ -269,3 +269,17 @@
 .glow-border:hover::before {
   opacity: 1;
 }
+
+/* ─── View Transitions ────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  
+  /* Soften the default crossfade slightly for a more premium feel */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.3s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}

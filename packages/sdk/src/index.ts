@@ -1,8 +1,8 @@
 /**
- * @aigenius/sdk — AI Genius Marketplace SDK
+ * aigenius-agent-sdk — AI Genius Marketplace SDK
  *
  * The ENTIRE public API surface:
- *   import { createAgent } from '@aigenius/sdk'
+ *   import { createAgent } from 'aigenius-agent-sdk'
  *   const agent = createAgent({ secret, agentId })
  *   agent.verify(request)  → { userId, agentId, plan } | throws
  *   agent.handler(fn)      → Express/Next.js route handler

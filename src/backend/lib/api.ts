@@ -22,7 +22,7 @@ export function withAuth(handler: Handler) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 }); 
     }
 
     return handler({ userId: user.id, role: user.role, req });

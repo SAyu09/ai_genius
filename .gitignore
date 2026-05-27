@@ -43,3 +43,8 @@ next-env.d.ts
 
 # Cloudflare Workers local secrets
 .dev.vars
+
+# Packages
+packages/*/node_modules
+packages/*/dist
+
