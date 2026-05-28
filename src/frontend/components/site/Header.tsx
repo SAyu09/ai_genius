@@ -84,9 +84,15 @@ export function Header() {
         if (!res.ok && data.error?.code !== "ALREADY_SELLER") {
           throw new Error(data.error?.message || "Failed to upgrade");
         }
-        await updateSession();
+        // Refresh the NextAuth session so the JWT gets the new role
+        await updateSession({ role: "seller" });
         toast.success("Creator mode activated! 🎉");
-        router.push("/dashboard/seller");
+        
+        // Add a tiny delay to ensure browser persists the new session cookie
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Force a hard navigation to avoid Next.js router cache and ensure the new cookie is sent
+        window.location.href = "/dashboard/seller";
       } catch (err: any) {
         toast.error(err.message || "Could not switch to Creator mode.");
       } finally {
