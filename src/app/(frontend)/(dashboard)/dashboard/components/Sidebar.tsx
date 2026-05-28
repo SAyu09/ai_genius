@@ -91,7 +91,13 @@ export function Sidebar({ session }: SidebarProps) {
         }
 
         // Refresh the NextAuth session so the JWT gets the new role
-        await updateSession({ role: "seller" });
+        const csrfRes = await fetch("/api/auth/csrf");
+        const { csrfToken } = await csrfRes.json();
+        await fetch("/api/auth/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ csrfToken, data: { role: "seller" } })
+        });
 
         toast.success("Creator mode activated! 🎉");
         

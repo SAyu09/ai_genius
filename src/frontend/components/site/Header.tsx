@@ -85,7 +85,13 @@ export function Header() {
           throw new Error(data.error?.message || "Failed to upgrade");
         }
         // Refresh the NextAuth session so the JWT gets the new role
-        await updateSession({ role: "seller" });
+        const csrfRes = await fetch("/api/auth/csrf");
+        const { csrfToken } = await csrfRes.json();
+        await fetch("/api/auth/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ csrfToken, data: { role: "seller" } })
+        });
         toast.success("Creator mode activated! 🎉");
         
         // Add a tiny delay to ensure browser persists the new session cookie
