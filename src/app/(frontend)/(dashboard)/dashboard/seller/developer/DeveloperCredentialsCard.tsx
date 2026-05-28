@@ -1,16 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent } from "@/frontend/components/ui/card";
 import { Button } from "@/frontend/components/ui/button";
-import { Input } from "@/frontend/components/ui/input";
-import { Copy, Key, Loader2, CheckCircle, RefreshCw, AlertCircle, Link2 } from "lucide-react";
+import { Copy, Key, Loader2, CheckCircle, RefreshCw, AlertCircle, Link2, Check, Hash } from "lucide-react";
+import { toast } from "sonner";
 
 type Agent = {
   id: string;
   name: string;
   endpointUrl: string | null;
 };
+
+function useCopyToClipboard() {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const copy = useCallback(async (text: string, key: string, label?: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      toast.success(label ? `${label} copied!` : "Copied to clipboard!");
+      setTimeout(() => setCopiedKey(null), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  }, []);
+
+  return { copiedKey, copy };
+}
 
 export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
   const [selectedAgentId, setSelectedAgentId] = useState<string>(agents[0]?.id || "");
@@ -19,6 +36,7 @@ export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
   const [loading, setLoading] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const { copiedKey, copy } = useCopyToClipboard();
 
   const selectedAgent = agents.find(a => a.id === selectedAgentId);
 
@@ -67,11 +85,6 @@ export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert("Copied to clipboard!");
-  };
-
   if (agents.length === 0) {
     return (
       <Card className="rounded-3xl border-dashed bg-card/50 shadow-sm">
@@ -112,6 +125,30 @@ export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
               </select>
             </div>
 
+            {/* Agent ID with Copy */}
+            {selectedAgent && (
+              <div className="space-y-2 animate-in fade-in duration-500">
+                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <Hash className="h-3 w-3" /> Agent ID
+                </label>
+                <div className="flex items-center gap-2 bg-white/60 border border-primary/20 rounded-lg px-3 py-2">
+                  <code className="flex-1 min-w-0 text-xs font-mono text-gray-700 truncate select-all">{selectedAgent.id}</code>
+                  <button
+                    onClick={() => copy(selectedAgent.id, "agentId", "Agent ID")}
+                    className="shrink-0 p-1.5 rounded-md hover:bg-gray-100 transition-colors"
+                    aria-label="Copy Agent ID"
+                  >
+                    {copiedKey === "agentId" ? (
+                      <Check className="h-3.5 w-3.5 text-green-500" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Endpoint URL with Copy */}
             {selectedAgent && (
               <div className="space-y-2 animate-in fade-in duration-500 pt-2">
                 <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Target Endpoint</label>
@@ -125,6 +162,19 @@ export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
                       placeholder="https://api.yourdomain.com/webhook"
                       className="flex-1 min-w-0 text-sm font-medium text-gray-900 bg-transparent outline-none placeholder:text-gray-400 h-8"
                     />
+                    {endpointInput && (
+                      <button
+                        onClick={() => copy(endpointInput, "endpoint", "Endpoint URL")}
+                        className="shrink-0 p-1 rounded-md hover:bg-gray-100 transition-colors"
+                        aria-label="Copy Endpoint URL"
+                      >
+                        {copiedKey === "endpoint" ? (
+                          <Check className="h-3.5 w-3.5 text-green-500" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5 text-gray-400" />
+                        )}
+                      </button>
+                    )}
                   </div>
                   <Button 
                     size="sm" 
@@ -139,9 +189,9 @@ export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
                           body: JSON.stringify({ endpointUrl: endpointInput })
                         });
                         if (res.ok) {
-                          alert('Endpoint saved!');
+                          toast.success('Endpoint saved!');
                         }
-                      } catch { alert('Failed to save'); }
+                      } catch { toast.error('Failed to save'); }
                     }}
                   >
                     Save
@@ -173,8 +223,22 @@ export function DeveloperCredentialsCard({ agents }: { agents: Agent[] }) {
                         <div className="flex-1 bg-gray-50 border border-gray-200 text-gray-800 font-mono text-sm px-4 py-2.5 rounded-lg w-full break-all">
                           {secret}
                         </div>
-                        <Button size="default" className="shrink-0 w-full sm:w-auto gap-2" onClick={() => copyToClipboard(secret)}>
-                          <Copy className="h-4 w-4" /> Copy Secret
+                        <Button
+                          size="default"
+                          className="shrink-0 w-full sm:w-auto gap-2"
+                          onClick={() => copy(secret, "secret", "Secret key")}
+                        >
+                          {copiedKey === "secret" ? (
+                            <>
+                              <Check className="h-4 w-4 text-green-300" />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-4 w-4" />
+                              Copy Secret
+                            </>
+                          )}
                         </Button>
                       </>
                     ) : (

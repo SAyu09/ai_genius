@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/frontend/components/ui/card";
 import { Terminal, Server, ShieldCheck } from "lucide-react";
 import { DeveloperCredentialsCard } from "./DeveloperCredentialsCard";
+import { CopyableCodeBlock } from "./CopyableCodeBlock";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -62,10 +63,10 @@ export default async function DeveloperDocsPage() {
                   The easiest way to integrate with our platform is to use the official AI Genius SDK in your Node.js backend. 
                   This handles all the complex HMAC signature verification and streaming for you.
                 </p>
-                <div className="bg-slate-900 rounded-xl p-4 flex justify-between items-center relative overflow-hidden">
-                  <code className="text-sm text-green-400 font-mono">npm install aigenius-agent-sdk</code>
-                  <div className="absolute right-4 text-[10px] text-slate-500 uppercase tracking-widest font-bold">Terminal</div>
-                </div>
+                <CopyableCodeBlock 
+                  code="npm install aigenius-agent-sdk"
+                  label="Terminal"
+                />
               </div>
             </div>
           </div>
@@ -86,9 +87,8 @@ export default async function DeveloperDocsPage() {
                   Import the SDK and use the <code>verify</code> middleware to authenticate requests.
                 </p>
                 
-                <div className="bg-slate-900 rounded-xl p-5 overflow-x-auto">
-                  <pre className="text-[13px] text-gray-300 font-mono leading-relaxed">
-{`import { createAgent } from "aigenius-agent-sdk";
+                <CopyableCodeBlock 
+                  code={`import { createAgent } from "aigenius-agent-sdk";
 
 // Initialize with your unique agent secret (from the panel above)
 const agent = createAgent({
@@ -114,8 +114,8 @@ app.post("/api/ai-genius-webhook", async (req, res) => {
     res.status(401).json({ error: "Unauthorized Request" });
   }
 });`}
-                  </pre>
-                </div>
+                  label="Express.js"
+                />
               </div>
             </div>
           </div>

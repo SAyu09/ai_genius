@@ -55,7 +55,7 @@ export function Sidebar({ session }: SidebarProps) {
     return activeRoleContext;
   }, [pathname, activeRoleContext]);
 
-  // Sync store context from pathname on mount / hard-nav
+  // Sync store context from pathname — single source of truth for role context
   React.useEffect(() => {
     if (pathname.startsWith("/admin")) return; // admin is independent
     if (pathname.startsWith("/dashboard/seller") || pathname.startsWith("/dashboard/list-agent")) {
@@ -63,7 +63,7 @@ export function Sidebar({ session }: SidebarProps) {
     } else if (pathname.startsWith("/marketplace")) {
       setRoleContext("buyer");
     }
-  }, []); // only on mount to not override user toggles
+  }, [pathname, setRoleContext]);
 
   // Handle outside click for user profile dropdown
   React.useEffect(() => {
@@ -77,48 +77,30 @@ export function Sidebar({ session }: SidebarProps) {
   }, []);
 
   const handleModeSwitch = async (mode: Mode) => {
-    setMobileOpen(false);
+    // Only used for the upgrade flow. Navigation is handled by <Link> prefetching.
+    // Role context is updated by the pathname-watching useEffect — NOT here.
+    if (mode === "seller" && role !== "seller" && role !== "admin") {
+      setMobileOpen(false);
+      setUpgrading(true);
+      try {
+        const res = await fetch("/api/sellers/register", { method: "POST" });
+        const data = await res.json();
 
-    if (mode === "admin") {
-      router.push("/admin");
-      return;
-    }
+        if (!res.ok && data.error?.code !== "ALREADY_SELLER") {
+          throw new Error(data.error?.message || "Failed to upgrade account");
+        }
 
-    if (mode === "buyer") {
-      setRoleContext("buyer");
-      router.push("/marketplace");
-      return;
-    }
+        // Refresh the NextAuth session so the JWT gets the new role
+        await updateSession();
 
-    // mode === "seller"
-    if (role === "seller" || role === "admin") {
-      // Already a seller in the database — just switch context
-      setRoleContext("seller");
-      router.push("/dashboard/seller");
-      return;
-    }
-
-    // Need to upgrade the user's role from buyer → seller
-    setUpgrading(true);
-    try {
-      const res = await fetch("/api/sellers/register", { method: "POST" });
-      const data = await res.json();
-
-      if (!res.ok && data.error?.code !== "ALREADY_SELLER") {
-        throw new Error(data.error?.message || "Failed to upgrade account");
+        toast.success("Creator mode activated! 🎉");
+        router.push("/dashboard/seller");
+      } catch (err: any) {
+        console.error("Role upgrade error:", err);
+        toast.error(err.message || "Could not switch to Creator mode.");
+      } finally {
+        setUpgrading(false);
       }
-
-      // Refresh the NextAuth session so the JWT gets the new role
-      await updateSession();
-
-      setRoleContext("seller");
-      toast.success("Creator mode activated! 🎉");
-      router.push("/dashboard/seller");
-    } catch (err: any) {
-      console.error("Role upgrade error:", err);
-      toast.error(err.message || "Could not switch to Creator mode.");
-    } finally {
-      setUpgrading(false);
     }
   };
 
@@ -195,31 +177,44 @@ export function Sidebar({ session }: SidebarProps) {
 
       {/* Contextual Mode Switcher */}
       <div className="bg-gray-100/80 p-1 rounded-xl grid grid-cols-2 gap-1 mb-3 text-[11px] font-semibold tracking-tight border border-gray-200/60 shadow-sm">
-        <button
-          onClick={() => handleModeSwitch("buyer")}
-          disabled={upgrading}
+        <Link
+          href="/marketplace"
           className={cn(
-            "py-1.5 rounded-lg text-center transition-all duration-200 cursor-pointer",
+            "py-1.5 rounded-lg text-center transition-all duration-200 cursor-pointer block",
             activeMode === "buyer" 
               ? "bg-white text-gray-900 shadow-sm ring-1 ring-black/5" 
               : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
           )}
         >
           Buyer
-        </button>
-        <button
-          onClick={() => handleModeSwitch("seller")}
-          disabled={upgrading}
-          className={cn(
-            "py-1.5 rounded-lg text-center transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5",
-            activeMode === "seller" 
-              ? "bg-white text-gray-900 shadow-sm ring-1 ring-black/5" 
-              : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-          )}
-        >
-          {upgrading ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
-          Seller
-        </button>
+        </Link>
+        {role === "seller" || role === "admin" ? (
+          <Link
+            href="/dashboard/seller"
+            className={cn(
+              "py-1.5 rounded-lg text-center transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5",
+              activeMode === "seller" 
+                ? "bg-white text-gray-900 shadow-sm ring-1 ring-black/5" 
+                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+            )}
+          >
+            Seller
+          </Link>
+        ) : (
+          <button
+            onClick={() => handleModeSwitch("seller")}
+            disabled={upgrading}
+            className={cn(
+              "py-1.5 rounded-lg text-center transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5",
+              activeMode === "seller" 
+                ? "bg-white text-gray-900 shadow-sm ring-1 ring-black/5" 
+                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+            )}
+          >
+            {upgrading ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+            Seller
+          </button>
+        )}
       </div>
 
       {/* Navigation List - 8-point spatial grid styling */}

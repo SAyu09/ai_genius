@@ -73,32 +73,25 @@ export function Header() {
 
 
   const handleModeSwitch = async (mode: "buyer" | "seller") => {
-    setMobileOpen(false);
-    if (mode === "buyer") {
-      setRoleContext("buyer");
-      router.push("/marketplace");
-      return;
-    }
-    if (role === "seller" || role === "admin") {
-      setRoleContext("seller");
-      router.push("/dashboard/seller");
-      return;
-    }
-    setUpgrading(true);
-    try {
-      const res = await fetch("/api/sellers/register", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok && data.error?.code !== "ALREADY_SELLER") {
-        throw new Error(data.error?.message || "Failed to upgrade");
+    // Only used for the upgrade flow. Navigation is handled by <Link> prefetching.
+    // Role context is updated by the pathname-watching useEffect — NOT here.
+    if (mode === "seller" && role !== "seller" && role !== "admin") {
+      setMobileOpen(false);
+      setUpgrading(true);
+      try {
+        const res = await fetch("/api/sellers/register", { method: "POST" });
+        const data = await res.json();
+        if (!res.ok && data.error?.code !== "ALREADY_SELLER") {
+          throw new Error(data.error?.message || "Failed to upgrade");
+        }
+        await updateSession();
+        toast.success("Creator mode activated! 🎉");
+        router.push("/dashboard/seller");
+      } catch (err: any) {
+        toast.error(err.message || "Could not switch to Creator mode.");
+      } finally {
+        setUpgrading(false);
       }
-      await updateSession();
-      setRoleContext("seller");
-      toast.success("Creator mode activated! 🎉");
-      router.push("/dashboard/seller");
-    } catch (err: any) {
-      toast.error(err.message || "Could not switch to Creator mode.");
-    } finally {
-      setUpgrading(false);
     }
   };
 
@@ -200,20 +193,29 @@ export function Header() {
             {/* Mode Switcher Toggle for Desktop */}
             {isLoggedIn && (
               <div className="hidden sm:flex bg-slate-100/80 p-0.5 rounded-[10px] mr-2 border border-slate-200/60 shadow-inner">
-                <button
-                  onClick={() => handleModeSwitch("buyer")}
+                <Link
+                  href="/marketplace"
                   className={["px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "buyer" ? "bg-white text-indigo-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800"].join(" ")}
                 >
                   Buyer
-                </button>
-                <button
-                  onClick={() => handleModeSwitch("seller")}
-                  disabled={upgrading}
-                  className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? "bg-white text-indigo-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800"].join(" ")}
-                >
-                  {upgrading && <Loader2 className="h-3 w-3 animate-spin" />}
-                  Seller
-                </button>
+                </Link>
+                {role === "seller" || role === "admin" ? (
+                  <Link
+                    href="/dashboard/seller"
+                    className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? "bg-white text-indigo-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800"].join(" ")}
+                  >
+                    Seller
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => handleModeSwitch("seller")}
+                    disabled={upgrading}
+                    className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? "bg-white text-indigo-700 shadow-sm ring-1 ring-black/5" : "text-slate-500 hover:text-slate-800"].join(" ")}
+                  >
+                    {upgrading && <Loader2 className="h-3 w-3 animate-spin" />}
+                    Seller
+                  </button>
+                )}
               </div>
             )}
 
@@ -372,20 +374,31 @@ export function Header() {
                 {/* Mobile Mode Switcher */}
                 {isLoggedIn && (
                   <div className="mb-2 p-1 bg-slate-100 rounded-lg flex border border-slate-200/60 shadow-inner">
-                    <button
-                      onClick={() => handleModeSwitch("buyer")}
-                      className={["flex-1 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "buyer" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"].join(" ")}
+                    <Link
+                      href="/marketplace"
+                      onClick={() => setMobileOpen(false)}
+                      className={["flex-1 flex items-center justify-center px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "buyer" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"].join(" ")}
                     >
                       Buyer
-                    </button>
-                    <button
-                      onClick={() => handleModeSwitch("seller")}
-                      disabled={upgrading}
-                      className={["flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "seller" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"].join(" ")}
-                    >
-                      {upgrading && <Loader2 className="h-3 w-3 animate-spin" />}
-                      Seller
-                    </button>
+                    </Link>
+                    {role === "seller" || role === "admin" ? (
+                      <Link
+                        href="/dashboard/seller"
+                        onClick={() => setMobileOpen(false)}
+                        className={["flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "seller" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"].join(" ")}
+                      >
+                        Seller
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => handleModeSwitch("seller")}
+                        disabled={upgrading}
+                        className={["flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "seller" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700"].join(" ")}
+                      >
+                        {upgrading && <Loader2 className="h-3 w-3 animate-spin" />}
+                        Seller
+                      </button>
+                    )}
                   </div>
                 )}
                 {links.map((l) => (
