@@ -10,8 +10,11 @@ declare global {
   var postgresClient: postgres.Sql | undefined;
 }
 
-const client = globalThis.postgresClient ?? postgres(connectionString, { prepare: false });
-
+const client = globalThis.postgresClient ?? postgres(connectionString, { 
+  prepare: false,
+  max: process.env.NODE_ENV === "production" ? 10 : 2, // Fix connection exhaustion in dev
+  idle_timeout: 20, // Close idle connections quickly
+});
 if (process.env.NODE_ENV !== "production") {
   globalThis.postgresClient = client;
 }
