@@ -7,7 +7,7 @@ const createRedisClient = () => {
   const isProd = process.env.NODE_ENV === "production";
   
   if (isProd && !connectionString) {
-    throw new Error("CRITICAL: REDIS_URL environment variable is required in production.");
+    console.warn("WARNING: REDIS_URL environment variable is not set. Next.js build might fail if it attempts to connect to Redis during static generation.");
   }
   
   const client = new Redis(connectionString || "redis://127.0.0.1:6379", {

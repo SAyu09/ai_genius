@@ -12,7 +12,7 @@ export const POST = withSeller(async ({ userId, req }) => {
   // Verify ownership
   const agent = await db.query.agents.findFirst({
     where: and(eq(agents.id, agentId), eq(agents.sellerId, userId)),
-    columns: { id: true, integrationType: true, endpointUrl: true, assetKey: true },
+    columns: { id: true, type: true, endpointUrl: true, assetKey: true },
   });
 
   if (!agent) {
@@ -20,11 +20,11 @@ export const POST = withSeller(async ({ userId, req }) => {
   }
 
   // Validate that the agent has the necessary components to be published
-  if (agent.integrationType === "api" && !agent.endpointUrl) {
+  if (agent.type === "hosted" && !agent.endpointUrl) {
     return NextResponse.json({ error: { message: "API agents must have an endpoint URL configured." } }, { status: 400 });
   }
 
-  if (agent.integrationType === "n8n" && !agent.assetKey) {
+  if (agent.type === "workflow" && !agent.assetKey) {
     return NextResponse.json({ error: { message: "n8n agents must have a workflow file uploaded." } }, { status: 400 });
   }
 
