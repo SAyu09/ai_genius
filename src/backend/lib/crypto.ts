@@ -11,6 +11,14 @@ function getEncryptionKey(): Buffer {
   if (!secret) {
     throw new Error('ENCRYPTION_SECRET environment variable is missing');
   }
+  
+  if (secret === '12345678901234567890123456789012' && process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'CRITICAL SECURITY ERROR: Weak placeholder ENCRYPTION_SECRET detected in production. ' +
+      'You MUST rotate this key immediately to protect user PII.'
+    );
+  }
+
   // If the secret is a hex string, parse it. Otherwise, assume it's base64 or raw string.
   // We'll create a SHA-256 hash to ensure it's exactly 32 bytes long if we aren't sure.
   return crypto.createHash('sha256').update(String(secret)).digest();

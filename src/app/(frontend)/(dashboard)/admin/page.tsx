@@ -161,7 +161,7 @@ export default async function AdminPage() {
                         )}
 
                         <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                          <span>${(agent.monthlyPricePaise || 0) / 100}/mo</span>
+                          <span>${(agent.monthlyPriceCents || 0) / 100}/mo</span>
                           <span>·</span>
                           {agent.embedUrl ? (
                             <a href={agent.embedUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline flex items-center gap-1">

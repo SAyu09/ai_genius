@@ -105,7 +105,7 @@ export default async function AdminSettlementsPage() {
               <div>
                 <div className="font-semibold text-sm">{seller.name}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">
-                  {settlement.periodStart.toLocaleDateString()} — {settlement.periodEnd.toLocaleDateString()} · Net: {fmt(settlement.netPayoutPaise)}
+                  {settlement.periodStart.toLocaleDateString()} — {settlement.periodEnd.toLocaleDateString()} · Net: {fmt(settlement.netPayoutCents)}
                 </div>
               </div>
               <SettlementActions settlementId={settlement.id} />
@@ -138,7 +138,7 @@ export default async function AdminSettlementsPage() {
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     {settlement.periodStart.toLocaleDateString()} — {settlement.periodEnd.toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 text-right font-mono">{fmt(settlement.netPayoutPaise)}</td>
+                  <td className="px-4 py-3 text-right font-mono">{fmt(settlement.netPayoutCents)}</td>
                   <td className="px-4 py-3 text-xs font-mono">{settlement.bankReferenceNumber || "—"}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{settlement.settledAt?.toLocaleDateString()}</td>
                 </tr>

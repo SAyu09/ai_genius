@@ -141,7 +141,7 @@ export default async function SellerEarningsPage() {
                     <td className="px-4 py-3 text-xs">
                       {s.periodStart.toLocaleDateString()} — {s.periodEnd.toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-3 text-right font-mono font-bold">{fmt(s.netPayoutPaise)}</td>
+                    <td className="px-4 py-3 text-right font-mono font-bold">{fmt(s.netPayoutCents)}</td>
                     <td className="px-4 py-3">
                       <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${
                         s.status === "completed" ? "bg-green-500/10 text-green-600" :

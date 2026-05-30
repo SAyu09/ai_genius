@@ -40,6 +40,37 @@ export default {
       );
     }
 
+    // SSRF Protection: Validate forwardTo URL
+    try {
+      const parsed = new URL(forwardTo);
+      if (parsed.protocol !== 'https:') {
+        return new Response('URL must use HTTPS', { status: 400 });
+      }
+      
+      const hostname = parsed.hostname.toLowerCase();
+      const BLOCKED_IP_PATTERNS = [
+        /^127\./, /^10\./, /^172\.(1[6-9]|2\d|3[01])\./, /^192\.168\./, 
+        /^169\.254\./, /^0\./, /^100\.(6[4-9]|[7-9]\d|1[0-2]\d)\./, /^198\.18\./
+      ];
+      const BLOCKED_HOSTNAMES = ["localhost", "metadata.google.internal", "metadata.google", "169.254.169.254", "[::1]", "0.0.0.0"];
+      
+      if (BLOCKED_HOSTNAMES.includes(hostname) || hostname.startsWith("[")) {
+        return new Response('Invalid target hostname', { status: 400 });
+      }
+      
+      for (const pattern of BLOCKED_IP_PATTERNS) {
+        if (pattern.test(hostname)) {
+          return new Response('Target points to a private/reserved IP', { status: 400 });
+        }
+      }
+
+      if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+        return new Response('Direct IP addresses are not allowed', { status: 400 });
+      }
+    } catch {
+      return new Response('Invalid forward target URL format', { status: 400 });
+    }
+
     // ── 1. Verify request came from OUR platform ──────────────────────
     const platformSig = request.headers.get('X-Platform-Worker-Secret');
     if (platformSig !== env.PLATFORM_WORKER_SECRET) {

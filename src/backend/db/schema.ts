@@ -136,10 +136,10 @@ export const sellerSettlements = pgTable("seller_settlements", {
     .references(() => users.id, { onDelete: "cascade" }),
   periodStart: timestamp("period_start", { mode: "date" }).notNull(),
   periodEnd: timestamp("period_end", { mode: "date" }).notNull(),
-  grossPayoutPaise: integer("gross_payout_paise").notNull(),
-  tdsDeductedPaise: integer("tds_deducted_paise").default(0).notNull(),
-  refundDeductionsPaise: integer("refund_deductions_paise").default(0).notNull(),
-  netPayoutPaise: integer("net_payout_paise").notNull(),
+  grossPayoutCents: integer("gross_payout_cents").notNull(),
+  tdsDeductedCents: integer("tds_deducted_cents").default(0).notNull(),
+  refundDeductionsCents: integer("refund_deductions_cents").default(0).notNull(),
+  netPayoutCents: integer("net_payout_cents").notNull(),
   bankReferenceNumber: text("bank_reference_number"),
   status: text("status", { enum: ["processing", "completed", "failed"] }).default("processing").notNull(),
   failureReason: text("failure_reason"),
@@ -168,8 +168,8 @@ export const agents = pgTable("agents", {
 
   pricingModel: text("pricing_model", { enum: ["subscription", "one_time", "usage_based", "tiered_subscription", "outcome_based"] }).default("subscription").notNull(),
   pricingConfig: jsonb("pricing_config"),
-  monthlyPricePaise: integer("monthly_price_paise"),
-  annualPricePaise: integer("annual_price_paise"),
+  monthlyPriceCents: integer("monthly_price_cents"),
+  annualPriceCents: integer("annual_price_cents"),
   stripePriceIdMonthly: text("stripe_price_id_monthly"),
   stripePriceIdAnnual: text("stripe_price_id_annual"),
 
@@ -383,7 +383,7 @@ export const managedHosting = pgTable("managed_hosting", {
   hostedUrl: text("hosted_url"),
   status: text("status", { enum: ["provisioning", "active", "failed", "cancelled"] }).default("provisioning").notNull(),
   stripeSubscriptionId: text("stripe_subscription_id"),
-  monthlyCostPaise: integer("monthly_cost_paise").notNull(),
+  monthlyCostCents: integer("monthly_cost_cents").notNull(),
   provisionedAt: timestamp("provisioned_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -411,7 +411,7 @@ export const refunds = pgTable("refunds", {
   adminId: uuid("admin_id")
     .notNull()
     .references(() => users.id),
-  amountPaise: integer("amount_paise").notNull(),
+  amountCents: integer("amount_cents").notNull(),
   stripeRefundId: text("stripe_refund_id"),
   reason: text("reason"),
   decision: text("decision", { enum: ["approved", "partial", "rejected"] }).notNull(),

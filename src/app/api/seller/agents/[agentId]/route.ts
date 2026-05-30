@@ -39,7 +39,7 @@ export async function PATCH(
       category: category ?? existingAgent.category,
       description: description ?? existingAgent.description,
       longDesc: longDesc ?? existingAgent.longDesc,
-      monthlyPricePaise: monthlyPrice ? Math.round(monthlyPrice * 100) : existingAgent.monthlyPricePaise,
+      monthlyPriceCents: monthlyPrice ? Math.round(monthlyPrice * 100) : existingAgent.monthlyPriceCents,
       embedUrl: embedUrl ?? existingAgent.embedUrl,
       updatedAt: new Date(),
       // Reset status to testing if embedUrl changed

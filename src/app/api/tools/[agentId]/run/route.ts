@@ -6,6 +6,7 @@ import { agents } from "@/backend/db/schema";
 import { eq, and } from "drizzle-orm";
 import { decryptData } from "@/backend/lib/crypto";
 import { createHmac } from "crypto";
+import { isValidPublicUrl } from "@/backend/lib/validation";
 
 /**
  * POST /api/tools/[agentId]/run
@@ -28,25 +29,7 @@ export const POST = withAuth(async ({ userId, req }) => {
     );
   }
 
-  // 1. Verify subscription (cached — no DB hit if warm)
-  const { active, planType } = await getActiveSubscription(userId, agentId);
-
-  if (!active) {
-    // Also check if user is seller or admin (they get free access)
-    const agent = await db.query.agents.findFirst({
-      where: eq(agents.id, agentId),
-      columns: { sellerId: true },
-    });
-
-    if (!agent || agent.sellerId !== userId) {
-      return NextResponse.json(
-        { type: "error", error: { code: "NO_SUBSCRIPTION", message: "No active subscription" } },
-        { status: 403 }
-      );
-    }
-  }
-
-  // 2. Get seller's endpoint + SDK secret
+  // 1. Get seller's endpoint + SDK secret (Single Query)
   const agent = await db.query.agents.findFirst({
     where: and(eq(agents.id, agentId), eq(agents.status, "approved")),
     columns: {
@@ -61,6 +44,25 @@ export const POST = withAuth(async ({ userId, req }) => {
     return NextResponse.json(
       { type: "error", error: { code: "AGENT_UNAVAILABLE", message: "Agent endpoint not configured" } },
       { status: 503 }
+    );
+  }
+
+  // SSRF check on the resolved endpoint
+  if (!isValidPublicUrl(agent.endpointUrl).valid) {
+    return NextResponse.json(
+      { type: "error", error: { code: "INVALID_ENDPOINT", message: "Agent endpoint is not a valid public URL" } },
+      { status: 400 }
+    );
+  }
+
+  // 2. Verify subscription (cached — no DB hit if warm)
+  const { active, planType } = await getActiveSubscription(userId, agentId);
+
+  // Allow access if active subscription OR if user is the seller
+  if (!active && agent.sellerId !== userId) {
+    return NextResponse.json(
+      { type: "error", error: { code: "NO_SUBSCRIPTION", message: "No active subscription" } },
+      { status: 403 }
     );
   }
 

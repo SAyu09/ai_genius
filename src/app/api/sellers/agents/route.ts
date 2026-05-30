@@ -1,57 +1,71 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/backend/lib/auth";
+import { withSeller } from "@/backend/lib/api";
 import { db } from "@/backend/db";
 import { agents } from "@/backend/db/schema";
 import { runPerformanceTest } from "@/features/sellers/services/performanceService";
+import { agentCreateSchema, isValidPublicUrl } from "@/backend/lib/validation";
 
-export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json(
-      { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
-      { status: 401 }
-    );
-  }
-
-  const role = session.user.role;
-  if (role !== "seller" && role !== "admin") {
-    return NextResponse.json(
-      { error: { code: "FORBIDDEN", message: "Must be a seller to list an agent" } },
-      { status: 403 }
-    );
-  }
-
+export const POST = withSeller(async ({ userId, req }) => {
   try {
-    const body = await request.json();
-    const { name, tag, category, description, longDesc, monthlyPrice, annualPrice, pricingModel, type, embedUrl, features, useCases } = body;
+    const body = await req.json();
+
+    // Map embedUrl to endpointUrl to match the schema
+    if (body.embedUrl && !body.endpointUrl) {
+      body.endpointUrl = body.embedUrl;
+    }
+
+    const parsed = agentCreateSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: { code: "VALIDATION_ERROR", message: "Invalid input", details: parsed.error.issues } },
+        { status: 400 }
+      );
+    }
+
+    const {
+      name, tag, category, description, longDesc, monthlyPrice, annualPrice,
+      pricingModel, type, endpointUrl, features, useCases
+    } = parsed.data;
+
+    // Strict URL Validation for SSRF protection
+    if (endpointUrl) {
+      const urlCheck = isValidPublicUrl(endpointUrl);
+      if (!urlCheck.valid) {
+        return NextResponse.json(
+          { error: { code: "INVALID_URL", message: urlCheck.reason } },
+          { status: 400 }
+        );
+      }
+    }
 
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
     const [agent] = await db
       .insert(agents)
       .values({
-        sellerId: session.user.id,
+        sellerId: userId,
         slug,
         name,
         tag,
         category,
         description,
         longDesc,
-        monthlyPricePaise: monthlyPrice ? Number(monthlyPrice) * 100 : null,
-        annualPricePaise: annualPrice ? Number(annualPrice) * 100 : null,
-        pricingModel: pricingModel || "subscription",
-        type: type || "hosted",
-        embedUrl,
+        monthlyPriceCents: monthlyPrice ? Number(monthlyPrice) * 100 : 0,
+        annualPriceCents: annualPrice ? Number(annualPrice) * 100 : 0,
+        pricingModel,
+        type,
+        embedUrl: endpointUrl,
         assetKey: `agents/${slug}.zip`,
-        features: typeof features === "string" ? features.split(",").map((f: string) => f.trim()) : features || [],
-        useCases: typeof useCases === "string" ? useCases.split(",").map((u: string) => u.trim()) : useCases || [],
-        status: process.env.NODE_ENV === "development" && !embedUrl ? "approved" : "pending",
+        features,
+        useCases,
+        status: process.env.NODE_ENV === "development" && !endpointUrl ? "approved" : "pending",
       })
       .returning();
 
     // Trigger performance test if embedUrl is provided (non-blocking)
-    if (embedUrl) {
-      runPerformanceTest(agent.id, embedUrl).catch((err) =>
+    if (endpointUrl) {
+      runPerformanceTest(agent.id, endpointUrl).catch((err) =>
         console.error("Background performance test failed:", err)
       );
     }
@@ -60,8 +74,8 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("Listing error:", error);
     return NextResponse.json(
-      { error: { code: "LISTING_ERROR", message: error.message || "Failed to list agent" } },
+      { error: { code: "LISTING_ERROR", message: "Failed to list agent" } },
       { status: 500 }
     );
   }
-}
+});

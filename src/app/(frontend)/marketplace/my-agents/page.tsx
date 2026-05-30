@@ -91,7 +91,7 @@ export default async function MyAgentsPage() {
 
                     <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
                       <div>
-                        <span className="font-display text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">${(agent.monthlyPricePaise || 0) / 100}</span>
+                        <span className="font-display text-lg font-bold bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70">${(agent.monthlyPriceCents || 0) / 100}</span>
                         <span className="text-xs text-muted-foreground font-medium">/mo</span>
                       </div>
                       <Button asChild className="rounded-full gap-2 transition-all duration-300 shadow-md group-hover:shadow-primary/25 group-hover:bg-primary hover:scale-105">

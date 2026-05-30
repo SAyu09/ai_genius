@@ -161,7 +161,7 @@ export function Header() {
 
           {/* ── Logo ──────────────────────────────────────── */}
           <Link
-            href={isLoggedIn ? "/marketplace" : "/"}
+            href="/"
             className="flex items-center gap-2 group select-none"
           >
             <img

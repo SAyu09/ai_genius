@@ -45,7 +45,7 @@ export const POST = withAuth(async ({ userId, req }) => {
         where: and(eq(agents.id, agentId), inArray(agents.status, ['approved', 'published'])),
         columns: { 
           id: true, name: true, description: true, pricingModel: true, 
-          monthlyPricePaise: true, annualPricePaise: true, 
+          monthlyPriceCents: true, annualPriceCents: true, 
           stripePriceIdMonthly: true, stripePriceIdAnnual: true, sellerId: true 
         }
       }),
@@ -97,8 +97,8 @@ export const POST = withAuth(async ({ userId, req }) => {
       mode = "subscription";
       const interval: "month" | "year" = planType === "annual" ? "year" : "month";
       unitAmount = planType === "annual"
-        ? (agent.annualPricePaise || 0)
-        : (agent.monthlyPricePaise || 0);
+        ? (agent.annualPriceCents || 0)
+        : (agent.monthlyPriceCents || 0);
 
       if (unitAmount === 0) {
         return NextResponse.json({ error: { code: "INVALID_PRICE", message: "Pricing not configured for this agent." } }, { status: 400 });
@@ -126,7 +126,7 @@ export const POST = withAuth(async ({ userId, req }) => {
       };
     } else if (agent.pricingModel === "outcome_based") {
       mode = "payment"; // Escrow setup
-      unitAmount = agent.monthlyPricePaise || 5000; // Use an initial escrow amount
+      unitAmount = agent.monthlyPriceCents || 5000; // Use an initial escrow amount
       lineItemConfig = {
         price_data: {
           currency: "usd",
@@ -137,7 +137,7 @@ export const POST = withAuth(async ({ userId, req }) => {
       };
     } else {
       mode = "payment";
-      unitAmount = agent.monthlyPricePaise || 0; // Using monthly price for one_time as a fallback
+      unitAmount = agent.monthlyPriceCents || 0; // Using monthly price for one_time as a fallback
       if (unitAmount === 0) {
         return NextResponse.json({ error: { code: "INVALID_PRICE", message: "Pricing not configured for this agent." } }, { status: 400 });
       }
@@ -153,7 +153,10 @@ export const POST = withAuth(async ({ userId, req }) => {
     }
 
     // 5. Create session using Stripe UI Mode Helpers
-    const idempotencyKey = `checkout:${userId}:${agentId}:${planType}:${Date.now()}`;
+    // Stable key: same user + agent + plan + mode within a 5-minute window
+    // Added :v2 to bypass cached tainted requests in Stripe
+    const window = Math.floor(Date.now() / (5 * 60 * 1000));
+    const idempotencyKey = `checkout:v2:${userId}:${agentId}:${planType}:${checkoutMode}:${window}`;
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
     const uiParams = getCheckoutParams(checkoutMode, baseUrl);
 
@@ -166,13 +169,18 @@ export const POST = withAuth(async ({ userId, req }) => {
       platform: 'aigenius'
     };
 
+    // Calculate a stable expiration timestamp based on the 5-minute window
+    // We add 3600s (1 hour) to ensure it is always strictly > 30 minutes from the CURRENT time,
+    // which satisfies Stripe's minimum expiration requirement while remaining deterministic.
+    const stableExpiresAt = (window * 300) + 3600;
+
     const sessionParams: any = {
       ...uiParams,
       mode,
       customer: stripeCustomerId,
       line_items: [lineItemConfig],
       payment_method_types: getLocalizedPaymentMethods('usd'),
-      expires_at: Math.floor(Date.now() / 1000) + 1800,
+      expires_at: stableExpiresAt,
       metadata: safeMetadata,
     };
 

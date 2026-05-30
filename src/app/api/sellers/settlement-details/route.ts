@@ -1,19 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/backend/lib/auth";
+import { NextResponse } from "next/server";
+import { withAuth } from "@/backend/lib/api";
 import { db } from "@/backend/db";
 import { users, sellerProfiles, sellerBankDetails } from "@/backend/db/schema";
 import { eq } from "drizzle-orm";
 import { encryptData } from "@/backend/lib/crypto";
+import { settlementDetailsSchema } from "@/backend/lib/validation";
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async ({ userId, role, req }) => {
+  // Only sellers (or admins) can submit settlement details
+  if (role !== "seller" && role !== "admin") {
+    return NextResponse.json({ error: "Only verified sellers can submit settlement details" }, { status: 403 });
+  }
+
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = session.user.id;
     const body = await req.json();
+
+    // Zod Validation
+    const parsed = settlementDetailsSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid input data", details: parsed.error.issues },
+        { status: 400 }
+      );
+    }
 
     const {
       accountHolderName,
@@ -24,22 +33,7 @@ export async function POST(req: NextRequest) {
       upiId,
       panNumber,
       gstNumber
-    } = body;
-
-    // Validation
-    if (!accountHolderName || !bankName || !accountNumber || !ifscCode || !accountType || !panNumber) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
-    const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
-    if (!ifscRegex.test(ifscCode)) {
-      return NextResponse.json({ error: "Invalid IFSC code format" }, { status: 400 });
-    }
-
-    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-    if (!panRegex.test(panNumber)) {
-      return NextResponse.json({ error: "Invalid PAN number format" }, { status: 400 });
-    }
+    } = parsed.data;
 
     // Encrypt sensitive fields
     const accountNumberEncrypted = encryptData(accountNumber);
@@ -93,15 +87,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Ensure user role is seller
-    await db.update(users).set({ role: "seller" }).where(eq(users.id, userId));
-
     return NextResponse.json({ success: true, message: "Settlement details submitted successfully." });
   } catch (error: any) {
     console.error("Settlement details error:", error);
+    // Don't leak error message details to client
     return NextResponse.json(
-      { error: error.message || "Failed to save settlement details" },
+      { error: "Failed to save settlement details" },
       { status: 500 }
     );
   }
-}
+});

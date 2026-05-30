@@ -189,9 +189,9 @@ export default async function SellerBillingPage() {
                     <td className="px-5 py-3 text-sm text-gray-900">
                       {new Date(s.periodStart).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – {new Date(s.periodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </td>
-                    <td className="px-5 py-3 font-medium text-gray-900">{formatCurrency(s.grossPayoutPaise / 100)}</td>
-                    <td className="px-5 py-3 text-gray-500">{formatCurrency((s.tdsDeductedPaise + s.refundDeductionsPaise) / 100)}</td>
-                    <td className="px-5 py-3 font-semibold text-green-600">{formatCurrency(s.netPayoutPaise / 100)}</td>
+                    <td className="px-5 py-3 font-medium text-gray-900">{formatCurrency(s.grossPayoutCents / 100)}</td>
+                    <td className="px-5 py-3 text-gray-500">{formatCurrency((s.tdsDeductedCents + s.refundDeductionsCents) / 100)}</td>
+                    <td className="px-5 py-3 font-semibold text-green-600">{formatCurrency(s.netPayoutCents / 100)}</td>
                     <td className="px-5 py-3">
                       <span className={`inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-full font-medium ${
                         s.status === "completed" ? "bg-green-100 text-green-700" :

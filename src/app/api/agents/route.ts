@@ -3,7 +3,7 @@ import { db } from "@/backend/db";
 import { agents } from "@/backend/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { auth } from "@/backend/lib/auth";
-
+import crypto from "crypto";
 /**
  * GET /api/agents
  * Public listing — supports ?q=search&tag=Sales&sort=top&page=1
@@ -33,10 +33,10 @@ export async function GET(req: NextRequest) {
   let orderBy;
   switch (sort) {
     case "price-asc":
-      orderBy = agents.monthlyPricePaise;
+      orderBy = agents.monthlyPriceCents;
       break;
     case "price-desc":
-      orderBy = sql`${agents.monthlyPricePaise} DESC`;
+      orderBy = sql`${agents.monthlyPriceCents} DESC`;
       break;
     case "new":
       orderBy = sql`${agents.createdAt} DESC`;
@@ -48,7 +48,25 @@ export async function GET(req: NextRequest) {
   }
 
   const results = await db
-    .select()
+    .select({
+      id: agents.id,
+      slug: agents.slug,
+      name: agents.name,
+      tag: agents.tag,
+      description: agents.description,
+      longDesc: agents.longDesc,
+      monthlyPriceCents: agents.monthlyPriceCents,
+      annualPriceCents: agents.annualPriceCents,
+      pricingModel: agents.pricingModel,
+      agentType: agents.agentType,
+      type: agents.type,
+      salesCount: agents.salesCount,
+      rating: agents.rating,
+      features: agents.features,
+      integrations: agents.integrations,
+      useCases: agents.useCases,
+      createdAt: agents.createdAt,
+    })
     .from(agents)
     .where(and(...conditions))
     .orderBy(orderBy)
@@ -95,11 +113,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Generate slug from name
-  const slug = name
+  // Generate slug from name + random suffix to guarantee uniqueness
+  const baseSlug = name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+  const slug = `${baseSlug}-${crypto.randomBytes(3).toString("hex")}`;
 
   const [agent] = await db
     .insert(agents)
@@ -111,8 +130,8 @@ export async function POST(req: NextRequest) {
       category,
       description,
       longDesc,
-      monthlyPricePaise: monthlyPrice ? Math.round(monthlyPrice * 100) : null,
-      annualPricePaise: annualPrice ? Math.round(annualPrice * 100) : null,
+      monthlyPriceCents: monthlyPrice ? Math.round(monthlyPrice * 100) : null,
+      annualPriceCents: annualPrice ? Math.round(annualPrice * 100) : null,
       pricingModel: pricingModel || "subscription",
       type: type || "hosted",
       agentType: agentType || "chat", // Default to chat

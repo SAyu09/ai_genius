@@ -8,19 +8,21 @@ import { Input } from "@/frontend/components/ui/input";
 import { Textarea } from "@/frontend/components/ui/textarea";
 import { Label } from "@/frontend/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/frontend/components/ui/tabs";
-import { ArrowLeft, Bot, UploadCloud, FileText, Database, ShieldCheck, Rocket, RefreshCw, Key, Play, Link as LinkIcon, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Bot, UploadCloud, FileText, Database, ShieldCheck, Rocket, RefreshCw, Key, Play, Link as LinkIcon, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { StagingSandbox } from "./StagingSandbox";
 
 export default function CreatorStudioPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [testResult, setTestResult] = useState<{ passed: boolean; message?: string; errorRate?: number; avgMs?: number } | null>(null);
   const [activeTab, setActiveTab] = useState("basics");
   
   const [form, setForm] = useState({
     name: "",
     tag: "",
     description: "",
-    longDesc: "This is a detailed description of the agent...", // Mock minimum length to pass the 150-word check for staging tests if needed
+    longDesc: "",
     category: "",
     price: "",
     pricingModel: "usage_based", // newly added in phase 2
@@ -32,15 +34,13 @@ export default function CreatorStudioPage() {
 
   const [draftId, setDraftId] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
+  const [sandboxOpen, setSandboxOpen] = useState(false);
 
   const handleSaveDraft = async () => {
     setLoading(true);
     try {
-      // To satisfy the 150 word count validator quickly during testing
-      const padding = Array(150).fill("test").join(" ");
       const payload = {
         ...form,
-        longDesc: form.longDesc.length > 50 ? form.longDesc : form.longDesc + " " + padding,
         monthlyPrice: form.price || "0",
         type: form.integrationType === "n8n" ? "workflow" : "hosted",
       };
@@ -112,6 +112,14 @@ export default function CreatorStudioPage() {
     }
   };
 
+  const handleOpenSandbox = () => {
+    if (!draftId) {
+      toast.error("Please save the draft first");
+      return;
+    }
+    setSandboxOpen(true);
+  };
+
   const handlePingEndpoint = async () => {
     if (!draftId) {
       toast.error("Please save the draft first");
@@ -119,8 +127,7 @@ export default function CreatorStudioPage() {
     }
     
     if (form.integrationType === "n8n") {
-       toast.success("Sandbox simulation initialized! Your workflow is ready for review.");
-       // Ideally this would open a chat modal for the n8n agent
+       setSandboxOpen(true);
        return;
     }
     
@@ -142,10 +149,36 @@ export default function CreatorStudioPage() {
       if (!res.ok) throw new Error(data.error?.message || "Test failed");
       
       if (data.passed) {
+        setTestResult({ passed: true, avgMs: data.avgMs, errorRate: data.errorRate });
         toast.success(`Test Passed! Avg latency: ${data.avgMs}ms`, { id: toastId });
       } else {
+        setTestResult({ passed: false, errorRate: data.errorRate, message: "Endpoint failed to respond with valid protocol." });
         toast.error(`Test Failed! Error rate: ${data.errorRate * 100}%`, { id: toastId });
       }
+    } catch (err: any) {
+      setTestResult({ passed: false, message: err.message });
+      toast.error(err.message, { id: toastId });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!draftId) {
+      toast.error("Please save the draft first");
+      return;
+    }
+    
+    setLoading(true);
+    const toastId = toast.loading("Publishing to marketplace...");
+    try {
+      const res = await fetch(`/api/sellers/agents/${draftId}/publish`, { method: "POST" });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error?.message || "Failed to publish");
+      
+      toast.success("Agent published successfully! It is now live.", { id: toastId });
+      router.push("/dashboard/seller/listings");
     } catch (err: any) {
       toast.error(err.message, { id: toastId });
     } finally {
@@ -178,10 +211,9 @@ export default function CreatorStudioPage() {
               <RefreshCw className="h-4 w-4 mr-2" /> 
               Save
             </Button>
-            <Button className="rounded-xl shadow-lg shadow-primary/20 flex-1 md:flex-none px-2 sm:px-4" onClick={() => router.push("/dashboard/seller/listings")} disabled={!draftId}>
-              <Rocket className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Exit to Publish</span>
-              <span className="sm:hidden">Exit</span>
+            <Button variant="ghost" className="rounded-xl flex-1 md:flex-none px-2 sm:px-4" onClick={() => router.push("/dashboard/seller/listings")}>
+              <span className="hidden sm:inline">Close</span>
+              <span className="sm:hidden">Close</span>
             </Button>
           </div>
         </div>
@@ -210,7 +242,15 @@ export default function CreatorStudioPage() {
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label>Short Description</Label>
-                  <Textarea placeholder="What does this agent do?" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="bg-gray-50/50 resize-none" />
+                  <Textarea placeholder="What does this agent do?" value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="bg-gray-50/50 resize-none" rows={2} />
+                </div>
+                
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Detailed Description</Label>
+                  <Textarea placeholder="Explain your agent in detail (minimum 150 words)..." value={form.longDesc} onChange={e => setForm({...form, longDesc: e.target.value})} className="bg-gray-50/50 resize-none" rows={6} />
+                  <p className={`text-xs ${form.longDesc.trim().split(/\s+/).filter(w => w.length > 0).length < 150 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                    {form.longDesc.trim().split(/\s+/).filter((w) => w.length > 0).length} words (minimum 150)
+                  </p>
                 </div>
                 
                 <div className="md:col-span-2 mt-4">
@@ -366,12 +406,35 @@ export default function CreatorStudioPage() {
                       We will send 5 sequential ping requests to <code>{form.endpointUrl || "your endpoint"}</code>. 
                       Ensure your server is running and validates the <code>X-AIGenius-Signature</code> header using the secret above.
                     </p>
-                    <div className="mt-6 flex flex-col items-center gap-3">
-                      <Button onClick={handlePingEndpoint} disabled={loading || !form.endpointUrl} className="rounded-xl px-8 shadow-sm">
+                    <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                      <Button onClick={handlePingEndpoint} disabled={loading || !form.endpointUrl} variant="outline" className="rounded-xl px-6 shadow-sm border-gray-300">
                         {loading ? "Running tests..." : "Run Connection Test"}
                       </Button>
-                      {!form.endpointUrl && <p className="text-xs text-amber-600">Please provide an endpoint URL in Step 2.</p>}
+                      <Button onClick={handlePublish} disabled={loading || !draftId} className="rounded-xl px-8 shadow-sm bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all hover:scale-[1.02]">
+                        <Rocket className="h-4 w-4 mr-2" /> Publish Now
+                      </Button>
                     </div>
+                    {!form.endpointUrl && <p className="text-xs text-amber-600 mt-3">Please provide an endpoint URL in Step 2.</p>}
+                    
+                    {testResult && (
+                      <div className={`mt-6 w-full max-w-sm p-4 rounded-xl text-left border ${testResult.passed ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                        <div className={`font-semibold flex items-center gap-2 ${testResult.passed ? 'text-emerald-700' : 'text-red-700'}`}>
+                          {testResult.passed ? <ShieldCheck className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                          {testResult.passed ? "Test Passed Successfully" : "Connection Test Failed"}
+                        </div>
+                        {testResult.passed ? (
+                          <div className="mt-2 text-sm text-emerald-600 space-y-1">
+                            <p>✓ Avg Latency: {testResult.avgMs}ms</p>
+                            <p>✓ Error Rate: {(testResult.errorRate || 0) * 100}%</p>
+                          </div>
+                        ) : (
+                          <div className="mt-2 text-sm text-red-600 space-y-1">
+                            <p>✗ {testResult.message || `Error Rate: ${((testResult.errorRate || 1) * 100).toFixed(0)}%`}</p>
+                            <p className="text-xs mt-2 opacity-80">Make sure your endpoint responds with application/json or text/event-stream.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
@@ -382,12 +445,15 @@ export default function CreatorStudioPage() {
                     <p className="text-sm text-gray-500 max-w-md mt-2">
                       Your n8n workflow has been securely provisioned in our sandboxed environment. You can simulate requests to verify latency and correctness before publishing.
                     </p>
-                    <div className="mt-6">
-                      <Button onClick={handlePingEndpoint} disabled={loading || !form.assetKey} className="rounded-xl px-8 shadow-sm bg-indigo-600 hover:bg-indigo-700">
+                    <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                      <Button onClick={handleOpenSandbox} disabled={loading || !form.assetKey} variant="outline" className="rounded-xl px-6 shadow-sm border-gray-300">
                         {loading ? "Initializing..." : "Open Chat Sandbox"}
                       </Button>
-                      {!form.assetKey && <p className="text-xs text-amber-600 mt-3">Please upload your workflow JSON in Step 2.</p>}
+                      <Button onClick={handlePublish} disabled={loading || !draftId} className="rounded-xl px-8 shadow-sm bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all hover:scale-[1.02]">
+                        <Rocket className="h-4 w-4 mr-2" /> Publish Now
+                      </Button>
                     </div>
+                    {!form.assetKey && <p className="text-xs text-amber-600 mt-3">Please upload your workflow JSON in Step 2.</p>}
                   </div>
                 </>
               )}
@@ -396,6 +462,17 @@ export default function CreatorStudioPage() {
 
         </Tabs>
       </div>
+
+      {/* Chat Sandbox Modal */}
+      {sandboxOpen && draftId && (
+        <StagingSandbox
+          agentId={draftId}
+          agentName={form.name || "Your Agent"}
+          integrationType={form.integrationType as "n8n" | "api"}
+          endpointUrl={form.endpointUrl}
+          onClose={() => setSandboxOpen(false)}
+        />
+      )}
     </div>
   );
 }

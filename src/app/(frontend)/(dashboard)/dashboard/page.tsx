@@ -162,7 +162,7 @@ export default async function BuyerDashboardPage() {
                     <h3 className="font-bold text-sm truncate">{agent.name}</h3>
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{agent.description}</p>
                     <div className="mt-4 font-semibold text-sm">
-                      ${(agent.monthlyPricePaise || 0) / 100} <span className="text-xs font-normal text-muted-foreground">/mo</span>
+                      ${(agent.monthlyPriceCents || 0) / 100} <span className="text-xs font-normal text-muted-foreground">/mo</span>
                     </div>
                   </CardContent>
                 </Card>

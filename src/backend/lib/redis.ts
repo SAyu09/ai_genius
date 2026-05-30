@@ -4,21 +4,27 @@ const globalForRedis = global as unknown as { redis: Redis };
 
 const createRedisClient = () => {
   const connectionString = process.env.REDIS_URL;
+  const isProd = process.env.NODE_ENV === "production";
+  
+  if (isProd && !connectionString) {
+    throw new Error("CRITICAL: REDIS_URL environment variable is required in production.");
+  }
   
   const client = new Redis(connectionString || "redis://127.0.0.1:6379", {
     maxRetriesPerRequest: 1,
-    showFriendlyErrorStack: true,
+    showFriendlyErrorStack: !isProd,
+    tls: connectionString?.startsWith("rediss://") ? { rejectUnauthorized: false } : undefined,
     retryStrategy(times) {
-      if (!connectionString && process.env.NODE_ENV === "production") {
-        return null; // Stop retrying in production if no Redis URL is configured
+      if (isProd && times > 5) {
+        return null; // Stop retrying after 5 attempts in production to fail fast
       }
-      return Math.min(times * 100, 3000);
+      return Math.min(times * 200, 2000);
     },
   });
 
   // Handle the error event cleanly to prevent unhandled crash/log spam
   client.on("error", (err) => {
-    if (connectionString) {
+    if (connectionString || isProd) {
       console.error("Redis connection error:", err.message);
     }
   });

@@ -115,6 +115,9 @@ export default async function SellerListingsPage() {
                     <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">
                       {typeCfg.label}
                     </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium bg-emerald-50 text-emerald-700 border border-emerald-100/50">
+                      {agent.monthlyPriceCents ? `$${(agent.monthlyPriceCents / 100).toFixed(2)}/mo` : "Free"}
+                    </span>
                     <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium ${statusCfg.className}`}>
                       <StatusIcon className="h-3 w-3" />
                       {statusCfg.label}

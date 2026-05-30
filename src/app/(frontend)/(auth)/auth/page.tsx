@@ -174,7 +174,7 @@ function AuthContent() {
     try {
       if (activeTab === "register" && regRole === "seller") {
         document.cookie = `intended_role=seller; path=/; max-age=3600; SameSite=Lax`;
-        await signIn("google", { callbackUrl: "/api/auth/upgrade-role" });
+        await signIn("google", { callbackUrl: "/auth/upgrade" });
       } else {
         await signIn("google", { callbackUrl: "/auth" });
       }

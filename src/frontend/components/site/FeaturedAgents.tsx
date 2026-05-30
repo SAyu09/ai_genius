@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Star, Zap, CheckCircle2, TrendingUp } from "lucide-react";
 import { Button } from "@/frontend/components/ui/button";
-import { agents } from "@/frontend/data/agents";
 import { motion } from "framer-motion";
 import { useRef, useState, useCallback } from "react";
 import {
@@ -13,7 +12,7 @@ import {
 } from "@/frontend/hooks/useAnimations";
 
 /* ─── Agent card with hover glow ─────────────────── */
-function AgentCard({ a, index }: { a: typeof agents[0]; index: number }) {
+function AgentCard({ a, index }: { a: any; index: number }) {
   const cardRef = useRef<HTMLAnchorElement>(null);
   const [glowPos, setGlowPos] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
@@ -28,7 +27,7 @@ function AgentCard({ a, index }: { a: typeof agents[0]; index: number }) {
     <motion.div variants={staggerItem}>
       <Link
         ref={cardRef}
-        href={`/agents/${a.slug}`}
+        href={`/marketplace/${a.id}`}
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -104,7 +103,7 @@ function AgentCard({ a, index }: { a: typeof agents[0]; index: number }) {
   );
 }
 
-export function FeaturedAgents() {
+export function FeaturedAgents({ agents = [] }: { agents?: any[] }) {
   const featured = agents.slice(0, 6);
   return (
     <section id="marketplace" className="py-12 sm:py-16 bg-white border-y border-gray-100">

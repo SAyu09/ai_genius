@@ -3,6 +3,8 @@ import { auth } from "@/backend/lib/auth";
 import { db } from "@/backend/db";
 import { users } from "@/backend/db/schema";
 import { eq } from "drizzle-orm";
+import { checkRateLimit, RATE_LIMIT_API } from "./rateLimit";
+import { isValidOrigin } from "./validation";
 
 type AuthContext = { userId: string; role: string; req: NextRequest };
 type Handler<T = AuthContext> = (ctx: T) => Promise<NextResponse> | NextResponse;
@@ -10,10 +12,26 @@ type Handler<T = AuthContext> = (ctx: T) => Promise<NextResponse> | NextResponse
 // Wraps any route — validates session, injects userId + role
 export function withAuth(handler: Handler) {
   return async (req: NextRequest) => {
+    // CSRF Protection for state-mutating requests
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
+      if (!isValidOrigin(req)) {
+        return NextResponse.json({ error: "Invalid Origin / CSRF Check Failed" }, { status: 403 });
+      }
+    }
+
     const session = await auth();
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate limiting
+    const rl = await checkRateLimit(`api_user:${session.user.id}`, RATE_LIMIT_API);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests" }, 
+        { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetAt - Date.now() / 1000)) } }
+      );
     }
 
     const user = await db.query.users.findFirst({

@@ -1,25 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/backend/lib/auth";
+import { NextResponse } from "next/server";
+import { withSeller } from "@/backend/lib/api";
 import { getUploadSignedUrl } from "@/backend/lib/storage";
+import { uploadSchema } from "@/backend/lib/validation";
 
-export async function POST(req: NextRequest) {
-  const session = await auth();
-  const user = session?.user;
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = withSeller(async ({ userId, req }) => {
+  const body = await req.json();
+  const parsed = uploadSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid filename", details: parsed.error.issues[0].message },
+      { status: 400 }
+    );
   }
 
-  const role = user.role;
-  if (role !== "seller" && role !== "admin") {
-    return NextResponse.json({ error: "Only sellers can upload" }, { status: 403 });
-  }
-
-  const { filename } = await req.json();
-  if (!filename) {
-    return NextResponse.json({ error: "filename is required" }, { status: 400 });
-  }
-
-  const { signedUrl, path } = await getUploadSignedUrl(user.id!, filename);
+  const { filename } = parsed.data;
+  const { signedUrl, path } = await getUploadSignedUrl(userId, filename);
 
   return NextResponse.json({ uploadUrl: signedUrl, path });
-}
+});

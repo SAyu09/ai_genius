@@ -3,17 +3,18 @@ import { db } from "@/backend/db";
 import { users, sellerProfiles } from "@/backend/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import { z } from "zod";
-
-const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  role: z.enum(["buyer", "seller"]),
-});
+import { registerSchema } from "@/backend/lib/validation";
+import { checkRateLimit, RATE_LIMIT_AUTH } from "@/backend/lib/rateLimit";
 
 export async function POST(req: Request) {
   try {
+    // Basic IP-based rate limiting for registration
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    const rl = await checkRateLimit(`register:${ip}`, RATE_LIMIT_AUTH);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Too many registration attempts. Try again later." }, { status: 429 });
+    }
+
     const body = await req.json();
     const parsed = registerSchema.safeParse(body);
 

@@ -24,7 +24,7 @@ export default async function MarketplaceBillingPage() {
   const pastSubs = subs.filter(({ subscription }) => subscription.status !== "active");
 
   // Calculate totals
-  const monthlyTotal = activeSubs.reduce((sum, { agent }) => sum + ((agent.monthlyPricePaise || 0) / 100), 0);
+  const monthlyTotal = activeSubs.reduce((sum, { agent }) => sum + ((agent.monthlyPriceCents || 0) / 100), 0);
 
   return (
     <div className="min-h-screen">
@@ -98,7 +98,7 @@ export default async function MarketplaceBillingPage() {
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <div className="font-display text-xl font-bold">${(agent.monthlyPricePaise || 0) / 100}</div>
+                            <div className="font-display text-xl font-bold">${(agent.monthlyPriceCents || 0) / 100}</div>
                             <div className="text-xs text-muted-foreground">/{subscription.planType === "annual" ? "year" : "month"}</div>
                           </div>
                         </div>

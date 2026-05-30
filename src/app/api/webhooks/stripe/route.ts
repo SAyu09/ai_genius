@@ -4,6 +4,7 @@ import { db } from "@/backend/db";
 import { agents, subscriptions, purchases } from "@/backend/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { invalidateSubscriptionCache } from "@/backend/lib/subscriptions";
+import { redis } from "@/backend/lib/redis";
 import Stripe from "stripe";
 
 export async function POST(req: NextRequest) {
@@ -36,16 +37,28 @@ export async function POST(req: NextRequest) {
 
   const handler = handlers[event.type];
   if (handler) {
-    // Run handler async — return 200 immediately so Stripe doesn't retry
-    // Stripe gives 30s; heavy ops (email, cache invalidation) go in background
-    if (event.type !== "checkout.session.completed") {
-      void handler(event).catch(e => console.error("Webhook handler error async:", e));
-    } else {
-      try {
-        await handler(event);
-      } catch (e) {
-        console.error("Webhook handler error sync:", e);
+    // Deduplication check
+    const eventKey = `stripe:event:${event.id}`;
+    try {
+      const alreadyProcessed = await redis.get(eventKey);
+      if (alreadyProcessed) {
+        console.log(`Webhook event ${event.id} already processed`);
+        return new Response("already processed", { status: 200 });
       }
+    } catch (err) {
+      // If Redis fails, continue processing rather than failing open/closed, 
+      // but it might risk duplicates.
+      console.error("Redis dedupe check failed:", err);
+    }
+
+    // Run handler synchronously — return 500 on failure so Stripe retries
+    try {
+      await handler(event);
+      // Mark as processed (72h TTL to match Stripe retry window)
+      await redis.setex(eventKey, 72 * 3600, "1").catch(console.error);
+    } catch (e) {
+      console.error("Webhook handler error sync:", e);
+      return new Response("Webhook processing failed", { status: 500 });
     }
   }
 
@@ -73,7 +86,7 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
 
   const buyerId = metadata.buyerId || metadata.userId;
   const { agentId, sellerId, planType, pricingModel } = metadata;
-  const amountPaise = session.amount_total || 0;
+  const amountCents = session.amount_total || 0;
 
   // Atomic — either all succeed or nothing does
   await db.transaction(async (tx) => {
@@ -110,13 +123,18 @@ async function handleCheckoutCompleted(event: Stripe.Event) {
       sellerId: sellerId as string,
       subscriptionId: dbSubscriptionId,
       stripePaymentId: session.payment_intent as string | undefined,
-      amountPaid: amountPaise,
-      platformFee: Math.round(amountPaise * 0.15),
-      sellerPayout: Math.round(amountPaise * 0.85),
+      amountPaid: amountCents,
+      platformFee: Math.round(amountCents * 0.15),
+      sellerPayout: Math.round(amountCents * 0.85),
       currency: "usd",
       type: session.mode === "subscription" ? "subscription" : "one_time",
       settlementStatus: "pending",
     });
+
+    // Increment sales count
+    await tx.update(agents)
+      .set({ salesCount: sql`${agents.salesCount} + 1` })
+      .where(eq(agents.id, agentId as string));
   });
 
   // After commit — invalidate KV cache
@@ -164,7 +182,7 @@ async function handleRenewal(event: Stripe.Event) {
 
   const stripeSub = await stripe.subscriptions.retrieve(stripeSubId) as any;
   const metadata = stripeSub.metadata;
-  const amountPaise = invoice.amount_paid;
+  const amountCents = invoice.amount_paid;
 
   if (!metadata || !metadata.buyerId || !metadata.agentId) return;
 
@@ -189,9 +207,9 @@ async function handleRenewal(event: Stripe.Event) {
         sellerId: metadata.sellerId,
         subscriptionId: sub.id,
         stripePaymentId: invoice.payment_intent as string | undefined,
-        amountPaid: amountPaise,
-        platformFee: Math.round(amountPaise * 0.15),
-        sellerPayout: Math.round(amountPaise * 0.85),
+        amountPaid: amountCents,
+        platformFee: Math.round(amountCents * 0.15),
+        sellerPayout: Math.round(amountCents * 0.85),
         currency: "usd",
         type: "renewal",
         settlementStatus: "pending",

@@ -180,6 +180,24 @@
   --shadow-dark-float: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 40px -10px rgba(99, 102, 241, 0.15);
 }
 
+/* ─── Page Transition ─────────────────────────────── */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: page-enter 0.35s ease-out both;
+}
+
 /* ─── Animated Keyframes ──────────────────────────── */
 @keyframes gradient-shift {
   0%, 100% { background-position: 0% 50%; }

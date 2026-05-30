@@ -57,8 +57,8 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     agents: sellerAgents.map((a) => ({
       ...a,
-      monthlyPrice: (a.monthlyPricePaise || 0) / 100,
-      annualPrice: (a.annualPricePaise || 0) / 100,
+      monthlyPrice: (a.monthlyPriceCents || 0) / 100,
+      annualPrice: (a.annualPriceCents || 0) / 100,
     })),
     stats: {
       totalRevenue: totalRevenue / 100, // paise → rupees

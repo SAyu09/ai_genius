@@ -51,7 +51,7 @@ export default async function BillingPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-lg">${(agent.monthlyPricePaise || 0) / 100}</div>
+                        <div className="font-bold text-lg">${(agent.monthlyPriceCents || 0) / 100}</div>
                         <div className="text-xs text-muted-foreground">/{subscription.planType === "annual" ? "year" : "month"}</div>
                       </div>
                     </div>

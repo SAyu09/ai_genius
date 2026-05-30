@@ -47,8 +47,8 @@ export async function GET(req: NextRequest, { params }: Props) {
   return NextResponse.json({
     agent: {
       ...agent,
-      monthlyPrice: (agent.monthlyPricePaise || 0) / 100, // paise → rupees for display
-      annualPrice: (agent.annualPricePaise || 0) / 100,
+      monthlyPrice: (agent.monthlyPriceCents || 0) / 100, // paise → rupees for display
+      annualPrice: (agent.annualPriceCents || 0) / 100,
       seller,
       reviews: agentReviews,
     },
@@ -94,8 +94,8 @@ export async function PATCH(req: NextRequest, { params }: Props) {
   if (category !== undefined) updateData.category = category;
   if (description !== undefined) updateData.description = description;
   if (longDesc !== undefined) updateData.longDesc = longDesc;
-  if (monthlyPrice !== undefined) updateData.monthlyPricePaise = Math.round(monthlyPrice * 100);
-  if (annualPrice !== undefined) updateData.annualPricePaise = Math.round(annualPrice * 100);
+  if (monthlyPrice !== undefined) updateData.monthlyPriceCents = Math.round(monthlyPrice * 100);
+  if (annualPrice !== undefined) updateData.annualPriceCents = Math.round(annualPrice * 100);
   if (pricingModel !== undefined) updateData.pricingModel = pricingModel;
   if (type !== undefined) updateData.type = type;
   if (agentType !== undefined) updateData.agentType = agentType;
