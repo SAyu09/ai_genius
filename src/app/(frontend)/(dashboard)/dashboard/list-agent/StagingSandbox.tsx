@@ -12,6 +12,7 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
+  Paperclip,
 } from "lucide-react";
 
 interface Message {
@@ -27,6 +28,7 @@ interface StagingSandboxProps {
   agentName: string;
   integrationType: "n8n" | "api";
   endpointUrl?: string;
+  workflowData?: any;
   onClose: () => void;
 }
 
@@ -46,18 +48,36 @@ export function StagingSandbox({
   agentName,
   integrationType,
   endpointUrl,
+  workflowData,
   onClose,
 }: StagingSandboxProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "bot",
-      content: `👋 Hello! I'm the staging sandbox for "${agentName || "your agent"}". Send me a message to test the response flow.${integrationType === "n8n" ? "\n\nYour n8n workflow is provisioned in our sandbox environment. Responses are simulated based on your workflow structure." : "\n\nMessages will be sent to your endpoint for live testing."}`,
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    let description = "I am ready to assist you based on my configured workflow.";
+    
+    if (integrationType === "n8n" && workflowData && workflowData.nodes) {
+      const nodes = workflowData.nodes as any[];
+      const toolNodes = nodes.filter(n => n.type?.toLowerCase().includes("tool"));
+      const toolNames = toolNodes.map(n => n.name);
+      
+      if (toolNames.length > 0) {
+        description = `I can help you with tasks like: **${toolNames.join(", ")}**.`;
+      }
+    }
+
+    return [
+      {
+        id: "welcome",
+        role: "bot",
+        content: `👋 Hello! I'm the Interactive Preview for "${agentName || "your agent"}".\n\n${integrationType === "n8n" ? description : "Messages will be sent to your endpoint for live testing."}`,
+        timestamp: new Date(),
+      }
+    ];
+  });
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [mockDataContext, setMockDataContext] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [connectionStatus, setConnectionStatus] = useState<
     "idle" | "testing" | "connected" | "error"
   >("idle");
@@ -100,7 +120,7 @@ export function StagingSandbox({
           id: nextId("sys"),
           role: "system",
           content:
-            "✅ Sandbox environment connected. Your n8n workflow is ready for testing.",
+            "✅ Interactive Preview initialized. Your n8n workflow is ready for testing.",
           timestamp: new Date(),
         },
       ]);
@@ -171,6 +191,29 @@ export function StagingSandbox({
     }
   }, [agentId, endpointUrl, integrationType]);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const truncated = text.slice(0, 4000); // 4k chars limit for mock context
+      setMockDataContext(prev => prev ? prev + "\n" + truncated : truncated);
+      
+      const sysMsg: Message = {
+        id: nextId("sys"),
+        role: "system",
+        content: `📄 Attached mock dataset: ${file.name}. The assistant will now use this context to answer your queries.`,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, sysMsg]);
+    } catch (err) {
+      console.error(err);
+    }
+    
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isTyping) return;
@@ -187,18 +230,37 @@ export function StagingSandbox({
     setIsTyping(true);
 
     if (integrationType === "n8n") {
-      // Simulate n8n workflow response with realistic delay
-      const simulatedLatency = 800 + Math.random() * 1200;
-      await new Promise((r) => setTimeout(r, simulatedLatency));
-
-      const botMsg: Message = {
-        id: nextId("bot"),
-        role: "bot",
-        content: generateSimulatedResponse(userText),
-        timestamp: new Date(),
-        latencyMs: Math.round(simulatedLatency),
-      };
-      setMessages((prev) => [...prev, botMsg]);
+      const start = Date.now();
+      try {
+        const res = await fetch("/api/agents/simulate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            messages: [...messages, userMsg],
+            workflowData,
+            mockDataContext
+          })
+        });
+        const data = await res.json();
+        
+        const botMsg: Message = {
+          id: nextId("bot"),
+          role: "bot",
+          content: data.reply || (data.error ? `Error: ${data.error}` : "No response generated."),
+          timestamp: new Date(),
+          latencyMs: Date.now() - start,
+        };
+        setMessages((prev) => [...prev, botMsg]);
+      } catch (err) {
+        const botMsg: Message = {
+          id: nextId("bot"),
+          role: "bot",
+          content: "❌ Failed to reach AI simulation engine.",
+          timestamp: new Date(),
+          latencyMs: Date.now() - start,
+        };
+        setMessages((prev) => [...prev, botMsg]);
+      }
       setIsTyping(false);
     } else {
       // For API: try live endpoint communication
@@ -267,9 +329,9 @@ export function StagingSandbox({
             </div>
             <div>
               <h3 className="font-semibold text-sm flex items-center gap-2">
-                {agentName || "Agent"} — Sandbox
+                {agentName || "Agent"} — Interactive Preview
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                  <Sparkles className="h-2.5 w-2.5" /> Safe Zone
+                  <Sparkles className="h-2.5 w-2.5" /> Preview Mode
                 </span>
               </h3>
               <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
@@ -282,7 +344,7 @@ export function StagingSandbox({
                 {connectionStatus === "connected" && (
                   <>
                     <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                    Connected — {integrationType === "n8n" ? "Sandbox Mode" : "Live Endpoint"}
+                    Connected — {integrationType === "n8n" ? "Preview Mode" : "Live Endpoint"}
                   </>
                 )}
                 {connectionStatus === "error" && (
@@ -383,6 +445,27 @@ export function StagingSandbox({
           onSubmit={handleSend}
           className="p-3 bg-muted/20 border-t border-border flex gap-2"
         >
+          {integrationType === "n8n" && (
+            <>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept=".csv,.txt,.md,.json" 
+                onChange={handleFileUpload}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-xl h-11 w-11 shrink-0 bg-background hover:bg-muted"
+                title="Attach Mock CSV/Data for Testing"
+              >
+                <Paperclip className="h-5 w-5 text-muted-foreground" />
+              </Button>
+            </>
+          )}
           <Input
             ref={inputRef}
             value={input}
@@ -407,23 +490,4 @@ export function StagingSandbox({
       </div>
     </div>
   );
-}
-
-/** Generate a realistic simulated response for n8n sandbox testing */
-function generateSimulatedResponse(userInput: string): string {
-  const input = userInput.toLowerCase();
-
-  if (input.includes("hello") || input.includes("hi") || input.includes("hey")) {
-    return `Hello! 👋 This is a simulated response from your n8n workflow sandbox.\n\nYour workflow received the message and processed it successfully. In production, this response would come from your actual n8n workflow nodes.`;
-  }
-
-  if (input.includes("help") || input.includes("what can you")) {
-    return `Here's what you can test in this sandbox:\n\n• Send any text prompt to verify the message flow\n• Check response timing and latency\n• Verify your workflow handles different input types\n• Test edge cases before publishing\n\nAll responses are simulated in staging mode.`;
-  }
-
-  if (input.includes("error") || input.includes("fail")) {
-    return `⚠️ Simulating error handling...\n\nYour workflow would handle this input through its error-handling nodes. In production, ensure your n8n workflow has proper error boundaries configured.\n\nStatus: Error handling path verified ✓`;
-  }
-
-  return `**Sandbox Response**\n\nYour n8n workflow received: "${userInput}"\n\n📋 Processing pipeline:\n1. ✅ Input received and validated\n2. ✅ Workflow trigger activated\n3. ✅ Processing nodes executed\n4. ✅ Response generated\n\n⏱ This simulated response confirms your workflow's message handling is functional. Deploy to production when ready.`;
 }

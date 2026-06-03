@@ -10,6 +10,7 @@ import { Button } from "@/frontend/components/ui/button";
 import { Bot, Check, ArrowLeft, ShieldCheck, Clock, TrendingUp, Zap } from "lucide-react";
 import { SafeZoneSandbox } from "./SafeZoneSandbox";
 import { CheckoutButton } from "./CheckoutButton";
+import { getDownloadUrl } from "@/backend/lib/storage";
 
 export default async function AgentDetailPage(props: { params: Promise<{ agentId: string }> }) {
   const params = await props.params;
@@ -29,6 +30,19 @@ export default async function AgentDetailPage(props: { params: Promise<{ agentId
 
   const { agent, seller } = agentWithSeller;
   const price = (agent.monthlyPriceCents || 0) / 100;
+
+  let workflowData = null;
+  if (agent.type === "workflow" && agent.assetKey) {
+    try {
+      const url = await getDownloadUrl(agent.assetKey);
+      const res = await fetch(url);
+      if (res.ok) {
+        workflowData = await res.json();
+      }
+    } catch (e) {
+      console.error("Failed to load workflow data", e);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -112,7 +126,14 @@ export default async function AgentDetailPage(props: { params: Promise<{ agentId
                     <p className="text-slate-400 mt-1.5 text-[14px]">Try the agent with your own data. Inputs are not stored.</p>
                   </div>
                   <div className="rounded-xl overflow-hidden border border-slate-200">
-                    <SafeZoneSandbox agentName={agent.name} latencyMs={agent.performanceAvgMs || 250} />
+                    <SafeZoneSandbox 
+                      agentId={agent.id}
+                      agentName={agent.name} 
+                      latencyMs={agent.performanceAvgMs || 250} 
+                      integrationType={agent.type}
+                      workflowData={workflowData}
+                      endpointUrl={agent.endpointUrl}
+                    />
                   </div>
                 </section>
               </div>

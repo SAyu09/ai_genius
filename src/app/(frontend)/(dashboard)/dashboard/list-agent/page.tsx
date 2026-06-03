@@ -30,11 +30,49 @@ export default function CreatorStudioPage() {
     integrationType: "n8n", // "n8n" or "api"
     endpointUrl: "",
     assetKey: "",
+    workflowData: null as any,
   });
 
   const [draftId, setDraftId] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [sandboxOpen, setSandboxOpen] = useState(false);
+  const [pastedJson, setPastedJson] = useState("");
+  const [jsonError, setJsonError] = useState("");
+
+  const handleProcessPastedJson = async () => {
+    try {
+      setJsonError("");
+      const parsed = JSON.parse(pastedJson);
+      
+      setUploadingFile(true);
+      const filename = `pasted-workflow-${Date.now()}.json`;
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename })
+      });
+      const data = await res.json();
+      
+      if (!res.ok || !data.uploadUrl) throw new Error(data.error || "Failed to get upload URL");
+      
+      await fetch(data.uploadUrl, {
+        method: "PUT",
+        body: pastedJson,
+        headers: { "Content-Type": "application/json" }
+      });
+      
+      setForm({ ...form, assetKey: data.path, workflowData: parsed });
+      toast.success("Workflow JSON processed successfully!");
+    } catch (err: any) {
+      if (err instanceof SyntaxError) {
+        setJsonError("Invalid JSON format");
+      } else {
+        toast.error(err.message || "Processing failed");
+      }
+    } finally {
+      setUploadingFile(false);
+    }
+  };
 
   const handleSaveDraft = async () => {
     setLoading(true);
@@ -103,7 +141,15 @@ export default function CreatorStudioPage() {
         headers: { "Content-Type": file.type }
       });
       
-      setForm({ ...form, assetKey: data.path });
+      const fileText = await file.text();
+      let parsed = null;
+      try {
+        parsed = JSON.parse(fileText);
+      } catch (e) {
+        console.warn("Could not parse workflow JSON");
+      }
+      
+      setForm({ ...form, assetKey: data.path, workflowData: parsed });
       toast.success("Workflow file uploaded successfully!");
     } catch (err: any) {
       toast.error(err.message || "Upload failed");
@@ -225,7 +271,7 @@ export default function CreatorStudioPage() {
             <TabsTrigger value="basics" className="shrink-0 rounded-xl data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:shadow-none font-medium px-4 py-2 sm:py-0 sm:px-2">1. Basics</TabsTrigger>
             <TabsTrigger value="setup" disabled={!draftId} className="shrink-0 rounded-xl data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:shadow-none font-medium px-4 py-2 sm:py-0 sm:px-2">2. Agent Setup</TabsTrigger>
             <TabsTrigger value="monetization" disabled={!draftId} className="shrink-0 rounded-xl data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:shadow-none font-medium px-4 py-2 sm:py-0 sm:px-2">3. Monetization</TabsTrigger>
-            <TabsTrigger value="staging" disabled={!draftId} className="shrink-0 rounded-xl data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:shadow-none font-medium px-4 py-2 sm:py-0 sm:px-2">4. Staging Test</TabsTrigger>
+            <TabsTrigger value="staging" disabled={!draftId} className="shrink-0 rounded-xl data-[state=active]:bg-primary/5 data-[state=active]:text-primary data-[state=active]:shadow-none font-medium px-4 py-2 sm:py-0 sm:px-2">4. Live Preview</TabsTrigger>
           </TabsList>
 
           <TabsContent value="basics" className="space-y-6">
@@ -294,34 +340,77 @@ export default function CreatorStudioPage() {
               </div>
               
               {form.integrationType === "n8n" ? (
-                <>
+                <div className="space-y-4">
                   <p className="text-muted-foreground text-sm mb-6 max-w-2xl">
-                    Upload your n8n workflow JSON file. Our platform will automatically parse and deploy it in our sandboxed environment.
+                    Upload your n8n workflow JSON file or paste the JSON directly. Our platform will automatically parse and deploy it in our preview environment.
                   </p>
 
-                  <Label htmlFor="workflow-upload" className="block">
-                    <div className="border-2 border-dashed border-border rounded-2xl p-12 text-center bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer group relative">
-                      <input 
-                        id="workflow-upload" 
-                        type="file" 
-                        accept=".json" 
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        onChange={handleFileUpload}
-                        disabled={uploadingFile}
-                      />
-                      <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-border group-hover:scale-105 transition-transform">
-                        {form.assetKey ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <UploadCloud className="h-6 w-6 text-primary" />}
+                  <Tabs defaultValue="upload" className="w-full">
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="upload" className="rounded-lg">Upload File</TabsTrigger>
+                      <TabsTrigger value="paste" className="rounded-lg">Paste JSON</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="upload">
+                      <Label htmlFor="workflow-upload" className="block mt-2">
+                        <div className="border-2 border-dashed border-border rounded-2xl p-12 text-center bg-gray-50/50 hover:bg-gray-50 transition-colors cursor-pointer group relative">
+                          <input 
+                            id="workflow-upload" 
+                            type="file" 
+                            accept=".json" 
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            onChange={handleFileUpload}
+                            disabled={uploadingFile}
+                          />
+                          <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-border group-hover:scale-105 transition-transform">
+                            {form.assetKey && !form.assetKey.includes('pasted-') ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <UploadCloud className="h-6 w-6 text-primary" />}
+                          </div>
+                          <h3 className="font-semibold text-gray-900 mt-4">
+                            {uploadingFile ? "Uploading..." : (form.assetKey && !form.assetKey.includes('pasted-')) ? "File Uploaded Successfully!" : "Drag and drop JSON file here"}
+                          </h3>
+                          <p className="text-sm text-gray-500 mt-1">Supports n8n exported .json workflows</p>
+                          <Button type="button" variant="outline" className="mt-6 rounded-xl bg-white shadow-sm pointer-events-none" disabled={uploadingFile}>
+                            {uploadingFile ? "Uploading..." : (form.assetKey && !form.assetKey.includes('pasted-')) ? "Replace File" : "Browse Files"}
+                          </Button>
+                        </div>
+                      </Label>
+                    </TabsContent>
+                    <TabsContent value="paste">
+                      <div className="space-y-4 mt-2">
+                        <Textarea 
+                          placeholder="Paste your n8n workflow JSON here..." 
+                          className="min-h-[250px] font-mono text-xs bg-gray-50/50 border-gray-300 rounded-xl p-4"
+                          value={pastedJson}
+                          onChange={(e) => {
+                            setPastedJson(e.target.value);
+                            setJsonError("");
+                          }}
+                        />
+                        <div className="flex items-center justify-between">
+                          <div>
+                            {form.workflowData && form.assetKey?.includes('pasted-') && (
+                              <p className="text-xs text-emerald-600 flex items-center gap-1 font-medium">
+                                <CheckCircle2 className="h-4 w-4" /> Valid JSON processed and loaded
+                              </p>
+                            )}
+                            {jsonError && (
+                              <p className="text-xs text-red-600 flex items-center gap-1 font-medium">
+                                <AlertCircle className="h-4 w-4" /> {jsonError}
+                              </p>
+                            )}
+                          </div>
+                          <Button 
+                            type="button" 
+                            onClick={handleProcessPastedJson} 
+                            disabled={!pastedJson.trim() || uploadingFile}
+                            className="rounded-xl px-6 bg-indigo-600 hover:bg-indigo-700 text-white"
+                          >
+                            {uploadingFile ? "Processing..." : "Apply & Validate"}
+                          </Button>
+                        </div>
                       </div>
-                      <h3 className="font-semibold text-gray-900 mt-4">
-                        {uploadingFile ? "Uploading..." : form.assetKey ? "File Uploaded Successfully!" : "Drag and drop JSON file here"}
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1">Supports n8n exported .json workflows</p>
-                      <Button type="button" variant="outline" className="mt-6 rounded-xl bg-white shadow-sm pointer-events-none" disabled={uploadingFile}>
-                        {uploadingFile ? "Uploading..." : form.assetKey ? "Replace File" : "Browse Files"}
-                      </Button>
-                    </div>
-                  </Label>
-                </>
+                    </TabsContent>
+                  </Tabs>
+                </div>
               ) : (
                 <>
                   <p className="text-muted-foreground text-sm mb-6 max-w-2xl">
@@ -384,7 +473,7 @@ export default function CreatorStudioPage() {
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600"><ShieldCheck className="h-5 w-5" /></div>
                 <div>
-                  <h2 className="text-xl font-bold font-display">Staging Safe Zone</h2>
+                  <h2 className="text-xl font-bold font-display">Live Preview</h2>
                   <p className="text-sm text-muted-foreground">Test your agent securely before submitting for review.</p>
                 </div>
               </div>
@@ -441,13 +530,13 @@ export default function CreatorStudioPage() {
                 <>
                   <div className="border border-border rounded-2xl bg-gray-50/50 flex flex-col items-center justify-center text-center p-8">
                     <Bot className="h-12 w-12 text-primary mb-4" />
-                    <h3 className="font-semibold text-gray-900">Sandbox Environment</h3>
+                    <h3 className="font-semibold text-gray-900">Interactive Preview</h3>
                     <p className="text-sm text-gray-500 max-w-md mt-2">
-                      Your n8n workflow has been securely provisioned in our sandboxed environment. You can simulate requests to verify latency and correctness before publishing.
+                      Your n8n workflow has been securely loaded. You can simulate requests to verify logic and tool execution before publishing.
                     </p>
                     <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                       <Button onClick={handleOpenSandbox} disabled={loading || !form.assetKey} variant="outline" className="rounded-xl px-6 shadow-sm border-gray-300">
-                        {loading ? "Initializing..." : "Open Chat Sandbox"}
+                        {loading ? "Initializing..." : "Open Interactive Preview"}
                       </Button>
                       <Button onClick={handlePublish} disabled={loading || !draftId} className="rounded-xl px-8 shadow-sm bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white transition-all hover:scale-[1.02]">
                         <Rocket className="h-4 w-4 mr-2" /> Publish Now
@@ -470,6 +559,7 @@ export default function CreatorStudioPage() {
           agentName={form.name || "Your Agent"}
           integrationType={form.integrationType as "n8n" | "api"}
           endpointUrl={form.endpointUrl}
+          workflowData={form.workflowData}
           onClose={() => setSandboxOpen(false)}
         />
       )}
