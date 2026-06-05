@@ -216,8 +216,25 @@ export default function CreatorStudioPage() {
     }
     
     setLoading(true);
-    const toastId = toast.loading("Publishing to marketplace...");
+    const toastId = toast.loading("Saving and publishing to marketplace...");
     try {
+      // 1. Save the draft first to ensure all fields (assetKey, endpointUrl, price) are persisted
+      const payload = {
+        ...form,
+        monthlyPrice: form.price || "0",
+        type: form.integrationType === "n8n" ? "workflow" : "hosted",
+      };
+
+      const saveRes = await fetch(`/api/agents/${draftId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const saveData = await saveRes.json();
+      if (!saveRes.ok) throw new Error(saveData.error || "Failed to save draft before publishing");
+
+      // 2. Publish to marketplace
       const res = await fetch(`/api/sellers/agents/${draftId}/publish`, { method: "POST" });
       const data = await res.json();
       
