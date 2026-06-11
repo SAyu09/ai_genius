@@ -81,6 +81,22 @@
   --radius: var(--radius-md);
   
   --primary-glow: var(--color-brand-primary-hover);
+
+  /* ─── Landing Page — Soothing Enterprise Palette ─── */
+  --landing-bg: #f0f4f8;
+  --landing-bg-warm: #edf2f7;
+  --landing-aura-1: hsl(200, 30%, 95%);
+  --landing-aura-2: hsl(210, 35%, 91%);
+  --landing-aura-3: hsl(195, 25%, 93%);
+  --landing-accent-teal: hsl(174, 60%, 46%);
+  --landing-accent-teal-light: hsl(174, 50%, 90%);
+  --landing-dark-card: hsl(220, 25%, 6%);
+  --landing-dark-card-surface: hsl(220, 20%, 12%);
+  --landing-text-primary: #1a1a2e;
+  --landing-text-secondary: #64748b;
+  --landing-text-muted: #94a3b8;
+  --landing-border-light: rgba(0, 0, 0, 0.06);
+  --landing-border-hover: rgba(0, 0, 0, 0.1);
 }
 
 @theme inline {
@@ -112,8 +128,9 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Source Code Pro', 'SF Mono', 'Fira Code', ui-monospace, monospace;
 
   --shadow-xs: var(--shadow-xs);
   --shadow-sm: var(--shadow-sm);
@@ -155,6 +172,97 @@
   .page-header {
     @apply mb-8 border-b border-gray-100 pb-5;
   }
+}
+
+/* ─── Landing Page — Soothing Concentric Background ── */
+.soothing-bg {
+  background-color: var(--landing-bg);
+  background-image:
+    radial-gradient(ellipse 1200px 1200px at 50% 0%, hsla(200, 40%, 92%, 0.8) 0%, transparent 70%),
+    radial-gradient(ellipse 900px 900px at 50% 5%, hsla(210, 35%, 89%, 0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 600px 600px at 50% 8%, hsla(195, 30%, 86%, 0.35) 0%, transparent 50%),
+    radial-gradient(ellipse 350px 350px at 50% 10%, hsla(200, 40%, 83%, 0.2) 0%, transparent 40%);
+}
+
+.soothing-bg-subtle {
+  background-color: var(--landing-aura-1);
+  background-image:
+    radial-gradient(ellipse 800px 500px at 50% 50%, hsla(200, 30%, 93%, 0.6) 0%, transparent 70%);
+}
+
+/* ─── Monospace CTA Buttons (Kore-inspired) ────────── */
+.cta-mono {
+  font-family: 'Source Code Pro', 'SF Mono', ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.cta-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.75rem;
+  background-color: var(--landing-text-primary);
+  color: #ffffff;
+  border-radius: 0.5rem;
+  border: 1px solid var(--landing-text-primary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.cta-primary:hover {
+  background-color: #000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.75rem;
+  background-color: transparent;
+  color: var(--landing-text-primary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--landing-border-hover);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.cta-secondary:hover {
+  border-color: var(--landing-text-primary);
+  background-color: rgba(0, 0, 0, 0.02);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+/* ─── Dark Panel Cards ─────────────────────────────── */
+.dark-panel {
+  background-color: var(--landing-dark-card);
+  color: #ffffff;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.dark-panel-surface {
+  background-color: var(--landing-dark-card-surface);
+}
+
+/* ─── Section Tags (uppercase monospace) ───────────── */
+.section-tag {
+  font-family: 'Source Code Pro', 'SF Mono', ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--landing-text-muted);
+}
+
+.section-tag-light {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* ─── Landing Page Dark Theme ──────────────────────── */
@@ -234,6 +342,21 @@
 @keyframes border-glow-rotate {
   0% { --border-angle: 0deg; }
   100% { --border-angle: 360deg; }
+}
+
+@keyframes concentric-breathe {
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(1.02); }
+}
+
+@keyframes gentle-reveal {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up-fade {
+  from { opacity: 0; transform: translateY(20px); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 
 /* ─── Utility Classes ─────────────────────────────── */

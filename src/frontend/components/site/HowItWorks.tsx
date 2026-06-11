@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { ArrowUpRight, Search, Zap, Blocks } from "lucide-react";
 import {
   staggerContainer,
   staggerItem,
@@ -8,78 +9,120 @@ import {
 } from "@/frontend/hooks/useAnimations";
 
 const steps = [
-  { n: "1", title: "Discover", text: "Browse thousands of vetted AI agents across every category and use case." },
-  { n: "2", title: "Download", text: "Instant source-code delivery. Download the agent, blueprints, and integrations." },
-  { n: "3", title: "Deploy Anywhere", text: "Bring your own cloud. Deploy locally or to your preferred infrastructure." },
+  {
+    icon: Search,
+    title: "Discover",
+    text: "Browse thousands of vetted AI agents across every category, industry, and use case.",
+    detail: "Search by capability",
+  },
+  {
+    icon: Zap,
+    title: "Deploy Instantly",
+    text: "One-click deployment with instant source-code delivery, blueprints, and integrations.",
+    detail: "Zero configuration",
+  },
+  {
+    icon: Blocks,
+    title: "Build & Sell",
+    text: "Create agents and monetize on the marketplace. We handle billing, infra, and global payouts.",
+    detail: "85% revenue share",
+  },
 ];
 
 export function HowItWorks() {
   return (
-    <section id="how" className="py-12 sm:py-16 bg-gray-50/50">
+    <section id="how" className="py-16 sm:py-24 soothing-bg-subtle">
       <div className="mx-auto w-[min(1200px,92%)]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-2xl text-center mx-auto mb-12"
+          className="max-w-2xl mx-auto text-center mb-14"
         >
-          <p className="text-sm font-bold uppercase tracking-widest text-indigo-600">How it works</p>
-          <h2 className="mt-3 font-[family-name:var(--font-inter)] text-4xl sm:text-5xl font-semibold text-gray-900 tracking-tight">
-            From discovery to deployed in minutes.
+          <span className="section-tag">How it works</span>
+          <h2
+            className="mt-4 font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight"
+            style={{ color: "var(--landing-text-primary)" }}
+          >
+            From discovery to deployed{" "}
+            <br className="hidden sm:block" />
+            in minutes.
           </h2>
         </motion.div>
-
-        {/* Step connector line — desktop only */}
-        <div className="hidden md:block relative">
-          <motion.div
-            initial={{ scaleX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute top-[60px] left-[16.66%] right-[16.66%] h-[1px] origin-left"
-            style={{
-              background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.15) 20%, rgba(99,102,241,0.25) 50%, rgba(99,102,241,0.15) 80%, transparent)",
-            }}
-          />
-        </div>
 
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={viewportConfig}
-          className="grid gap-6 md:grid-cols-3 relative"
+          className="grid gap-6 md:grid-cols-3"
         >
           {steps.map((s, i) => (
             <motion.div
-              key={s.n}
+              key={s.title}
               variants={staggerItem}
-              whileHover={{ y: -6 }}
-              className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-10 transition-all duration-300 hover:border-indigo-100 hover:shadow-xl shadow-sm"
+              className="group relative flex flex-col rounded-2xl bg-white p-9 sm:p-10 transition-all duration-400 hover:shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)] cursor-pointer overflow-hidden"
+              style={{
+                border: "1px solid var(--landing-border-light)",
+              }}
             >
               {/* Oversized background number */}
-              <div className="absolute -right-4 -top-8 font-[family-name:var(--font-inter)] text-[160px] font-bold leading-none text-gray-50 transition-all duration-500 group-hover:text-gray-100 group-hover:scale-110 pointer-events-none select-none">
-                0{s.n}
+              <div
+                className="absolute -right-3 -top-6 font-[family-name:var(--font-space-grotesk)] text-[140px] font-bold leading-none select-none pointer-events-none transition-all duration-500 group-hover:scale-110"
+                style={{ color: "hsl(210, 20%, 95%)" }}
+              >
+                0{i + 1}
               </div>
 
-              {/* Hover glow */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+              {/* Hover accent — top border glow */}
+              <div
+                className="absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 style={{
-                  background: "radial-gradient(300px circle at 50% 0%, rgba(99,102,241,0.04), transparent 60%)",
+                  background: "linear-gradient(90deg, var(--landing-accent-teal), hsl(210, 80%, 60%))",
                 }}
               />
 
               <div className="relative z-10">
-                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-xl font-bold text-white shadow-[0_4px_12px_rgba(99,102,241,0.3)] transition-shadow duration-300 group-hover:shadow-[0_6px_16px_rgba(99,102,241,0.4)]">
-                  {s.n}
+                {/* Icon + arrow */}
+                <div className="flex items-center justify-between mb-7">
+                  <div
+                    className="flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 group-hover:shadow-md"
+                    style={{
+                      backgroundColor: "var(--landing-accent-teal-light)",
+                      color: "var(--landing-accent-teal)",
+                    }}
+                  >
+                    <s.icon className="h-5 w-5 stroke-[1.8]" />
+                  </div>
+                  <ArrowUpRight
+                    className="h-5 w-5 opacity-0 group-hover:opacity-60 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    style={{ color: "var(--landing-text-muted)" }}
+                  />
                 </div>
-                <h3 className="font-[family-name:var(--font-inter)] text-2xl font-semibold text-gray-900">
+
+                <h3
+                  className="font-[family-name:var(--font-space-grotesk)] text-xl font-semibold tracking-tight"
+                  style={{ color: "var(--landing-text-primary)" }}
+                >
                   {s.title}
                 </h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-gray-500 max-w-[90%]">
+                <p
+                  className="mt-3 text-[15px] leading-relaxed"
+                  style={{ color: "var(--landing-text-secondary)" }}
+                >
                   {s.text}
                 </p>
+
+                {/* Detail tag at bottom */}
+                <div className="mt-8 pt-5" style={{ borderTop: "1px solid var(--landing-border-light)" }}>
+                  <span
+                    className="section-tag"
+                    style={{ color: "var(--landing-accent-teal)" }}
+                  >
+                    {s.detail}
+                  </span>
+                </div>
               </div>
             </motion.div>
           ))}

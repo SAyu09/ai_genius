@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Inter } from "next/font/google";
+import { Geist, Inter, Space_Grotesk } from "next/font/google";
 import { Providers } from "@/frontend/components/Providers";
 import { Omnibar } from "@/frontend/components/ui/command";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  weight: ["300", "400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: {
@@ -32,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={`${geist.variable} ${inter.variable}`}>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={`${geist.variable} ${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <Providers>
           {children}
@@ -42,4 +47,3 @@ export default function RootLayout({
     </html>
   );
 }
-

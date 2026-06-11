@@ -14,17 +14,20 @@ const faqs = [
 
 export function FAQ() {
   return (
-    <section className="py-12 sm:py-16 bg-gray-50/50">
+    <section className="py-16 sm:py-24" style={{ backgroundColor: "var(--landing-bg)" }}>
       <div className="mx-auto w-[min(800px,92%)]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center mb-10"
+          className="text-center mb-12"
         >
-          <p className="text-sm font-bold uppercase tracking-widest text-indigo-600">FAQ</p>
-          <h2 className="mt-3 font-[family-name:var(--font-inter)] text-4xl sm:text-5xl font-semibold text-gray-900 tracking-tight">
+          <span className="section-tag">FAQ</span>
+          <h2
+            className="mt-4 font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight"
+            style={{ color: "var(--landing-text-primary)" }}
+          >
             Questions, answered.
           </h2>
         </motion.div>
@@ -35,17 +38,26 @@ export function FAQ() {
           viewport={viewportConfig}
           transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Accordion type="single" collapsible className="w-full space-y-4">
+          <Accordion type="single" collapsible className="w-full space-y-3">
             {faqs.map((f, i) => (
               <AccordionItem
                 key={i}
                 value={`f-${i}`}
-                className="rounded-2xl border border-gray-200 bg-white px-6 transition-all duration-300 data-[state=open]:border-indigo-200 data-[state=open]:shadow-[0_10px_30px_-10px_rgba(99,102,241,0.15)] hover:border-gray-300"
+                className="rounded-2xl bg-white px-7 transition-all duration-300 data-[state=open]:shadow-[0_6px_30px_-10px_rgba(0,0,0,0.06)]"
+                style={{
+                  border: "1px solid var(--landing-border-light)",
+                }}
               >
-                <AccordionTrigger className="text-left text-[17px] font-semibold text-gray-800 transition-colors hover:no-underline hover:text-indigo-600 data-[state=open]:text-indigo-600 py-5">
+                <AccordionTrigger
+                  className="text-left text-[16px] font-semibold transition-colors hover:no-underline py-5"
+                  style={{ color: "var(--landing-text-primary)" }}
+                >
                   {f.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-[15px] leading-relaxed text-gray-600 pb-5">
+                <AccordionContent
+                  className="text-[15px] leading-relaxed pb-6"
+                  style={{ color: "var(--landing-text-secondary)" }}
+                >
                   {f.a}
                 </AccordionContent>
               </AccordionItem>

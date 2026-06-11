@@ -1,9 +1,10 @@
 import { Header } from "@/frontend/components/site/Header";
 import { Hero } from "@/frontend/components/site/Hero";
+import { FeatureShowcase } from "@/frontend/components/site/FeatureShowcase";
 import { LogoCloud } from "@/frontend/components/site/LogoCloud";
+import { HowItWorks } from "@/frontend/components/site/HowItWorks";
 import { Categories } from "@/frontend/components/site/Categories";
 import { FeaturedAgents } from "@/frontend/components/site/FeaturedAgents";
-import { HowItWorks } from "@/frontend/components/site/HowItWorks";
 import { Testimonials } from "@/frontend/components/site/Testimonials";
 import { SellCTA } from "@/frontend/components/site/SellCTA";
 import { FAQ } from "@/frontend/components/site/FAQ";
@@ -43,14 +44,15 @@ export default async function Home() {
     price: a.priceCents ? Math.round(a.priceCents / 100) : 0,
   }));
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       <Header />
       <main>
         <Hero />
+        <FeatureShowcase />
         <LogoCloud />
+        <HowItWorks />
         <Categories />
         <FeaturedAgents agents={formattedAgents} />
-        <HowItWorks />
         <Testimonials />
         <FAQ />
         <SellCTA />

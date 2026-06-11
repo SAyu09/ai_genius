@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Star, Zap, CheckCircle2, TrendingUp } from "lucide-react";
-import { Button } from "@/frontend/components/ui/button";
+import { Star, Zap, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRef, useState, useCallback } from "react";
 import {
@@ -11,7 +10,7 @@ import {
   viewportConfig,
 } from "@/frontend/hooks/useAnimations";
 
-/* ─── Agent card with hover glow ─────────────────── */
+/* ─── Agent card ─────────────────────────────────── */
 function AgentCard({ a, index }: { a: any; index: number }) {
   const cardRef = useRef<HTMLAnchorElement>(null);
   const [glowPos, setGlowPos] = useState({ x: 0, y: 0 });
@@ -31,11 +30,12 @@ function AgentCard({ a, index }: { a: any; index: number }) {
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="group relative flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 transition-all duration-300 hover:border-indigo-100 overflow-hidden"
+        className="group relative flex h-full flex-col rounded-2xl bg-white p-7 sm:p-8 transition-all duration-400 overflow-hidden"
         style={{
+          border: "1px solid var(--landing-border-light)",
           boxShadow: isHovered
-            ? "0 10px 40px -10px rgba(99,102,241,0.15), 0 4px 6px -4px rgba(99,102,241,0.05)"
-            : "0 1px 3px rgba(0,0,0,0.05)",
+            ? "0 12px 40px -12px rgba(0,0,0,0.08)"
+            : "none",
         }}
       >
         {/* Mouse-follow glow */}
@@ -43,60 +43,109 @@ function AgentCard({ a, index }: { a: any; index: number }) {
           className="absolute inset-0 pointer-events-none transition-opacity duration-500"
           style={{
             opacity: isHovered ? 1 : 0,
-            background: `radial-gradient(300px circle at ${glowPos.x}px ${glowPos.y}px, rgba(99,102,241,0.04), transparent 60%)`,
+            background: `radial-gradient(300px circle at ${glowPos.x}px ${glowPos.y}px, hsla(174, 60%, 46%, 0.04), transparent 60%)`,
+          }}
+        />
+
+        {/* Hover accent — top border */}
+        <div
+          className="absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{
+            background: "linear-gradient(90deg, var(--landing-accent-teal), hsl(210, 80%, 60%))",
           }}
         />
 
         {/* Header: Badges & Rating */}
-        <div className="relative z-10 flex items-center justify-between mb-4">
+        <div className="relative z-10 flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-600 border border-indigo-100">
+            <span
+              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold"
+              style={{
+                backgroundColor: "var(--landing-accent-teal-light)",
+                color: "var(--landing-accent-teal)",
+              }}
+            >
               <Zap className="h-3 w-3" /> Featured
             </span>
-            <span className="inline-flex items-center rounded-full bg-gray-50 px-2.5 py-1 text-[11px] font-medium text-gray-500 border border-gray-200">
+            <span
+              className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium"
+              style={{
+                backgroundColor: "hsl(210, 20%, 96%)",
+                color: "var(--landing-text-secondary)",
+              }}
+            >
               {a.tag}
             </span>
           </div>
-          <div className="flex items-center gap-1 text-xs font-medium text-gray-600 bg-gray-50 px-2 py-1 rounded-md border border-gray-200">
+          <div
+            className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md"
+            style={{
+              backgroundColor: "hsl(210, 20%, 96%)",
+              color: "var(--landing-text-secondary)",
+            }}
+          >
             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            {a.rating} <span className="text-gray-400 font-normal">({a.sales})</span>
+            {a.rating} <span style={{ color: "var(--landing-text-muted)" }}>({a.sales})</span>
           </div>
         </div>
 
         {/* Body: Name & Desc */}
         <div className="relative z-10 flex items-center gap-3 mb-2">
-          <div className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 p-[1px]">
-            <div className="h-full w-full rounded-full bg-white flex items-center justify-center text-indigo-600 font-bold text-sm">
+          <div
+            className="h-10 w-10 shrink-0 rounded-full p-[1px]"
+            style={{ background: "linear-gradient(135deg, var(--landing-accent-teal-light), hsl(210, 50%, 92%))" }}
+          >
+            <div className="h-full w-full rounded-full bg-white flex items-center justify-center font-bold text-sm" style={{ color: "var(--landing-accent-teal)" }}>
               {a.name[0]}
             </div>
           </div>
           <div>
-            <h3 className="font-[family-name:var(--font-inter)] text-xl font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors duration-300">
+            <h3
+              className="font-[family-name:var(--font-space-grotesk)] text-lg font-semibold tracking-tight transition-colors duration-300"
+              style={{ color: "var(--landing-text-primary)" }}
+            >
               {a.name}
             </h3>
-            <p className="text-[13px] text-gray-500 flex items-center gap-1">
-              by <span className="font-medium text-gray-700">{a.author}</span>
+            <p className="text-[13px] flex items-center gap-1" style={{ color: "var(--landing-text-secondary)" }}>
+              by <span className="font-medium" style={{ color: "var(--landing-text-primary)" }}>{a.author}</span>
               <CheckCircle2 className="h-3 w-3 text-emerald-500" />
             </p>
           </div>
         </div>
 
-        <p className="relative z-10 mt-3 text-[14px] leading-relaxed text-gray-500 flex-grow">
+        <p
+          className="relative z-10 mt-3 text-[14px] leading-relaxed flex-grow"
+          style={{ color: "var(--landing-text-secondary)" }}
+        >
           {a.desc}
         </p>
 
         {/* Footer: Price & CTA */}
-        <div className="relative z-10 mt-6 flex items-end justify-between border-t border-gray-100 pt-5">
+        <div
+          className="relative z-10 mt-6 flex items-end justify-between pt-5"
+          style={{ borderTop: "1px solid var(--landing-border-light)" }}
+        >
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-0.5">Starting at</div>
+            <div className="section-tag mb-1" style={{ fontSize: "0.625rem" }}>Starting at</div>
             <div className="flex items-baseline gap-1">
-              <span className="font-[family-name:var(--font-inter)] text-2xl font-semibold text-gray-900">${a.price}</span>
-              <span className="text-sm font-medium text-gray-400">/mo</span>
+              <span
+                className="font-[family-name:var(--font-space-grotesk)] text-2xl font-semibold"
+                style={{ color: "var(--landing-text-primary)" }}
+              >
+                ${a.price}
+              </span>
+              <span className="text-sm font-medium" style={{ color: "var(--landing-text-muted)" }}>/mo</span>
             </div>
           </div>
-          <Button className="rounded-xl bg-indigo-50 px-5 py-4 font-semibold text-indigo-600 transition-all duration-300 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-[0_4px_12px_rgba(99,102,241,0.3)] group-hover:scale-105 group-active:scale-95 border border-indigo-100 group-hover:border-transparent">
+          <div
+            className="cta-mono rounded-lg px-4 py-2.5 text-[12px] font-medium transition-all duration-300 group-hover:shadow-md"
+            style={{
+              backgroundColor: "var(--landing-accent-teal-light)",
+              color: "var(--landing-accent-teal)",
+            }}
+          >
             View agent
-          </Button>
+          </div>
         </div>
       </Link>
     </motion.div>
@@ -106,30 +155,45 @@ function AgentCard({ a, index }: { a: any; index: number }) {
 export function FeaturedAgents({ agents = [] }: { agents?: any[] }) {
   const featured = agents.slice(0, 6);
   return (
-    <section id="marketplace" className="py-12 sm:py-16 bg-white border-y border-gray-100">
-      <div className="mx-auto w-[min(1200px,92%)]">
+    <section id="marketplace" className="py-0" style={{ backgroundColor: "var(--landing-bg)" }}>
+      {/* Dark banner intro — Kore-inspired */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+        className="dark-panel mx-auto w-[min(1260px,92%)] p-10 sm:p-16 lg:p-20 mb-12"
+      >
+        <h2 className="font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-[3rem] font-semibold leading-[1.2] tracking-tight text-white max-w-[800px]">
+          Drive faster business outcomes with intelligent AI agents.
+        </h2>
+        <p className="mt-4 text-[15px] leading-relaxed text-white/50 max-w-[560px]">
+          Purpose-built agents solving the most urgent enterprise challenges with battle-tested reliability.
+        </p>
+      </motion.div>
+
+      {/* Agent grid */}
+      <div className="mx-auto w-[min(1200px,92%)] pb-16 sm:pb-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6"
+          className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 mb-10"
         >
           <div>
-            <p className="text-sm font-bold uppercase tracking-widest text-indigo-600 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" /> Marketplace Preview
-            </p>
-            <h2 className="mt-3 font-[family-name:var(--font-inter)] text-4xl sm:text-5xl font-semibold text-gray-900 tracking-tight">
+            <span className="section-tag">Marketplace Preview</span>
+            <h2
+              className="mt-4 font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl font-semibold tracking-tight"
+              style={{ color: "var(--landing-text-primary)" }}
+            >
               Top agents this week
             </h2>
           </div>
           <Link href="/marketplace" className="w-full sm:w-auto">
-            <Button
-              variant="outline"
-              className="w-full sm:w-auto rounded-full px-6 py-5 font-semibold text-gray-600 border-gray-200 bg-white hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-300 hover:shadow-sm"
-            >
+            <button className="cta-secondary cta-mono w-full sm:w-auto">
               Browse all 2,400+ agents
-            </Button>
+            </button>
           </Link>
         </motion.div>
 
@@ -138,7 +202,7 @@ export function FeaturedAgents({ agents = [] }: { agents?: any[] }) {
           initial="hidden"
           whileInView="visible"
           viewport={viewportConfig}
-          className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-5 md:grid-cols-2 lg:grid-cols-3"
         >
           {featured.map((a, i) => (
             <AgentCard key={a.slug} a={a} index={i} />

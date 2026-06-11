@@ -1,6 +1,6 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { Star, Quote } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   staggerContainer,
@@ -17,18 +17,37 @@ const items = [
 
 export function Testimonials() {
   return (
-    <section className="py-12 sm:py-16 bg-white">
-      <div className="mx-auto w-[min(1200px,92%)]">
+    <section className="relative py-20 sm:py-28 overflow-hidden" style={{ backgroundColor: "var(--landing-dark-card)" }}>
+      {/* Subtle grid pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+        }}
+      />
+
+      {/* Ambient glow */}
+      <div
+        className="absolute left-1/4 top-0 w-[600px] h-[400px] rounded-full blur-[120px] pointer-events-none"
+        style={{
+          background: "radial-gradient(circle, hsla(174, 60%, 46%, 0.08) 0%, transparent 70%)",
+        }}
+      />
+
+      <div className="mx-auto w-[min(1200px,92%)] relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-2xl text-center mx-auto mb-10"
+          className="max-w-2xl mb-14"
         >
-          <p className="text-sm font-bold uppercase tracking-widest text-indigo-600">Loved worldwide</p>
-          <h2 className="mt-3 font-[family-name:var(--font-inter)] text-4xl sm:text-5xl font-semibold text-gray-900 tracking-tight">
-            Trusted by 80,000+ teams.
+          <span className="section-tag section-tag-light">Trusted worldwide</span>
+          <h2 className="mt-4 font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-white">
+            Loved by 80,000+ teams{" "}
+            <br className="hidden sm:block" />
+            around the world.
           </h2>
         </motion.div>
 
@@ -37,39 +56,44 @@ export function Testimonials() {
           initial="hidden"
           whileInView="visible"
           viewport={viewportConfig}
-          className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
+          className="grid gap-5 md:grid-cols-2 lg:grid-cols-4"
         >
-          {items.map((t, i) => (
+          {items.map((t) => (
             <motion.figure
               key={t.name}
               variants={staggerItem}
-              whileHover={{ y: -4 }}
-              className="group flex flex-col justify-between rounded-2xl border border-gray-200 bg-white p-7 transition-all duration-300 hover:border-indigo-100 hover:shadow-xl shadow-sm overflow-hidden"
+              className="group flex flex-col justify-between rounded-2xl p-7 transition-all duration-400 overflow-hidden"
+              style={{
+                backgroundColor: "var(--landing-dark-card-surface)",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
             >
               <div className="relative z-10">
-                {/* Decorative quote mark */}
-                <div className="text-[48px] leading-none font-serif text-indigo-100 mb-2 select-none">&ldquo;</div>
+                {/* Quote icon */}
+                <Quote className="h-6 w-6 mb-5 opacity-20 text-white" />
+                
+                {/* Stars */}
                 <div className="flex gap-1 mb-4">
                   {Array.from({ length: t.rating }).map((_, idx) => (
-                    <Star key={idx} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <Star key={idx} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <blockquote className="text-[15px] leading-relaxed text-gray-700 font-medium">
+                <blockquote className="text-[15px] leading-relaxed text-white/70 font-normal">
                   &quot;{t.quote}&quot;
                 </blockquote>
               </div>
 
-              <figcaption className="relative z-10 mt-8 flex items-center gap-3 border-t border-gray-100 pt-5">
+              <figcaption className="relative z-10 mt-8 flex items-center gap-3 pt-5" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <div className="relative">
                   <img
                     src={t.avatar}
                     alt={t.name}
-                    className="h-10 w-10 rounded-full object-cover ring-2 ring-indigo-50"
+                    className="h-10 w-10 rounded-full object-cover ring-2 ring-white/10"
                   />
                 </div>
                 <div>
-                  <div className="font-semibold text-sm text-gray-900">{t.name}</div>
-                  <div className="text-[13px] text-gray-500">{t.role}</div>
+                  <div className="font-semibold text-sm text-white">{t.name}</div>
+                  <div className="text-[12px] text-white/40">{t.role}</div>
                 </div>
               </figcaption>
             </motion.figure>
