@@ -101,7 +101,7 @@ function AgentCard({ a, index }: { a: any; index: number }) {
           </div>
           <div>
             <h3
-              className="font-[family-name:var(--font-space-grotesk)] text-lg font-semibold tracking-tight transition-colors duration-300"
+              className="text-lg font-medium tracking-tight transition-colors duration-300"
               style={{ color: "var(--landing-text-primary)" }}
             >
               {a.name}
@@ -129,7 +129,7 @@ function AgentCard({ a, index }: { a: any; index: number }) {
             <div className="section-tag mb-1" style={{ fontSize: "0.625rem" }}>Starting at</div>
             <div className="flex items-baseline gap-1">
               <span
-                className="font-[family-name:var(--font-space-grotesk)] text-2xl font-semibold"
+                className="text-2xl font-semibold tracking-tight"
                 style={{ color: "var(--landing-text-primary)" }}
               >
                 ${a.price}
@@ -138,7 +138,7 @@ function AgentCard({ a, index }: { a: any; index: number }) {
             </div>
           </div>
           <div
-            className="cta-mono rounded-lg px-4 py-2.5 text-[12px] font-medium transition-all duration-300 group-hover:shadow-md"
+            className="rounded-lg px-4 py-2.5 text-[13px] font-medium transition-all duration-300 group-hover:shadow-md"
             style={{
               backgroundColor: "var(--landing-accent-teal-light)",
               color: "var(--landing-accent-teal)",
@@ -164,7 +164,7 @@ export function FeaturedAgents({ agents = [] }: { agents?: any[] }) {
         transition={{ duration: 0.8 }}
         className="dark-panel mx-auto w-[min(1260px,92%)] p-10 sm:p-16 lg:p-20 mb-12"
       >
-        <h2 className="font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-[3rem] font-semibold leading-[1.2] tracking-tight text-white max-w-[800px]">
+        <h2 className="text-3xl sm:text-4xl lg:text-[3rem] font-medium leading-[1.2] tracking-tight text-white max-w-[800px]">
           Drive faster business outcomes with intelligent AI agents.
         </h2>
         <p className="mt-4 text-[15px] leading-relaxed text-white/50 max-w-[560px]">
@@ -184,14 +184,14 @@ export function FeaturedAgents({ agents = [] }: { agents?: any[] }) {
           <div>
             <span className="section-tag">Marketplace Preview</span>
             <h2
-              className="mt-4 font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl font-semibold tracking-tight"
+              className="mt-4 text-3xl sm:text-4xl font-medium tracking-tight"
               style={{ color: "var(--landing-text-primary)" }}
             >
               Top agents this week
             </h2>
           </div>
           <Link href="/marketplace" className="w-full sm:w-auto">
-            <button className="cta-secondary cta-mono w-full sm:w-auto">
+            <button className="cta-secondary w-full sm:w-auto font-medium px-6 shadow-sm">
               Browse all 2,400+ agents
             </button>
           </Link>

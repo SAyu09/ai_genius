@@ -46,11 +46,18 @@ export function Header() {
 
   /* scroll + outside-click */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => {
+      const threshold = window.location.pathname === "/" ? window.innerHeight * 0.85 : 12;
+      setScrolled(window.scrollY > threshold);
+    };
     const onOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node))
         setDropdownOpen(false);
     };
+    
+    // Set initial state
+    onScroll();
+
     window.addEventListener("scroll", onScroll, { passive: true });
     document.addEventListener("mousedown", onOutside);
     return () => {
@@ -146,12 +153,15 @@ export function Header() {
           { href: "/marketplace/billing", icon: CreditCard, label: "Billing" },
         ];
 
+  const isDarkOverlay = pathname === "/" && !scrolled;
+
   /* ── render ─────────────────────────────────────────── */
   return (
     <>
       <header
         className={[
-          "sticky top-0 z-50 w-full transition-all duration-500",
+          pathname === "/" ? "fixed" : "sticky",
+          "top-0 z-50 w-full transition-all duration-500",
           scrolled
             ? "bg-white/80 backdrop-blur-xl border-b shadow-[0_1px_20px_-4px_rgba(0,0,0,0.04)] py-2.5"
             : "bg-transparent py-5",
@@ -165,16 +175,16 @@ export function Header() {
           {/* ── Logo ──────────────────────────────────────── */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 group select-none"
+            className="flex items-center group select-none"
           >
             <img
               src="/logo.png"
               alt="AI Genius Logo"
-              className="h-9 w-9 object-contain transition-transform duration-200 group-hover:scale-105"
+              className="h-16 w-16 object-cover -ml-2 -mr-3 transition-transform duration-200 group-hover:scale-105"
             />
             <span
-              className="font-[family-name:var(--font-space-grotesk)] font-semibold text-[17px] tracking-tight"
-              style={{ color: "var(--landing-text-primary)" }}
+              className="font-semibold text-[17px] tracking-tight transition-colors duration-500"
+              style={{ color: isDarkOverlay ? "white" : "var(--landing-text-primary)" }}
             >
               AI Genius
             </span>
@@ -189,8 +199,8 @@ export function Header() {
                 className={[
                   "relative px-3.5 py-2 rounded-lg text-[14px] font-medium transition-all duration-200",
                   isActive(l.href)
-                    ? "text-[var(--landing-text-primary)] bg-black/[0.04]"
-                    : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)] hover:bg-black/[0.03]",
+                    ? (isDarkOverlay ? "text-white bg-white/10" : "text-[var(--landing-text-primary)] bg-black/[0.04]")
+                    : (isDarkOverlay ? "text-white/80 hover:text-white hover:bg-white/10" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)] hover:bg-black/[0.03]"),
                 ].join(" ")}
               >
                 {l.label}
@@ -198,7 +208,7 @@ export function Header() {
                   <motion.span
                     layoutId="nav-active"
                     className="absolute bottom-1.5 left-1/2 -translate-x-1/2 h-0.5 w-3.5 rounded-full"
-                    style={{ backgroundColor: "var(--landing-text-primary)" }}
+                    style={{ backgroundColor: isDarkOverlay ? "white" : "var(--landing-text-primary)" }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
@@ -211,17 +221,17 @@ export function Header() {
 
             {/* Mode Switcher Toggle for Desktop */}
             {isLoggedIn && (
-              <div className="hidden sm:flex p-0.5 rounded-[10px] mr-2 border shadow-inner" style={{ backgroundColor: "hsl(210, 20%, 96%)", borderColor: "var(--landing-border-light)" }}>
+              <div className="hidden sm:flex p-0.5 rounded-[10px] mr-2 border shadow-inner transition-colors duration-500" style={{ backgroundColor: isDarkOverlay ? "rgba(255,255,255,0.1)" : "hsl(210, 20%, 96%)", borderColor: isDarkOverlay ? "rgba(255,255,255,0.1)" : "var(--landing-border-light)" }}>
                 <Link
                   href="/marketplace"
-                  className={["px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "buyer" ? "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]"].join(" ")}
+                  className={["px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "buyer" ? (isDarkOverlay ? "bg-white text-black shadow-sm" : "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5") : (isDarkOverlay ? "text-white/80 hover:text-white" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]")].join(" ")}
                 >
                   Buyer
                 </Link>
                 {role === "seller" || role === "admin" ? (
                   <Link
                     href="/dashboard/seller"
-                    className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]"].join(" ")}
+                    className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? (isDarkOverlay ? "bg-white text-black shadow-sm" : "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5") : (isDarkOverlay ? "text-white/80 hover:text-white" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]")].join(" ")}
                   >
                     Seller
                   </Link>
@@ -229,7 +239,7 @@ export function Header() {
                   <button
                     onClick={() => handleModeSwitch("seller")}
                     disabled={upgrading}
-                    className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]"].join(" ")}
+                    className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? (isDarkOverlay ? "bg-white text-black shadow-sm" : "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5") : (isDarkOverlay ? "text-white/80 hover:text-white" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]")].join(" ")}
                   >
                     {upgrading && <Loader2 className="h-3 w-3 animate-spin" />}
                     Seller
@@ -242,14 +252,13 @@ export function Header() {
             {!isLoggedIn && (
               <>
                 <Link href="/auth" className="hidden sm:block">
-                  <button className="h-9 px-4 text-[14px] font-medium rounded-lg transition-all duration-200" style={{ color: "var(--landing-text-secondary)" }}>
+                  <button className={["h-9 px-4 text-[14px] font-medium rounded-lg transition-all duration-200", isDarkOverlay ? "text-white/90 hover:text-white hover:bg-white/10" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)] hover:bg-black/5"].join(" ")}>
                     Sign in
                   </button>
                 </Link>
                 <Link href="/auth?tab=register" className="hidden sm:block">
-                  <button className="cta-primary cta-mono h-9 !py-0 !px-5 !text-[12px] !rounded-lg !gap-2">
-                    Get started
-                    <span className="inline-block w-1 h-1 rounded-full bg-white/50" />
+                  <button className={["cta-primary h-9 !py-0 !px-5 !text-[13px] !font-medium !rounded-lg !gap-2 transition-all duration-200 shadow-sm", isDarkOverlay ? "!bg-white !text-black hover:!bg-gray-100" : ""].join(" ")}>
+                    Get Started
                   </button>
                 </Link>
               </>
@@ -448,7 +457,7 @@ export function Header() {
                       </Button>
                     </Link>
                     <Link href="/auth?tab=register" onClick={() => setMobileOpen(false)}>
-                      <button className="cta-primary cta-mono w-full !py-2 !text-[12px] !rounded-lg">
+                      <button className="cta-primary w-full !py-2 !text-[13px] !font-medium !rounded-lg shadow-sm">
                         Get started
                       </button>
                     </Link>

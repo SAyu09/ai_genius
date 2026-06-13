@@ -44,7 +44,7 @@ export function Testimonials() {
           className="max-w-2xl mb-14"
         >
           <span className="section-tag section-tag-light">Trusted worldwide</span>
-          <h2 className="mt-4 font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-white">
+          <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-white">
             Loved by 80,000+ teams{" "}
             <br className="hidden sm:block" />
             around the world.

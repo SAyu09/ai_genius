@@ -12,10 +12,23 @@ export function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden min-h-[92vh] flex flex-col items-center justify-center select-none soothing-bg"
+      className="relative overflow-hidden min-h-[92vh] flex flex-col items-center justify-center select-none bg-black"
     >
+      {/* Background Video */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0"
+      >
+        <source src="/scene_bhot_messy_lg_rha_jime.mp4" type="video/mp4" />
+      </video>
+
+      {/* Overlay to ensure text readability */}
+      <div className="absolute inset-0 bg-black/40 z-[5] pointer-events-none" />
       {/* Concentric ring decoration — purely CSS */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
         {/* Outer ring */}
         <div
           className="absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[1400px] rounded-full border opacity-[0.08]"
@@ -49,8 +62,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="font-[family-name:var(--font-space-grotesk)] text-[clamp(2.5rem,6vw,5.5rem)] font-semibold leading-[1.08] tracking-tight max-w-[900px]"
-          style={{ color: "var(--landing-text-primary)" }}
+          className="text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[1.08] tracking-[-0.03em] max-w-[900px] text-white drop-shadow-md"
         >
           Great agents are built{" "}
           <br className="hidden sm:block" />
@@ -62,8 +74,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-7 max-w-[600px] text-lg sm:text-xl leading-relaxed"
-          style={{ color: "var(--landing-text-secondary)" }}
+          className="mt-6 max-w-[550px] text-[17px] sm:text-xl leading-relaxed text-white/80 font-light tracking-wide drop-shadow-sm"
         >
           AI agents ready for your business.{" "}
           <br className="hidden sm:block" />
@@ -75,18 +86,17 @@ export function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-10 flex flex-wrap items-center justify-center gap-4"
+          className="mt-10 flex flex-wrap items-center justify-center gap-4 relative z-10"
         >
           <Link href="/marketplace">
-            <button className="cta-primary cta-mono group">
+            <button className="cta-primary group !bg-white !text-black hover:!bg-gray-100 shadow-lg shadow-black/10 font-medium tracking-tight rounded-full px-7">
               Explore Marketplace
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-white/60 group-hover:bg-white transition-colors" />
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-black/40 group-hover:bg-black transition-colors" />
             </button>
           </Link>
           <Link href="/sell">
-            <button className="cta-secondary cta-mono group">
+            <button className="cta-secondary group !text-white !border-white/30 hover:!bg-white/10 hover:!border-white/60 shadow-lg shadow-black/10 font-medium tracking-tight rounded-full px-7">
               List Your Agent
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-current opacity-40 group-hover:opacity-70 transition-opacity" />
             </button>
           </Link>
         </motion.div>
@@ -101,7 +111,7 @@ export function Hero() {
       >
         <span
           className="section-tag [writing-mode:vertical-rl] rotate-180"
-          style={{ fontSize: "0.6875rem", letterSpacing: "0.2em" }}
+          style={{ fontSize: "0.6875rem", letterSpacing: "0.2em", color: "rgba(255,255,255,0.4)" }}
         >
           Explore our platform
         </span>
@@ -109,9 +119,12 @@ export function Hero() {
           animate={{ y: [0, 6, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
-          <ArrowDown className="h-4 w-4" style={{ color: "var(--landing-text-muted)" }} />
+          <ArrowDown className="h-4 w-4 text-white/40" />
         </motion.div>
       </motion.div>
+
+      {/* Fade into the next section (light theme) */}
+      <div className="absolute bottom-0 left-0 w-full h-32 sm:h-48 bg-gradient-to-t from-[var(--landing-aura-1)] to-transparent z-[5] pointer-events-none" />
     </section>
   );
 }

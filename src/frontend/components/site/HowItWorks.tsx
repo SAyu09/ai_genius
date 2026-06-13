@@ -42,7 +42,7 @@ export function HowItWorks() {
         >
           <span className="section-tag">How it works</span>
           <h2
-            className="mt-4 font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight"
+            className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight"
             style={{ color: "var(--landing-text-primary)" }}
           >
             From discovery to deployed{" "}
@@ -69,7 +69,7 @@ export function HowItWorks() {
             >
               {/* Oversized background number */}
               <div
-                className="absolute -right-3 -top-6 font-[family-name:var(--font-space-grotesk)] text-[140px] font-bold leading-none select-none pointer-events-none transition-all duration-500 group-hover:scale-110"
+                className="absolute -right-3 -top-6 text-[140px] font-bold tracking-tight leading-none select-none pointer-events-none transition-all duration-500 group-hover:scale-110"
                 style={{ color: "hsl(210, 20%, 95%)" }}
               >
                 0{i + 1}
@@ -102,7 +102,7 @@ export function HowItWorks() {
                 </div>
 
                 <h3
-                  className="font-[family-name:var(--font-space-grotesk)] text-xl font-semibold tracking-tight"
+                  className="text-xl font-medium tracking-tight"
                   style={{ color: "var(--landing-text-primary)" }}
                 >
                   {s.title}

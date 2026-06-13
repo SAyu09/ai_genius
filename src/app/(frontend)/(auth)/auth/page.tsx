@@ -234,11 +234,11 @@ function AuthContent() {
 
         <div className="relative flex h-full flex-col justify-between p-12 text-gray-900">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-[family-name:var(--font-inter)] text-xl">
+          <Link href="/" className="flex items-center font-[family-name:var(--font-inter)] text-xl">
             <img
               src="/logo.png"
               alt="AI Genius Logo"
-              className="h-10 w-10 object-contain"
+              className="h-16 w-16 object-cover -ml-3 -mr-4"
             />
             <span className="font-semibold tracking-tight">AI Genius</span>
           </Link>
@@ -297,11 +297,11 @@ function AuthContent() {
       {/* ── RIGHT: Auth Form ── */}
       <div className="flex flex-col justify-between p-6 sm:p-8 lg:p-12">
         {/* Mobile logo */}
-        <Link href="/" className="flex items-center gap-2 font-[family-name:var(--font-inter)] text-xl lg:hidden">
+        <Link href="/" className="flex items-center font-[family-name:var(--font-inter)] text-xl lg:hidden">
           <img
             src="/logo.png"
             alt="AI Genius Logo"
-            className="h-10 w-10 object-contain"
+            className="h-16 w-16 object-cover -ml-3 -mr-4"
           />
           <span className="font-semibold tracking-tight text-gray-900">
             AI Genius

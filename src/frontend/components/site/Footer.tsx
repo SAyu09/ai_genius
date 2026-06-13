@@ -48,11 +48,11 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-14">
           {/* Logo column */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 font-[family-name:var(--font-space-grotesk)] text-base group mb-4">
+            <Link href="/" className="flex items-center text-base group mb-4">
               <img
                 src="/logo.png"
                 alt="AI Genius Logo"
-                className="h-8 w-8 object-contain transition-transform duration-200 group-hover:scale-105 brightness-0 invert"
+                className="h-14 w-14 object-cover -ml-2 -mr-3 transition-transform duration-200 group-hover:scale-105"
               />
               <span className="font-semibold tracking-tight text-white transition-colors">
                 AI Genius
@@ -103,7 +103,7 @@ export function Footer() {
               <a
                 key={social}
                 href="#"
-                className="text-[12px] text-white/30 hover:text-white/60 transition-colors duration-200 cta-mono"
+                className="text-[12px] text-white/30 hover:text-white/60 transition-colors duration-200"
                 style={{ letterSpacing: "0.1em" }}
               >
                 {social}

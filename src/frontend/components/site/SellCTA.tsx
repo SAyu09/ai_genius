@@ -59,7 +59,7 @@ export function SellCTA() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="mt-4 font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-[3.25rem] leading-[1.1] font-semibold tracking-tight text-white"
+                className="mt-4 text-3xl sm:text-4xl lg:text-[3.25rem] leading-[1.1] font-medium tracking-tight text-white"
               >
                 Turn your AI agent into{" "}
                 <br className="hidden lg:block" />
@@ -86,12 +86,12 @@ export function SellCTA() {
               className="flex flex-col gap-4 sm:flex-row lg:flex-col lg:items-end justify-center"
             >
               <Link href="/sell" className="w-full lg:w-auto">
-                <button className="w-full lg:w-[280px] cta-mono inline-flex items-center justify-center gap-3 rounded-lg bg-white text-[var(--landing-dark-card)] px-8 py-4 text-[14px] font-semibold transition-all duration-300 hover:shadow-[0_4px_20px_rgba(255,255,255,0.2)] hover:scale-[1.02] active:scale-95">
+                <button className="w-full lg:w-[280px] inline-flex items-center justify-center gap-3 rounded-lg bg-white text-[var(--landing-dark-card)] px-8 py-4 text-[14px] font-medium transition-all duration-300 hover:shadow-[0_4px_20px_rgba(255,255,255,0.2)] hover:scale-[1.02] active:scale-95">
                   Become a Seller <ArrowUpRight className="h-4 w-4" />
                 </button>
               </Link>
               <Link href="/sell" className="w-full lg:w-auto">
-                <button className="w-full lg:w-[280px] cta-mono inline-flex items-center justify-center gap-3 rounded-lg bg-transparent text-white/60 hover:text-white px-8 py-4 text-[14px] font-medium border border-white/10 hover:border-white/25 transition-all duration-300">
+                <button className="w-full lg:w-[280px] inline-flex items-center justify-center gap-3 rounded-lg bg-transparent text-white/60 hover:text-white px-8 py-4 text-[14px] font-medium border border-white/10 hover:border-white/25 transition-all duration-300">
                   Read Seller Guide
                 </button>
               </Link>

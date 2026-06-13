@@ -33,14 +33,14 @@ export function Categories() {
           <div>
             <span className="section-tag">Browse Categories</span>
             <h2
-              className="mt-4 font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight"
+              className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight"
               style={{ color: "var(--landing-text-primary)" }}
             >
               Explore by capability
             </h2>
           </div>
           <a
-            className="hidden text-[14px] font-medium transition-colors sm:inline-flex items-center gap-1.5 cta-mono"
+            className="hidden text-[14px] font-medium transition-colors sm:inline-flex items-center gap-1.5"
             href="/marketplace"
             style={{ color: "var(--landing-text-secondary)" }}
           >
@@ -82,7 +82,7 @@ export function Categories() {
               </div>
 
               <div
-                className="font-[family-name:var(--font-space-grotesk)] text-[16px] font-medium tracking-tight transition-colors duration-300"
+                className="text-[16px] font-medium tracking-tight transition-colors duration-300"
                 style={{ color: "var(--landing-text-primary)" }}
               >
                 {c.name}

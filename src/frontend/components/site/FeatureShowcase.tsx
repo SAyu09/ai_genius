@@ -22,7 +22,7 @@ export function FeatureShowcase() {
                 <span className="section-tag section-tag-light mb-4">
                   The AI Genius Agent Marketplace
                 </span>
-                <h2 className="font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold leading-[1.15] tracking-tight text-white">
+                <h2 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-medium leading-[1.15] tracking-tight text-white">
                   Discover{" "}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400 italic">
                     verified agents
@@ -34,7 +34,7 @@ export function FeatureShowcase() {
               </div>
 
               {/* Right side — organic art visual */}
-              <div className="absolute right-0 top-0 bottom-0 w-[55%] hidden md:block">
+              <div className="absolute right-0 top-0 bottom-0 w-[55%] hidden md:block overflow-hidden" style={{ WebkitMaskImage: "linear-gradient(to right, transparent, black 15%)", maskImage: "linear-gradient(to right, transparent, black 15%)" }}>
                 <img
                   src="/feature-showcase-art.png"
                   alt=""
@@ -42,7 +42,7 @@ export function FeatureShowcase() {
                   aria-hidden="true"
                 />
                 {/* Gradient overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-r from-[var(--landing-dark-card)] via-[var(--landing-dark-card)]/70 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[var(--landing-dark-card)] via-[var(--landing-dark-card)]/70 to-transparent pointer-events-none" />
               </div>
 
               {/* Arrow link button */}
@@ -86,7 +86,7 @@ export function FeatureShowcase() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3
-                  className="font-[family-name:var(--font-space-grotesk)] text-xl font-semibold tracking-tight"
+                  className="text-xl font-medium tracking-tight"
                   style={{ color: "var(--landing-text-primary)" }}
                 >
                   {item.title}

@@ -25,7 +25,7 @@ export function FAQ() {
         >
           <span className="section-tag">FAQ</span>
           <h2
-            className="mt-4 font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight"
+            className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight"
             style={{ color: "var(--landing-text-primary)" }}
           >
             Questions, answered.

@@ -161,11 +161,11 @@ export function Sidebar({ session }: SidebarProps) {
     <div className="flex h-full flex-col bg-white border-r border-gray-150 p-4 select-none">
       {/* Brand Header */}
       <div className="flex h-12 items-center px-2 mb-4">
-        <Link href="/marketplace" className="flex items-center gap-2 font-display text-base font-bold text-gray-900">
+        <Link href="/marketplace" className="flex items-center font-display text-base font-bold text-gray-900">
           <img
             src="/logo.png"
             alt="AI Genius Logo"
-            className="h-9 w-9 object-contain"
+            className="h-14 w-14 object-cover -ml-2 -mr-3"
           />
           AI Genius
         </Link>
@@ -313,11 +313,11 @@ export function Sidebar({ session }: SidebarProps) {
 
       {/* Mobile Top Header */}
       <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-gray-150 bg-white/80 px-4 backdrop-blur lg:hidden select-none">
-        <Link href="/marketplace" className="flex items-center gap-2 font-display text-sm font-bold text-gray-900">
+        <Link href="/marketplace" className="flex items-center font-display text-sm font-bold text-gray-900">
           <img
             src="/logo.png"
             alt="AI Genius Logo"
-            className="h-8 w-8 object-contain"
+            className="h-14 w-14 object-cover -ml-3 -mr-4"
           />
           AI Genius
         </Link>

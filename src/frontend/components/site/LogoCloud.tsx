@@ -26,7 +26,7 @@ export function LogoCloud() {
           {/* Left — large text */}
           <div className="flex-1">
             <h2
-              className="font-[family-name:var(--font-space-grotesk)] text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold leading-[1.2] tracking-tight"
+              className="text-3xl sm:text-4xl lg:text-[2.75rem] font-medium leading-[1.2] tracking-tight"
               style={{ color: "var(--landing-text-primary)" }}
             >
               Discover why thousands{" "}
@@ -55,13 +55,13 @@ export function LogoCloud() {
 
             <div className="flex flex-wrap gap-3">
               <Link href="/marketplace">
-                <button className="cta-primary cta-mono group">
+                <button className="cta-primary group px-6 shadow-sm">
                   Browse Marketplace
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-white/60 group-hover:bg-white transition-colors" />
                 </button>
               </Link>
               <Link href="/about">
-                <button className="cta-secondary cta-mono group">
+                <button className="cta-secondary group px-6 shadow-sm">
                   Learn More
                 </button>
               </Link>
@@ -129,7 +129,7 @@ export function LogoCloud() {
             {marqueeLogos.map((l, i) => (
               <span
                 key={`${l}-${i}`}
-                className="font-[family-name:var(--font-space-grotesk)] text-2xl sm:text-3xl font-semibold transition-colors duration-300 cursor-default whitespace-nowrap"
+                className="text-2xl sm:text-3xl font-medium tracking-tight transition-colors duration-300 cursor-default whitespace-nowrap"
                 style={{ color: "hsl(210, 15%, 82%)" }}
               >
                 {l}
