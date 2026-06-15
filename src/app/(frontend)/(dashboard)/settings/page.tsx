@@ -1,7 +1,7 @@
 import { auth } from "@/backend/lib/auth";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/frontend/components/ui/card";
-import { User, Mail, Shield, Calendar } from "lucide-react";
+import { UserCircle2, AtSign, ShieldCheck, CalendarDays } from "lucide-react";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -41,7 +41,7 @@ export default async function SettingsPage() {
 
             <div className="grid gap-4 sm:grid-cols-2 pt-4 border-t">
               <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-                <Mail className="h-4 w-4 text-muted-foreground" />
+                <AtSign className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Email</div>
                   <div className="text-sm">{user.email}</div>
@@ -49,7 +49,7 @@ export default async function SettingsPage() {
               </div>
 
               <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
-                <Shield className="h-4 w-4 text-muted-foreground" />
+                <ShieldCheck className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Role</div>
                   <div className="text-sm capitalize">{user.role || "buyer"}</div>

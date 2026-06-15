@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/frontend/components/ui/button";
-import { Send, Copy, RotateCcw, Plus, Loader2, Check } from "lucide-react";
+import { SendHorizonal, ClipboardCopy, RotateCcw, CirclePlus, Loader2, Check } from "lucide-react";
 
 interface Message {
   id: string;
@@ -247,7 +247,7 @@ export function ChatUI({
                     {copiedId === message.id ? (
                       <><Check className="h-3 w-3" /> Copied</>
                     ) : (
-                      <><Copy className="h-3 w-3" /> Copy</>
+                      <><ClipboardCopy className="h-3 w-3" /> Copy</>
                     )}
                   </button>
                 )}
@@ -281,7 +281,7 @@ export function ChatUI({
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Send className="h-4 w-4" />
+                <SendHorizonal className="h-4 w-4" />
               )}
             </Button>
           </div>
@@ -292,7 +292,7 @@ export function ChatUI({
                 onClick={handleNewChat}
                 className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
               >
-                <Plus className="h-3 w-3" /> New Chat
+                <CirclePlus className="h-3 w-3" /> New Chat
               </button>
             </div>
             <span className="text-[10px] text-muted-foreground/60">

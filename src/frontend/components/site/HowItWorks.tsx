@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowUpRight, Search, Zap, Blocks } from "lucide-react";
+import { ArrowUpRight, ScanSearch, Rocket, Layers3 } from "lucide-react";
 import {
   staggerContainer,
   staggerItem,
@@ -10,19 +10,19 @@ import {
 
 const steps = [
   {
-    icon: Search,
+    icon: ScanSearch,
     title: "Discover",
     text: "Browse thousands of vetted AI agents across every category, industry, and use case.",
     detail: "Search by capability",
   },
   {
-    icon: Zap,
+    icon: Rocket,
     title: "Deploy Instantly",
     text: "One-click deployment with instant source-code delivery, blueprints, and integrations.",
     detail: "Zero configuration",
   },
   {
-    icon: Blocks,
+    icon: Layers3,
     title: "Build & Sell",
     text: "Create agents and monetize on the marketplace. We handle billing, infra, and global payouts.",
     detail: "85% revenue share",

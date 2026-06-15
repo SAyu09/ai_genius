@@ -4,7 +4,7 @@ import { subscriptions, agents, users } from "@/backend/db/schema";
 import { eq } from "drizzle-orm";
 import { Button } from "@/frontend/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/frontend/components/ui/card";
-import { Bot, Search, Play, Star, Sparkles, ArrowRight } from "lucide-react";
+import { BrainCircuit, ScanSearch, CirclePlay, Gem, Sparkle, MoveRight } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CategoryGrid } from "@/frontend/components/shared/CategoryGrid";
@@ -53,7 +53,7 @@ export default async function BuyerDashboardPage() {
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
           <div className="relative">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="h-5 w-5 text-primary" />
+              <Sparkle className="h-5 w-5 text-primary" />
               <span className="text-xs font-semibold uppercase tracking-widest text-primary">Welcome to AI Genius</span>
             </div>
             <h2 className="font-display text-2xl sm:text-3xl">
@@ -64,7 +64,7 @@ export default async function BuyerDashboardPage() {
             </p>
             <Button asChild className="mt-4 rounded-xl gap-2">
               <Link href="/marketplace">
-                Explore Marketplace <ArrowRight className="h-4 w-4" />
+                Explore Marketplace <MoveRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>
@@ -78,7 +78,7 @@ export default async function BuyerDashboardPage() {
         </div>
         <Button asChild className="rounded-xl gap-2 shadow-lg shadow-primary/20 hidden sm:flex">
           <Link href="/marketplace">
-            <Search className="h-4 w-4" /> Explore Marketplace
+            <ScanSearch className="h-4 w-4" /> Explore Marketplace
           </Link>
         </Button>
       </div>
@@ -93,7 +93,7 @@ export default async function BuyerDashboardPage() {
                 <Card key={sub.id} className="rounded-2xl border border-primary/10 shadow-sm overflow-hidden flex flex-col">
                   <div className="p-4 bg-primary/5 border-b border-primary/10 flex items-center justify-between">
                     <div className="grid h-10 w-10 place-items-center rounded-xl bg-white shadow-sm text-primary">
-                      <Bot className="h-5 w-5" />
+                      <BrainCircuit className="h-5 w-5" />
                     </div>
                     <SubscriptionBadge status={sub.status as "active" | "trial" | "expired" | "cancelled"} />
                   </div>
@@ -104,7 +104,7 @@ export default async function BuyerDashboardPage() {
                   <CardContent className="mt-auto pt-4 border-t border-border/50">
                     <Button asChild className="w-full gap-2 rounded-xl">
                       <Link href={`/tools/${agent.id}`}>
-                        <Play className="h-4 w-4" /> Launch App
+                        <CirclePlay className="h-4 w-4" /> Launch App
                       </Link>
                     </Button>
                   </CardContent>
@@ -115,7 +115,7 @@ export default async function BuyerDashboardPage() {
             <Card className="rounded-3xl border-dashed border-2 bg-transparent shadow-none min-h-[250px] flex items-center justify-center">
               <div className="text-center p-8">
                 <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary mb-4">
-                  <Bot className="h-6 w-6" />
+                  <BrainCircuit className="h-6 w-6" />
                 </div>
                 <h3 className="text-base font-bold">No active tools</h3>
                 <p className="text-muted-foreground text-sm max-w-[280px] mx-auto mt-2">
@@ -151,10 +151,10 @@ export default async function BuyerDashboardPage() {
                 <Card className="rounded-2xl h-full border-transparent hover:border-primary/20 hover:shadow-md transition-all cursor-pointer bg-background">
                   <CardHeader className="p-4 pb-2 flex flex-row items-start justify-between">
                     <div className="grid h-10 w-10 place-items-center rounded-xl bg-muted text-muted-foreground">
-                      <Bot className="h-5 w-5" />
+                      <BrainCircuit className="h-5 w-5" />
                     </div>
                     <div className="flex items-center gap-1 text-xs font-medium">
-                      <Star className="h-3 w-3 fill-primary text-primary" />
+                      <Gem className="h-3 w-3 text-primary" />
                       {agent.avgRating || "New"}
                     </div>
                   </CardHeader>

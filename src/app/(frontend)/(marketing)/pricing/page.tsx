@@ -46,7 +46,7 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="pt-16 pb-20">
+      <main className="pt-32 pb-20">
         <div className="mx-auto w-[min(1200px,92%)] text-center">
           <p className="text-sm uppercase tracking-widest text-muted-foreground">Pricing</p>
           <h1 className="mt-3 font-display text-5xl sm:text-6xl">Simple pricing. Big leverage.</h1>

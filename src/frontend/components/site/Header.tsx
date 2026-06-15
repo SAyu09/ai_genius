@@ -5,8 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/frontend/components/ui/button";
 import {
-  Menu, X, Bot, CreditCard, LogOut,
-  ChevronDown, LayoutDashboard, ShoppingBag, User, Loader2
+  Menu, X, BrainCircuit, Wallet2, LogOut,
+  ChevronDown, LayoutGrid, PackageOpen, User, Loader2,
+  Globe, Store, Receipt, CircleHelp, Sparkle
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
@@ -118,22 +119,22 @@ export function Header() {
   const links = (() => {
     if (!isLoggedIn)
       return [
-        { href: "/marketplace", label: "Marketplace" },
-        { href: "/sell", label: "Sell" },
-        { href: "/pricing", label: "Pricing" },
-        { href: "/about", label: "About" },
+        { href: "/marketplace", label: "Marketplace", icon: Globe },
+        { href: "/sell", label: "Sell", icon: Store },
+        { href: "/pricing", label: "Pricing", icon: Receipt },
+        { href: "/about", label: "About", icon: CircleHelp },
       ];
     if (activeRoleContext === "seller")
       return [
-        { href: "/marketplace", label: "Marketplace" },
-        { href: "/dashboard/seller", label: "Dashboard" },
-        { href: "/dashboard/seller/listings", label: "Listings" },
+        { href: "/marketplace", label: "Marketplace", icon: Globe },
+        { href: "/dashboard/seller", label: "Dashboard", icon: LayoutGrid },
+        { href: "/dashboard/seller/listings", label: "Listings", icon: PackageOpen },
       ];
     return [
-      { href: "/marketplace", label: "Marketplace" },
-      { href: "/marketplace/my-agents", label: "My Agents" },
-      { href: "/marketplace/billing", label: "Billing" },
-      { href: "/sell", label: "Sell" },
+      { href: "/marketplace", label: "Marketplace", icon: Globe },
+      { href: "/marketplace/my-agents", label: "My Agents", icon: BrainCircuit },
+      { href: "/marketplace/billing", label: "Billing", icon: Wallet2 },
+      { href: "/sell", label: "Sell", icon: Store },
     ];
   })();
 
@@ -144,13 +145,13 @@ export function Header() {
   const dropdownItems =
     activeRoleContext === "seller"
       ? [
-          { href: "/dashboard/seller", icon: LayoutDashboard, label: "Dashboard" },
-          { href: "/dashboard/seller/listings", icon: ShoppingBag, label: "My Listings" },
-          { href: "/marketplace/my-agents", icon: Bot, label: "My Agents" },
+          { href: "/dashboard/seller", icon: LayoutGrid, label: "Dashboard" },
+          { href: "/dashboard/seller/listings", icon: PackageOpen, label: "My Listings" },
+          { href: "/marketplace/my-agents", icon: BrainCircuit, label: "My Agents" },
         ]
       : [
-          { href: "/marketplace/my-agents", icon: Bot, label: "My Agents" },
-          { href: "/marketplace/billing", icon: CreditCard, label: "Billing" },
+          { href: "/marketplace/my-agents", icon: BrainCircuit, label: "My Agents" },
+          { href: "/marketplace/billing", icon: Wallet2, label: "Billing" },
         ];
 
   const isDarkOverlay = pathname === "/" && !scrolled;
@@ -160,7 +161,7 @@ export function Header() {
     <>
       <header
         className={[
-          pathname === "/" ? "fixed" : "sticky",
+          "fixed",
           "top-0 z-50 w-full transition-all duration-500",
           scrolled
             ? "bg-white/80 backdrop-blur-xl border-b shadow-[0_1px_20px_-4px_rgba(0,0,0,0.04)] py-2.5"
@@ -197,12 +198,13 @@ export function Header() {
                 key={l.href}
                 href={l.href}
                 className={[
-                  "relative px-3.5 py-2 rounded-lg text-[14px] font-medium transition-all duration-200",
+                  "relative flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[14px] font-medium transition-all duration-200",
                   isActive(l.href)
                     ? (isDarkOverlay ? "text-white bg-white/10" : "text-[var(--landing-text-primary)] bg-black/[0.04]")
                     : (isDarkOverlay ? "text-white/80 hover:text-white hover:bg-white/10" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)] hover:bg-black/[0.03]"),
                 ].join(" ")}
               >
+                {l.icon && <l.icon className="w-4 h-4" strokeWidth={1.75} />}
                 {l.label}
                 {isActive(l.href) && (
                   <motion.span
@@ -442,6 +444,7 @@ export function Header() {
                         : "text-[var(--landing-text-secondary)] hover:bg-gray-100 hover:text-[var(--landing-text-primary)]",
                     ].join(" ")}
                   >
+                    {l.icon && <l.icon className={`w-[18px] h-[18px] ${isActive(l.href) ? "text-[var(--landing-accent-teal)]" : "text-[var(--landing-text-muted)]"}`} strokeWidth={1.75} />}
                     {l.label}
                   </Link>
                 ))}

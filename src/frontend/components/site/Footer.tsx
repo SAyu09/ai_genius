@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-
+import { Globe, MessageSquare, Code2 } from "lucide-react";
 const footerLinks = {
   Platform: [
     { label: "Marketplace", href: "/marketplace" },
@@ -97,16 +97,20 @@ export function Footer() {
             © 2026 AI Genius. All rights reserved.
           </div>
 
-          {/* Social icons placeholder */}
-          <div className="flex items-center gap-5">
-            {["X", "LinkedIn", "GitHub"].map((social) => (
+          {/* Social icons */}
+          <div className="flex items-center gap-4">
+            {[
+              { icon: Globe, label: "X" },
+              { icon: MessageSquare, label: "LinkedIn" },
+              { icon: Code2, label: "GitHub" },
+            ].map((social) => (
               <a
-                key={social}
+                key={social.label}
                 href="#"
-                className="text-[12px] text-white/30 hover:text-white/60 transition-colors duration-200"
-                style={{ letterSpacing: "0.1em" }}
+                aria-label={social.label}
+                className="text-white/30 hover:text-white/60 transition-colors duration-200"
               >
-                {social}
+                <social.icon className="h-4 w-4" strokeWidth={1.5} />
               </a>
             ))}
           </div>

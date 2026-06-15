@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Star, Zap, CheckCircle2 } from "lucide-react";
+import { Gem, Flame, BadgeCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRef, useState, useCallback } from "react";
 import {
@@ -65,7 +65,7 @@ function AgentCard({ a, index }: { a: any; index: number }) {
                 color: "var(--landing-accent-teal)",
               }}
             >
-              <Zap className="h-3 w-3" /> Featured
+              <Flame className="h-3 w-3" /> Featured
             </span>
             <span
               className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium"
@@ -84,7 +84,7 @@ function AgentCard({ a, index }: { a: any; index: number }) {
               color: "var(--landing-text-secondary)",
             }}
           >
-            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <Gem className="h-3.5 w-3.5 text-amber-500" />
             {a.rating} <span style={{ color: "var(--landing-text-muted)" }}>({a.sales})</span>
           </div>
         </div>
@@ -108,7 +108,7 @@ function AgentCard({ a, index }: { a: any; index: number }) {
             </h3>
             <p className="text-[13px] flex items-center gap-1" style={{ color: "var(--landing-text-secondary)" }}>
               by <span className="font-medium" style={{ color: "var(--landing-text-primary)" }}>{a.author}</span>
-              <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+              <BadgeCheck className="h-3 w-3 text-emerald-500" />
             </p>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getUserSubscriptions } from "@/features/subscriptions/services/subscriptionService";
 import { Button } from "@/frontend/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/frontend/components/ui/card";
-import { Bot, CreditCard, Calendar, AlertCircle } from "lucide-react";
+import { BrainCircuit, Wallet2, CalendarDays, TriangleAlert } from "lucide-react";
 import { SubscriptionBadge } from "@/frontend/components/shared/SubscriptionBadge";
 import { CancelSubscriptionButton } from "./CancelButton";
 
@@ -26,7 +26,7 @@ export default async function BillingPage() {
         {/* Active Subscriptions */}
         <section>
           <h2 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-primary" />
+            <Wallet2 className="h-5 w-5 text-primary" />
             Active Subscriptions
           </h2>
           {activeSubs.length > 0 ? (
@@ -37,7 +37,7 @@ export default async function BillingPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
                         <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
-                          <Bot className="h-6 w-6" />
+                          <BrainCircuit className="h-6 w-6" />
                         </div>
                         <div>
                           <h3 className="font-semibold">{agent.name}</h3>
@@ -58,7 +58,7 @@ export default async function BillingPage() {
                     {subscription.currentPeriodEnd && (
                       <div className="mt-4 pt-4 border-t flex items-center justify-between">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="h-3.5 w-3.5" />
+                          <CalendarDays className="h-3.5 w-3.5" />
                           Next billing: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
                         </div>
                         <CancelSubscriptionButton subscriptionId={subscription.id} agentName={agent.name} />
@@ -71,7 +71,7 @@ export default async function BillingPage() {
           ) : (
             <Card className="rounded-2xl border-dashed bg-transparent">
               <CardContent className="p-8 text-center">
-                <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                <TriangleAlert className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">No active subscriptions. Browse the marketplace to find AI tools.</p>
               </CardContent>
             </Card>
@@ -88,7 +88,7 @@ export default async function BillingPage() {
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="grid h-8 w-8 place-items-center rounded-lg bg-muted text-muted-foreground">
-                        <Bot className="h-4 w-4" />
+                        <BrainCircuit className="h-4 w-4" />
                       </div>
                       <div>
                         <h3 className="font-medium text-sm">{agent.name}</h3>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bot, Star } from "lucide-react";
+import { BrainCircuit, Gem } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/frontend/components/ui/card";
 import { SubscriptionBadge } from "./SubscriptionBadge";
 
@@ -37,14 +37,14 @@ export function ToolCard({
       <Card className="group relative h-full rounded-2xl border-transparent hover:border-primary/20 hover:shadow-md transition-all cursor-pointer bg-card overflow-hidden">
         <CardHeader className="p-4 pb-2 flex flex-row items-start justify-between">
           <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 text-primary">
-            <Bot className="h-5 w-5" />
+            <BrainCircuit className="h-5 w-5" />
           </div>
           <div className="flex items-center gap-2">
             {subscriptionStatus && (
               <SubscriptionBadge status={subscriptionStatus} />
             )}
             <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
-              <Star className="h-3 w-3 fill-primary text-primary" />
+              <Gem className="h-3 w-3 text-primary" />
               {avgRating || "New"}
             </div>
           </div>

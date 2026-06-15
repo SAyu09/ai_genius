@@ -1,13 +1,13 @@
 "use client";
 
-import { ArrowUpRight } from "lucide-react";
+import { MoveUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { viewportConfig } from "@/frontend/hooks/useAnimations";
 
 export function FeatureShowcase() {
   return (
-    <section className="relative py-6 sm:py-10 soothing-bg-subtle">
+    <section className="relative pt-24 pb-6 sm:pt-40 sm:pb-10 soothing-bg-subtle">
       <div className="mx-auto w-[min(1260px,92%)]">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -48,7 +48,7 @@ export function FeatureShowcase() {
               {/* Arrow link button */}
               <div className="absolute right-6 bottom-6 sm:right-8 sm:bottom-8 z-20">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[var(--landing-dark-card)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_4px_20px_rgba(255,255,255,0.25)]">
-                  <ArrowUpRight className="h-5 w-5" />
+                  <MoveUpRight className="h-5 w-5" />
                 </div>
               </div>
             </div>
@@ -92,7 +92,7 @@ export function FeatureShowcase() {
                   {item.title}
                 </h3>
                 {item.arrow && (
-                  <ArrowUpRight
+                  <MoveUpRight
                     className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                     style={{ color: "var(--landing-text-muted)" }}
                   />

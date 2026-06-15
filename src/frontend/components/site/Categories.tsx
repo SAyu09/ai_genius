@@ -1,6 +1,6 @@
 "use client";
 
-import { Send, LifeBuoy, Compass, Feather, Blocks, PieChart, Workflow, Wand2 } from "lucide-react";
+import { Crosshair, Headset, FlaskConical, PenLine, TerminalSquare, TrendingUp, GitFork, Wand } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   staggerContainer,
@@ -9,14 +9,14 @@ import {
 } from "@/frontend/hooks/useAnimations";
 
 const cats = [
-  { icon: Send, name: "Sales & Outreach" },
-  { icon: LifeBuoy, name: "Customer Support" },
-  { icon: Compass, name: "Research" },
-  { icon: Feather, name: "Content & Marketing" },
-  { icon: Blocks, name: "Developer Tools" },
-  { icon: PieChart, name: "Analytics" },
-  { icon: Workflow, name: "Operations" },
-  { icon: Wand2, name: "Personal Assistants" },
+  { icon: Crosshair, name: "Sales & Outreach" },
+  { icon: Headset, name: "Customer Support" },
+  { icon: FlaskConical, name: "Research" },
+  { icon: PenLine, name: "Content & Marketing" },
+  { icon: TerminalSquare, name: "Developer Tools" },
+  { icon: TrendingUp, name: "Analytics" },
+  { icon: GitFork, name: "Operations" },
+  { icon: Wand, name: "Personal Assistants" },
 ];
 
 export function Categories() {

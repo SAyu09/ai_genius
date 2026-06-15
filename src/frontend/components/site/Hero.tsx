@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Globe, Store } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRef, useEffect } from "react";
 
@@ -89,13 +89,15 @@ export function Hero() {
           className="mt-10 flex flex-wrap items-center justify-center gap-4 relative z-10"
         >
           <Link href="/marketplace">
-            <button className="cta-primary group !bg-white !text-black hover:!bg-gray-100 shadow-lg shadow-black/10 font-medium tracking-tight rounded-full px-7">
+            <button className="cta-primary group flex items-center gap-2 !bg-white !text-black hover:!bg-gray-100 shadow-lg shadow-black/10 font-medium tracking-tight rounded-full px-7">
+              <Globe className="w-4 h-4" strokeWidth={2} />
               Explore Marketplace
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-black/40 group-hover:bg-black transition-colors" />
             </button>
           </Link>
           <Link href="/sell">
-            <button className="cta-secondary group !text-white !border-white/30 hover:!bg-white/10 hover:!border-white/60 shadow-lg shadow-black/10 font-medium tracking-tight rounded-full px-7">
+            <button className="cta-secondary group flex items-center gap-2 !text-white !border-white/30 hover:!bg-white/10 hover:!border-white/60 shadow-lg shadow-black/10 font-medium tracking-tight rounded-full px-7">
+              <Store className="w-4 h-4" strokeWidth={2} />
               List Your Agent
             </button>
           </Link>

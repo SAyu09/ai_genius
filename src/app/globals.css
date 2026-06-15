@@ -128,8 +128,8 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-display: var(--font-space-grotesk), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Source Code Pro', 'SF Mono', 'Fira Code', ui-monospace, monospace;
 
   --shadow-xs: var(--shadow-xs);

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/frontend/components/ui/button";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkle } from "lucide-react";
 
 interface PlanSelectorProps {
   monthlyPrice: number; // in cents
@@ -81,7 +81,7 @@ export function PlanSelector({
         }`}
       >
         <div className="absolute top-0 right-0 px-2 py-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-bl-lg flex items-center gap-1">
-          <Sparkles className="h-2.5 w-2.5" />
+          <Sparkle className="h-2.5 w-2.5" />
           Save {savingsPercent}%
         </div>
         <div

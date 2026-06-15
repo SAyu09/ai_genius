@@ -34,7 +34,7 @@ export default async function MyAgentsPage() {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="pt-12 pb-20">
+      <main className="pt-32 pb-20">
         <div className="mx-auto w-[min(1200px,92%)]">
           {/* Page header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">

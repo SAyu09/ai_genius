@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/frontend/components/ui/button";
-import { Wrench, ArrowRight } from "lucide-react";
+import { Construction, MoveRight } from "lucide-react";
 
 interface ToolUnavailableProps {
   agentName?: string;
@@ -15,7 +15,7 @@ export function ToolUnavailable({ agentName }: ToolUnavailableProps) {
     <div className="flex h-full w-full items-center justify-center bg-background p-8">
       <div className="text-center max-w-md">
         <div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-muted mb-6">
-          <Wrench className="h-10 w-10 text-muted-foreground" />
+          <Construction className="h-10 w-10 text-muted-foreground" />
         </div>
         <h2 className="font-display text-2xl font-semibold mb-2">
           Tool Temporarily Unavailable
@@ -28,7 +28,7 @@ export function ToolUnavailable({ agentName }: ToolUnavailableProps) {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button asChild className="rounded-xl gap-2">
             <Link href="/marketplace">
-              Explore Other Tools <ArrowRight className="h-4 w-4" />
+              Explore Other Tools <MoveRight className="h-4 w-4" />
             </Link>
           </Button>
           <Button asChild variant="outline" className="rounded-xl">

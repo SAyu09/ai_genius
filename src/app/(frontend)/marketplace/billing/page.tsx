@@ -29,7 +29,7 @@ export default async function MarketplaceBillingPage() {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="pt-12 pb-20">
+      <main className="pt-32 pb-20">
         <div className="mx-auto w-[min(900px,92%)]">
           {/* Page header */}
           <div className="mb-10">

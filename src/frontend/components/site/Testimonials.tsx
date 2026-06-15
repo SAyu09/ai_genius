@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Quote } from "lucide-react";
+import { Gem, MessageCircleHeart } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   staggerContainer,
@@ -70,12 +70,12 @@ export function Testimonials() {
             >
               <div className="relative z-10">
                 {/* Quote icon */}
-                <Quote className="h-6 w-6 mb-5 opacity-20 text-white" />
+                <MessageCircleHeart className="h-6 w-6 mb-5 opacity-20 text-white" />
                 
                 {/* Stars */}
                 <div className="flex gap-1 mb-4">
                   {Array.from({ length: t.rating }).map((_, idx) => (
-                    <Star key={idx} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    <Gem key={idx} className="h-3.5 w-3.5 text-amber-400" />
                   ))}
                 </div>
                 <blockquote className="text-[15px] leading-relaxed text-white/70 font-normal">

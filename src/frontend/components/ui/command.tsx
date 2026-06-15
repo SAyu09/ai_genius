@@ -3,7 +3,7 @@
 import * as React from "react";
 import { type DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
-import { Search, Bot, CreditCard, Laptop, ShoppingBag, Code, DollarSign, Shield, Activity, Settings, LogOut } from "lucide-react";
+import { ScanSearch, BrainCircuit, Wallet2, MonitorSmartphone, PackageOpen, Code2, CircleDollarSign, ShieldCheck, Gauge, SlidersHorizontal, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 
@@ -46,7 +46,7 @@ const CommandInput = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
   <div className="flex items-center border-b border-gray-100 px-3" cmdk-input-wrapper="">
-    <Search className="mr-2.5 h-4 w-4 shrink-0 text-gray-400" />
+    <ScanSearch className="mr-2.5 h-4 w-4 shrink-0 text-gray-400" />
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
@@ -169,17 +169,17 @@ export function Omnibar() {
         {/* Buyer Navigation Group */}
         <CommandGroup heading="Buyer Workspace">
           <CommandItem onSelect={() => runCommand(() => router.push("/marketplace"))}>
-            <Search />
+            <ScanSearch />
             <span>Discover Business Automation Marketplace</span>
             <CommandShortcut>⌘M</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push("/marketplace/my-agents"))}>
-            <Bot />
+            <BrainCircuit />
             <span>My Active & Subscribed Agents</span>
             <CommandShortcut>⌘A</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push("/marketplace/billing"))}>
-            <CreditCard />
+            <Wallet2 />
             <span>Buyer Billing & Active Subscriptions</span>
           </CommandItem>
         </CommandGroup>
@@ -188,19 +188,19 @@ export function Omnibar() {
         {(role === "seller" || role === "admin") && (
           <CommandGroup heading="Creator Studio (Seller Mode)">
             <CommandItem onSelect={() => runCommand(() => router.push("/dashboard/seller"))}>
-              <Laptop />
+              <MonitorSmartphone />
               <span>Seller Dashboard Overview</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/dashboard/seller/listings"))}>
-              <ShoppingBag />
+              <PackageOpen />
               <span>Manage My Listed Agents</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/dashboard/seller/developer"))}>
-              <Code />
+              <Code2 />
               <span>Developer Keys & Webhook Logs</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/dashboard/seller/earnings"))}>
-              <DollarSign />
+              <CircleDollarSign />
               <span>Telemetry & Churn Analytics</span>
             </CommandItem>
           </CommandGroup>
@@ -210,11 +210,11 @@ export function Omnibar() {
         {role === "admin" && (
           <CommandGroup heading="Platform Operations (Admin Mode)">
             <CommandItem onSelect={() => runCommand(() => router.push("/admin"))}>
-              <Shield />
+              <ShieldCheck />
               <span>Operations Control Panel</span>
             </CommandItem>
             <CommandItem onSelect={() => runCommand(() => router.push("/admin/monitor"))}>
-              <Activity />
+              <Gauge />
               <span>Live Infrastructure Performance Telemetry</span>
             </CommandItem>
           </CommandGroup>
@@ -223,7 +223,7 @@ export function Omnibar() {
         {/* Unified Account & System Actions */}
         <CommandGroup heading="System Commands">
           <CommandItem onSelect={() => runCommand(() => router.push("/settings"))}>
-            <Settings />
+            <SlidersHorizontal />
             <span>User Account & Security Settings</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => signOut({ callbackUrl: "/" }))}>

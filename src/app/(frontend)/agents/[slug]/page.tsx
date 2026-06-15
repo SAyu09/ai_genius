@@ -39,7 +39,7 @@ export default async function AgentDetail({ params }: Props) {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="pt-12">
+      <main className="pt-32">
         <div className="mx-auto w-[min(1200px,92%)]">
           <Link href="/marketplace" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back to marketplace

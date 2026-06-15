@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { MoveUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { viewportConfig } from "@/frontend/hooks/useAnimations";
 
@@ -87,7 +87,7 @@ export function SellCTA() {
             >
               <Link href="/sell" className="w-full lg:w-auto">
                 <button className="w-full lg:w-[280px] inline-flex items-center justify-center gap-3 rounded-lg bg-white text-[var(--landing-dark-card)] px-8 py-4 text-[14px] font-medium transition-all duration-300 hover:shadow-[0_4px_20px_rgba(255,255,255,0.2)] hover:scale-[1.02] active:scale-95">
-                  Become a Seller <ArrowUpRight className="h-4 w-4" />
+                  Become a Seller <MoveUpRight className="h-4 w-4" />
                 </button>
               </Link>
               <Link href="/sell" className="w-full lg:w-auto">

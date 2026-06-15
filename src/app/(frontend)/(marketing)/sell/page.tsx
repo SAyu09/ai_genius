@@ -114,7 +114,7 @@ export default async function SellPage() {
       <Header />
       <main>
         {/* Hero */}
-        <section className="pt-12 pb-16 sm:pt-16 sm:pb-20">
+        <section className="pt-32 pb-16 sm:pt-36 sm:pb-20">
           <div className="mx-auto w-[min(1100px,92%)] text-center">
             <p className="text-xs sm:text-sm uppercase tracking-widest text-muted-foreground">For builders</p>
             <h1 className="mt-3 font-display text-4xl leading-[1.05] sm:text-6xl lg:text-7xl">

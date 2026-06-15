@@ -39,7 +39,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="pt-12 pb-20 sm:pt-16">
+      <main className="pt-32 pb-20">
         <section className="mx-auto w-[min(1100px,92%)]">
           <p className="text-xs sm:text-sm uppercase tracking-widest text-muted-foreground">About</p>
           <h1 className="mt-3 font-display text-4xl leading-[1.05] sm:text-6xl lg:text-7xl">

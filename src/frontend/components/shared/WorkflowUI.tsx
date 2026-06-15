@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/frontend/components/ui/button";
-import { Loader2, CheckCircle, XCircle, ArrowRight } from "lucide-react";
+import { Loader2, CircleCheck, CircleX, MoveRight } from "lucide-react";
 
 interface Step {
   id: string;
@@ -58,8 +58,8 @@ export function WorkflowUI({ agentId, agentName }: WorkflowUIProps) {
 
   const statusIcon = (status: Step["status"]) => {
     switch (status) {
-      case "done": return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case "error": return <XCircle className="h-5 w-5 text-red-500" />;
+      case "done": return <CircleCheck className="h-5 w-5 text-green-500" />;
+      case "error": return <CircleX className="h-5 w-5 text-red-500" />;
       case "running": return <Loader2 className="h-5 w-5 text-primary animate-spin" />;
       default: return <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30" />;
     }
@@ -85,7 +85,7 @@ export function WorkflowUI({ agentId, agentName }: WorkflowUIProps) {
             <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">{error}</div>
           )}
           <Button onClick={handleRun} disabled={isLoading} className="w-full h-11 rounded-xl">
-            {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running Workflow...</> : <>Run Workflow <ArrowRight className="ml-2 h-4 w-4" /></>}
+            {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Running Workflow...</> : <>Run Workflow <MoveRight className="ml-2 h-4 w-4" /></>}
           </Button>
         </div>
 

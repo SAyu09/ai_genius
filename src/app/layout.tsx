@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Inter, Space_Grotesk } from "next/font/google";
+import { Sora, DM_Sans } from "next/font/google";
 import { Providers } from "@/frontend/components/Providers";
 import { Omnibar } from "@/frontend/components/ui/command";
 import "./globals.css";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
-  weight: ["300", "400", "500", "600", "700"],
+const sora = Sora({ 
+  subsets: ["latin"], 
+  variable: "--font-display",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({ 
+  subsets: ["latin"], 
+  variable: "--font-sans",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -37,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={`${geist.variable} ${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className={`${sora.variable} ${dmSans.variable}`}>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <Providers>
           {children}

@@ -4,7 +4,7 @@ import { agents, users, subscriptions, purchases } from "@/backend/db/schema";
 import { eq, sql, or, count, sum, and, gte } from "drizzle-orm";
 import { Button } from "@/frontend/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/frontend/components/ui/card";
-import { Bot, Shield, Users, Activity, CheckCircle, XCircle, Clock, DollarSign, TrendingUp } from "lucide-react";
+import { BrainCircuit, ShieldCheck, UsersRound, Gauge, CircleCheck, CircleX, Timer, CircleDollarSign, TrendingUp } from "lucide-react";
 import { redirect } from "next/navigation";
 import { AdminAgentActions } from "./AdminActions";
 
@@ -66,7 +66,7 @@ export default async function AdminPage() {
     <div className="p-6 lg:p-8">
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
-          <Shield className="h-5 w-5 text-primary" />
+          <ShieldCheck className="h-5 w-5 text-primary" />
           <span className="text-xs font-semibold uppercase tracking-widest text-primary">Admin</span>
         </div>
         <h1 className="font-display text-3xl font-bold">Platform Dashboard</h1>
@@ -78,28 +78,28 @@ export default async function AdminPage() {
         <Card className="rounded-2xl border-none shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Live Agents</CardTitle>
-            <div className="rounded-lg bg-green-500/10 p-2 text-green-600"><Bot className="h-4 w-4" /></div>
+            <div className="rounded-lg bg-green-500/10 p-2 text-green-600"><BrainCircuit className="h-4 w-4" /></div>
           </CardHeader>
           <CardContent><div className="text-2xl font-bold">{totalAgents.count}</div></CardContent>
         </Card>
         <Card className="rounded-2xl border-none shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Users</CardTitle>
-            <div className="rounded-lg bg-blue-500/10 p-2 text-blue-600"><Users className="h-4 w-4" /></div>
+            <div className="rounded-lg bg-blue-500/10 p-2 text-blue-600"><UsersRound className="h-4 w-4" /></div>
           </CardHeader>
           <CardContent><div className="text-2xl font-bold">{totalUsers.count}</div></CardContent>
         </Card>
         <Card className="rounded-2xl border-none shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Active Subs</CardTitle>
-            <div className="rounded-lg bg-purple-500/10 p-2 text-purple-600"><Activity className="h-4 w-4" /></div>
+            <div className="rounded-lg bg-purple-500/10 p-2 text-purple-600"><Gauge className="h-4 w-4" /></div>
           </CardHeader>
           <CardContent><div className="text-2xl font-bold">{totalSubs.count}</div></CardContent>
         </Card>
         <Card className="rounded-2xl border-none shadow-sm bg-primary/5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-primary">Revenue Today</CardTitle>
-            <div className="rounded-lg bg-primary/20 p-2 text-primary"><DollarSign className="h-4 w-4" /></div>
+            <div className="rounded-lg bg-primary/20 p-2 text-primary"><CircleDollarSign className="h-4 w-4" /></div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
@@ -109,7 +109,7 @@ export default async function AdminPage() {
         <Card className="rounded-2xl border-none shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pending</CardTitle>
-            <div className="rounded-lg bg-yellow-500/10 p-2 text-yellow-600"><Clock className="h-4 w-4" /></div>
+            <div className="rounded-lg bg-yellow-500/10 p-2 text-yellow-600"><Timer className="h-4 w-4" /></div>
           </CardHeader>
           <CardContent><div className="text-2xl font-bold">{pendingAgents.length}</div></CardContent>
         </Card>
@@ -126,7 +126,7 @@ export default async function AdminPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-4 flex-1 min-w-0">
                       <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary shrink-0">
-                        <Bot className="h-6 w-6" />
+                        <BrainCircuit className="h-6 w-6" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -153,9 +153,9 @@ export default async function AdminPage() {
                               </span>
                             </span>
                             {agent.performancePass ? (
-                              <span className="flex items-center gap-1 text-green-600"><CheckCircle className="h-3 w-3" /> Pass</span>
+                              <span className="flex items-center gap-1 text-green-600"><CircleCheck className="h-3 w-3" /> Pass</span>
                             ) : (
-                              <span className="flex items-center gap-1 text-red-500"><XCircle className="h-3 w-3" /> Fail</span>
+                              <span className="flex items-center gap-1 text-red-500"><CircleX className="h-3 w-3" /> Fail</span>
                             )}
                           </div>
                         )}
@@ -201,7 +201,7 @@ export default async function AdminPage() {
         ) : (
           <Card className="rounded-2xl border-dashed bg-transparent">
             <CardContent className="p-8 text-center">
-              <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-3" />
+              <CircleCheck className="h-8 w-8 text-green-500 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">All clear! No agents pending review.</p>
             </CardContent>
           </Card>
