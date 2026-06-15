@@ -4,11 +4,11 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Brand Accents - Enterprise Grayscale + Indigo */
-  --color-brand-primary: #4f46e5;       /* Indigo-600 Primary Accent */
-  --color-brand-primary-hover: #4338ca; /* Indigo-700 */
-  --color-brand-primary-subtle: #eef2ff; /* Indigo-50 */
-  --color-brand-accent: #6366f1;        /* Indigo-500 */
+  /* Brand Accents - Enterprise Grayscale + Teal */
+  --color-brand-primary: #0d9488;       /* Teal-600 Primary Accent */
+  --color-brand-primary-hover: #0f766e; /* Teal-700 */
+  --color-brand-primary-subtle: #f0fdfa; /* Teal-50 */
+  --color-brand-accent: #14b8a6;        /* Teal-500 */
 
   /* Grayscale Neutrals - Eradicate pure neon/vibes */
   --color-gray-50:  #fafafa;
@@ -22,15 +22,15 @@
   --color-gray-800: #27272a;
   --color-gray-900: #09090b;
 
-  /* Semantic - Strictly Indigo, Emerald, Amber */
+  /* Semantic - Strictly Teal, Emerald, Amber */
   --color-success: #059669;      /* Emerald-600 Success Accent */
   --color-success-bg: #ecfdf5;   /* Emerald-50 */
   --color-warning: #d97706;      /* Amber-600 Warning Accent */
   --color-warning-bg: #fffbeb;   /* Amber-50 */
   --color-danger:  #dc2626;      /* Red-600 Danger */
   --color-danger-bg: #fef2f2;    /* Red-50 */
-  --color-info:    #4f46e5;      /* Indigo-600 Info */
-  --color-info-bg: #eef2ff;      /* Indigo-50 */
+  --color-info:    #0d9488;      /* Teal-600 Info */
+  --color-info-bg: #f0fdfa;      /* Teal-50 */
 
   /* Enterprise Surfaces - Pure White Background Baseline */
   --surface-page:    #ffffff;    /* Pure White Base */
@@ -41,7 +41,7 @@
   /* Clean Slate Borders */
   --border-default: #e4e4e7;
   --border-strong:  #d4d4d8;
-  --border-focus:   #4f46e5;     /* Indigo-600 Focus */
+  --border-focus:   #0d9488;     /* Teal-600 Focus */
 
   /* 8-point spatial grid tokens */
   --radius-sm: 4px;
@@ -56,7 +56,7 @@
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
   --shadow-md: 0 4px 12px -1px rgba(0,0,0,0.03), 0 2px 6px -1px rgba(0,0,0,0.02);
   --shadow-lg: 0 10px 24px -3px rgba(0,0,0,0.04), 0 4px 12px -2px rgba(0,0,0,0.02);
-  --shadow-focus: 0 0 0 3px rgba(79, 70, 229, 0.12);
+  --shadow-focus: 0 0 0 3px rgba(13, 148, 136, 0.12);
   
   /* Core variables mapping */
   --background: var(--surface-page);
@@ -276,16 +276,16 @@
   --landing-text: #f0f0f5;
   --landing-text-secondary: #a1a1aa;
   --landing-muted: #71717a;
-  --landing-accent: #6366f1;
-  --landing-accent-hover: #818cf8;
-  --landing-glow: #818cf8;
+  --landing-accent: #14b8a6;
+  --landing-accent-hover: #2dd4bf;
+  --landing-glow: #2dd4bf;
 
   /* Shadows for dark mode */
-  --shadow-glow-sm: 0 0 20px -5px rgba(99, 102, 241, 0.15);
-  --shadow-glow-md: 0 0 40px -10px rgba(99, 102, 241, 0.2);
-  --shadow-glow-lg: 0 0 80px -20px rgba(99, 102, 241, 0.3);
+  --shadow-glow-sm: 0 0 20px -5px rgba(20, 184, 166, 0.15);
+  --shadow-glow-md: 0 0 40px -10px rgba(20, 184, 166, 0.2);
+  --shadow-glow-lg: 0 0 80px -20px rgba(20, 184, 166, 0.3);
   --shadow-dark-card: 0 2px 12px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
-  --shadow-dark-float: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 40px -10px rgba(99, 102, 241, 0.15);
+  --shadow-dark-float: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 40px -10px rgba(20, 184, 166, 0.15);
 }
 
 /* ─── Page Transition ─────────────────────────────── */
@@ -374,14 +374,14 @@
 }
 
 .text-gradient-primary {
-  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 50%, #c084fc 100%);
+  background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 50%, #0d9488 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-hero {
-  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 25%, #a5b4fc 50%, #818cf8 75%, #6366f1 100%);
+  background: linear-gradient(135deg, #ccfbf1 0%, #99f6e4 25%, #5eead4 50%, #2dd4bf 75%, #14b8a6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -397,7 +397,7 @@
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(99,102,241,0.3), transparent 40%, transparent 60%, rgba(99,102,241,0.3));
+  background: linear-gradient(135deg, rgba(20,184,166,0.3), transparent 40%, transparent 60%, rgba(20,184,166,0.3));
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;

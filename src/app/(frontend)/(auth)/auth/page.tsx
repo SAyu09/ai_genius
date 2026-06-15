@@ -6,6 +6,7 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { Button } from "@/frontend/components/ui/button";
 import { Input } from "@/frontend/components/ui/input";
+import { Skeleton } from "@/frontend/components/ui/skeleton";
 import {
   Sparkles,
   Bot,
@@ -643,9 +644,47 @@ function AuthContent() {
   );
 }
 
+function AuthSkeleton() {
+  return (
+    <div className="grid min-h-screen lg:grid-cols-2 bg-white">
+      {/* LEFT SKELETON */}
+      <div className="relative hidden flex-col justify-between p-12 lg:flex bg-[var(--landing-bg)] border-r border-[var(--landing-border-light)]">
+        <Skeleton className="h-12 w-32 bg-teal-100/20" />
+        <div className="my-8 grid grid-cols-2 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-2xl bg-teal-100/20" />
+          ))}
+        </div>
+        <div>
+          <Skeleton className="h-12 w-3/4 mb-6 bg-teal-100/20" />
+          <div className="grid grid-cols-2 gap-3">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-6 w-32 bg-teal-100/20" />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT SKELETON */}
+      <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-12 items-center w-full">
+        <div className="w-full max-w-sm py-8 lg:py-12">
+          <Skeleton className="h-12 w-full rounded-xl mb-8" />
+          <Skeleton className="h-10 w-2/3 mb-2" />
+          <Skeleton className="h-5 w-1/2 mb-8" />
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl mt-2" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function UnifiedAuthPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<AuthSkeleton />}>
       <AuthContent />
     </Suspense>
   );
