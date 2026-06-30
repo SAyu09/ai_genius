@@ -129,7 +129,12 @@ export function Hero() {
       </motion.div>
 
       {/* Fade into the next section (light theme) */}
-      <div className="absolute bottom-0 left-0 w-full h-32 sm:h-48 bg-gradient-to-t from-[var(--landing-aura-1)] to-transparent z-[5] pointer-events-none" />
+      <div 
+        className="absolute bottom-[-2px] left-0 w-full h-56 sm:h-80 z-[5] pointer-events-none" 
+        style={{
+          background: 'linear-gradient(to top, var(--landing-aura-1) 0%, hsla(200, 30%, 95%, 0.9) 15%, hsla(200, 30%, 95%, 0.6) 40%, hsla(200, 30%, 95%, 0.2) 75%, transparent 100%)'
+        }}
+      />
     </section>
   );
 }
