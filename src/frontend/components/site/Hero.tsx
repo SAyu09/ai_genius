@@ -20,15 +20,15 @@ export function Hero() {
         loop
         muted
         playsInline
-        className="absolute inset-0 w-full h-full object-cover z-0"
+        className="absolute inset-0 w-full h-full object-cover z-0 opacity-80"
       >
         <source src="/scene_bhot_messy_lg_rha_jime.mp4" type="video/mp4" />
       </video>
 
       {/* Overlay to ensure text readability */}
-      <div className="absolute inset-0 bg-white/70 z-[5] pointer-events-none" />
+      <div className="absolute inset-0 bg-black/60 z-[5] pointer-events-none" />
       {/* Radial gradient behind text for extra pop */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.7)_0%,transparent_60%)] z-[5] pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.4)_0%,transparent_60%)] z-[5] pointer-events-none" />
       
       {/* Concentric ring decoration — purely CSS */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-[5]">
@@ -36,7 +36,7 @@ export function Hero() {
         <div
           className="absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[1400px] rounded-full border opacity-[0.2]"
           style={{
-            borderColor: "hsl(200, 30%, 45%)",
+            borderColor: "rgba(255, 255, 255, 0.2)",
             animation: "concentric-breathe 8s ease-in-out infinite",
           }}
         />
@@ -44,7 +44,7 @@ export function Hero() {
         <div
           className="absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] rounded-full border opacity-[0.15]"
           style={{
-            borderColor: "hsl(210, 35%, 48%)",
+            borderColor: "rgba(255, 255, 255, 0.3)",
             animation: "concentric-breathe 8s ease-in-out infinite 1s",
           }}
         />
@@ -52,7 +52,7 @@ export function Hero() {
         <div
           className="absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border opacity-[0.1]"
           style={{
-            borderColor: "hsl(195, 25%, 50%)",
+            borderColor: "rgba(255, 255, 255, 0.4)",
             animation: "concentric-breathe 8s ease-in-out infinite 2s",
           }}
         />
@@ -65,7 +65,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="text-[clamp(2.5rem,6vw,5.5rem)] font-medium leading-[1.08] tracking-[-0.03em] max-w-[900px] text-slate-900 drop-shadow-sm"
+          className="text-[clamp(2.5rem,6vw,5.5rem)] font-bold leading-[1.05] tracking-[-0.03em] max-w-[900px] text-white drop-shadow-lg"
         >
           Great agents are built{" "}
           <br className="hidden sm:block" />
@@ -77,7 +77,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-6 max-w-[550px] text-[17px] sm:text-xl leading-relaxed text-slate-800 font-normal tracking-wide drop-shadow-sm"
+          className="mt-6 max-w-[550px] text-[17px] sm:text-xl leading-relaxed text-slate-200 font-medium tracking-wide drop-shadow-md"
         >
           AI agents ready for your business.{" "}
           <br className="hidden sm:block" />
@@ -92,15 +92,15 @@ export function Hero() {
           className="mt-10 flex flex-wrap items-center justify-center gap-4 relative z-10"
         >
           <Link href="/marketplace">
-            <button className="cta-primary group flex items-center gap-2 !bg-white !text-black hover:!bg-gray-100 shadow-lg shadow-black/10 font-medium tracking-tight rounded-full px-7">
-              <Globe className="w-4 h-4" strokeWidth={2} />
+            <button className="cta-primary group flex items-center gap-2 !bg-white !text-black hover:!bg-gray-100 shadow-lg shadow-black/20 font-semibold tracking-tight rounded-full px-7 py-3">
+              <Globe className="w-4 h-4" strokeWidth={2.5} />
               Explore Marketplace
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-black/40 group-hover:bg-black transition-colors" />
             </button>
           </Link>
           <Link href="/sell">
-            <button className="cta-secondary group flex items-center gap-2 !text-slate-800 !border-slate-300 hover:!bg-black/5 hover:!border-slate-400 shadow-lg shadow-black/10 font-medium tracking-tight rounded-full px-7">
-              <Store className="w-4 h-4" strokeWidth={2} />
+            <button className="cta-secondary group flex items-center gap-2 !text-white !border-white/30 hover:!bg-white/10 hover:!border-white/60 shadow-lg shadow-black/10 font-semibold tracking-tight rounded-full px-7 py-3 backdrop-blur-sm">
+              <Store className="w-4 h-4" strokeWidth={2.5} />
               List Your Agent
             </button>
           </Link>
@@ -116,7 +116,7 @@ export function Hero() {
       >
         <span
           className="section-tag [writing-mode:vertical-rl] rotate-180"
-          style={{ fontSize: "0.6875rem", letterSpacing: "0.2em", color: "rgba(255,255,255,0.4)" }}
+          style={{ fontSize: "0.6875rem", letterSpacing: "0.2em", color: "rgba(255,255,255,0.6)" }}
         >
           Explore our platform
         </span>
@@ -124,7 +124,7 @@ export function Hero() {
           animate={{ y: [0, 6, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
-          <ArrowDown className="h-4 w-4 text-white/40" />
+          <ArrowDown className="h-4 w-4 text-white/60" />
         </motion.div>
       </motion.div>
 
@@ -133,3 +133,4 @@ export function Hero() {
     </section>
   );
 }
+

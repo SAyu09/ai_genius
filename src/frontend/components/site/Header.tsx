@@ -154,7 +154,7 @@ export function Header() {
           { href: "/marketplace/billing", icon: Wallet2, label: "Billing" },
         ];
 
-  const isDarkOverlay = false; // Hero is now a light overlay, so we need dark text for the header
+  const isDarkOverlay = pathname === "/" && !scrolled;
 
   /* ── render ─────────────────────────────────────────── */
   return (
