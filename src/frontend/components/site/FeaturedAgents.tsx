@@ -128,13 +128,21 @@ function AgentCard({ a, index }: { a: any; index: number }) {
           <div>
             <div className="section-tag mb-1" style={{ fontSize: "0.625rem" }}>Starting at</div>
             <div className="flex items-baseline gap-1">
-              <span
-                className="text-2xl font-semibold tracking-tight"
-                style={{ color: "var(--landing-text-primary)" }}
-              >
-                ${a.price}
-              </span>
-              <span className="text-sm font-medium" style={{ color: "var(--landing-text-muted)" }}>/mo</span>
+              {a.pricingModel === "usage_based" ? (
+                <span className="text-[17px] font-semibold tracking-tight text-slate-800">Usage based</span>
+              ) : a.price === 0 ? (
+                <span className="text-2xl font-semibold tracking-tight text-emerald-600">Free</span>
+              ) : (
+                <>
+                  <span
+                    className="text-2xl font-semibold tracking-tight"
+                    style={{ color: "var(--landing-text-primary)" }}
+                  >
+                    ${a.price}
+                  </span>
+                  <span className="text-sm font-medium" style={{ color: "var(--landing-text-muted)" }}>/mo</span>
+                </>
+              )}
             </div>
           </div>
           <div

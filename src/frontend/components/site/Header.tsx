@@ -154,7 +154,7 @@ export function Header() {
           { href: "/marketplace/billing", icon: Wallet2, label: "Billing" },
         ];
 
-  const isDarkOverlay = pathname === "/" && !scrolled;
+  const isDarkOverlay = false; // Hero is now a light overlay, so we need dark text for the header
 
   /* ── render ─────────────────────────────────────────── */
   return (
@@ -201,7 +201,7 @@ export function Header() {
                   "relative flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[14px] font-medium transition-all duration-200",
                   isActive(l.href)
                     ? (isDarkOverlay ? "text-white bg-white/10" : "text-[var(--landing-text-primary)] bg-black/[0.04]")
-                    : (isDarkOverlay ? "text-white/80 hover:text-white hover:bg-white/10" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)] hover:bg-black/[0.03]"),
+                    : (isDarkOverlay ? "text-white/80 hover:text-white hover:bg-white/10" : "text-slate-700 hover:text-[var(--landing-text-primary)] hover:bg-black/[0.03]"),
                 ].join(" ")}
               >
                 {l.icon && <l.icon className="w-4 h-4" strokeWidth={1.75} />}
@@ -226,14 +226,14 @@ export function Header() {
               <div className="hidden sm:flex p-0.5 rounded-[10px] mr-2 border shadow-inner transition-colors duration-500" style={{ backgroundColor: isDarkOverlay ? "rgba(255,255,255,0.1)" : "hsl(210, 20%, 96%)", borderColor: isDarkOverlay ? "rgba(255,255,255,0.1)" : "var(--landing-border-light)" }}>
                 <Link
                   href="/marketplace"
-                  className={["px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "buyer" ? (isDarkOverlay ? "bg-white text-black shadow-sm" : "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5") : (isDarkOverlay ? "text-white/80 hover:text-white" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]")].join(" ")}
+                  className={["px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "buyer" ? (isDarkOverlay ? "bg-white text-black shadow-sm" : "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5") : (isDarkOverlay ? "text-white/80 hover:text-white" : "text-slate-700 hover:text-[var(--landing-text-primary)]")].join(" ")}
                 >
                   Buyer
                 </Link>
                 {role === "seller" || role === "admin" ? (
                   <Link
                     href="/dashboard/seller"
-                    className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? (isDarkOverlay ? "bg-white text-black shadow-sm" : "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5") : (isDarkOverlay ? "text-white/80 hover:text-white" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]")].join(" ")}
+                    className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? (isDarkOverlay ? "bg-white text-black shadow-sm" : "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5") : (isDarkOverlay ? "text-white/80 hover:text-white" : "text-slate-700 hover:text-[var(--landing-text-primary)]")].join(" ")}
                   >
                     Seller
                   </Link>
@@ -241,7 +241,7 @@ export function Header() {
                   <button
                     onClick={() => handleModeSwitch("seller")}
                     disabled={upgrading}
-                    className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? (isDarkOverlay ? "bg-white text-black shadow-sm" : "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5") : (isDarkOverlay ? "text-white/80 hover:text-white" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]")].join(" ")}
+                    className={["flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all duration-200", activeRoleContext === "seller" ? (isDarkOverlay ? "bg-white text-black shadow-sm" : "bg-white text-[var(--landing-text-primary)] shadow-sm ring-1 ring-black/5") : (isDarkOverlay ? "text-white/80 hover:text-white" : "text-slate-700 hover:text-[var(--landing-text-primary)]")].join(" ")}
                   >
                     {upgrading && <Loader2 className="h-3 w-3 animate-spin" />}
                     Seller
@@ -254,7 +254,7 @@ export function Header() {
             {!isLoggedIn && (
               <>
                 <Link href="/auth" className="hidden sm:block">
-                  <button className={["h-9 px-4 text-[14px] font-medium rounded-lg transition-all duration-200", isDarkOverlay ? "text-white/90 hover:text-white hover:bg-white/10" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)] hover:bg-black/5"].join(" ")}>
+                  <button className={["h-9 px-4 text-[14px] font-medium rounded-lg transition-all duration-200", isDarkOverlay ? "text-white/90 hover:text-white hover:bg-white/10" : "text-slate-700 hover:text-[var(--landing-text-primary)] hover:bg-black/5"].join(" ")}>
                     Sign in
                   </button>
                 </Link>
@@ -332,7 +332,7 @@ export function Header() {
                               "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-colors",
                               isActive(href)
                                 ? "bg-[var(--landing-accent-teal-light)] text-[var(--landing-accent-teal)]"
-                                : "text-[var(--landing-text-secondary)] hover:bg-gray-100 hover:text-[var(--landing-text-primary)]",
+                                : "text-slate-700 hover:bg-gray-100 hover:text-[var(--landing-text-primary)]",
                             ].join(" ")}
                           >
                             <Icon className={`h-4 w-4 flex-shrink-0 ${isActive(href) ? "text-[var(--landing-accent-teal)]" : "text-[var(--landing-text-muted)]"}`} />
@@ -366,7 +366,7 @@ export function Header() {
                 "grid h-9 w-9 place-items-center rounded-lg border transition-colors md:hidden",
                 mobileOpen
                   ? "border-teal-200 bg-teal-50 text-teal-600"
-                  : "border-[var(--landing-border-light)] bg-white text-[var(--landing-text-secondary)] hover:border-[var(--landing-border-hover)] hover:bg-gray-50",
+                  : "border-[var(--landing-border-light)] bg-white text-slate-700 hover:border-[var(--landing-border-hover)] hover:bg-gray-50",
               ].join(" ")}
             >
               {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -408,7 +408,7 @@ export function Header() {
                     <Link
                       href="/marketplace"
                       onClick={() => setMobileOpen(false)}
-                      className={["flex-1 flex items-center justify-center px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "buyer" ? "bg-white text-[var(--landing-text-primary)] shadow-sm" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]"].join(" ")}
+                      className={["flex-1 flex items-center justify-center px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "buyer" ? "bg-white text-[var(--landing-text-primary)] shadow-sm" : "text-slate-700 hover:text-[var(--landing-text-primary)]"].join(" ")}
                     >
                       Buyer
                     </Link>
@@ -416,7 +416,7 @@ export function Header() {
                       <Link
                         href="/dashboard/seller"
                         onClick={() => setMobileOpen(false)}
-                        className={["flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "seller" ? "bg-white text-[var(--landing-text-primary)] shadow-sm" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]"].join(" ")}
+                        className={["flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "seller" ? "bg-white text-[var(--landing-text-primary)] shadow-sm" : "text-slate-700 hover:text-[var(--landing-text-primary)]"].join(" ")}
                       >
                         Seller
                       </Link>
@@ -424,7 +424,7 @@ export function Header() {
                       <button
                         onClick={() => handleModeSwitch("seller")}
                         disabled={upgrading}
-                        className={["flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "seller" ? "bg-white text-[var(--landing-text-primary)] shadow-sm" : "text-[var(--landing-text-secondary)] hover:text-[var(--landing-text-primary)]"].join(" ")}
+                        className={["flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold tracking-tight rounded-md transition-all", activeRoleContext === "seller" ? "bg-white text-[var(--landing-text-primary)] shadow-sm" : "text-slate-700 hover:text-[var(--landing-text-primary)]"].join(" ")}
                       >
                         {upgrading && <Loader2 className="h-3 w-3 animate-spin" />}
                         Seller
@@ -441,7 +441,7 @@ export function Header() {
                       "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-colors",
                       isActive(l.href)
                         ? "bg-[var(--landing-accent-teal-light)] text-[var(--landing-accent-teal)]"
-                        : "text-[var(--landing-text-secondary)] hover:bg-gray-100 hover:text-[var(--landing-text-primary)]",
+                        : "text-slate-700 hover:bg-gray-100 hover:text-[var(--landing-text-primary)]",
                     ].join(" ")}
                   >
                     {l.icon && <l.icon className={`w-[18px] h-[18px] ${isActive(l.href) ? "text-[var(--landing-accent-teal)]" : "text-[var(--landing-text-muted)]"}`} strokeWidth={1.75} />}

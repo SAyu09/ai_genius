@@ -21,6 +21,7 @@ export default async function Home() {
       tag: agents.tag,
       name: agents.name,
       desc: agents.description,
+      pricingModel: agents.pricingModel,
       priceCents: agents.monthlyPriceCents,
       rating: agents.avgRating,
       sales: agents.salesCount,
@@ -41,6 +42,7 @@ export default async function Home() {
     name: a.name,
     author: a.author || "Unknown",
     desc: a.desc || "",
+    pricingModel: a.pricingModel,
     price: a.priceCents ? Math.round(a.priceCents / 100) : 0,
   }));
   return (

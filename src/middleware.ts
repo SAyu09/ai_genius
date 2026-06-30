@@ -52,7 +52,7 @@ export default auth((req) => {
     if (role === "admin") return NextResponse.redirect(new URL("/admin", req.url));
     if (role === "seller") return NextResponse.redirect(new URL("/dashboard/seller", req.url));
     return NextResponse.redirect(new URL("/marketplace", req.url));
-  }
+  } 
 
   // 4. Role-based dashboard redirects
   if (isLoggedIn) {
@@ -88,6 +88,6 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
-    "/((?!api/auth|api/webhooks|api/agents|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!api/auth|api/webchooks|api/agents|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

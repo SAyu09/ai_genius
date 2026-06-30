@@ -1,6 +1,5 @@
 "use client";
 
-import { Crosshair, Headset, FlaskConical, PenLine, TerminalSquare, TrendingUp, GitFork, Wand } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   staggerContainer,
@@ -9,14 +8,14 @@ import {
 } from "@/frontend/hooks/useAnimations";
 
 const cats = [
-  { icon: Crosshair, name: "Sales & Outreach" },
-  { icon: Headset, name: "Customer Support" },
-  { icon: FlaskConical, name: "Research" },
-  { icon: PenLine, name: "Content & Marketing" },
-  { icon: TerminalSquare, name: "Developer Tools" },
-  { icon: TrendingUp, name: "Analytics" },
-  { icon: GitFork, name: "Operations" },
-  { icon: Wand, name: "Personal Assistants" },
+  { iconUrl: "https://cdn-icons-png.flaticon.com/512/233/233992.png", name: "Sales & Outreach" }, // Owl
+  { iconUrl: "https://cdn-icons-png.flaticon.com/512/233/233979.png", name: "Customer Support" }, // Spellbook
+  { iconUrl: "https://cdn-icons-png.flaticon.com/512/233/233970.png", name: "Research" }, // Potion
+  { iconUrl: "https://cdn-icons-png.flaticon.com/512/234/234010.png", name: "Content & Marketing" }, // Pumpkin
+  { iconUrl: "https://cdn-icons-png.flaticon.com/512/233/233994.png", name: "Developer Tools" }, // Coffin
+  { iconUrl: "https://cdn-icons-png.flaticon.com/512/234/234011.png", name: "Analytics" }, // Maple leaf
+  { iconUrl: "https://cdn-icons-png.flaticon.com/512/234/234013.png", name: "Operations" }, // Ghost
+  { iconUrl: "https://cdn-icons-png.flaticon.com/512/233/233985.png", name: "Personal Assistants" }, // Magic wand
 ];
 
 export function Categories() {
@@ -71,14 +70,12 @@ export function Categories() {
                 style={{ backgroundColor: "var(--landing-accent-teal)" }}
               />
 
-              <div
-                className="flex h-11 w-11 items-center justify-center rounded-full transition-all duration-300 group-hover:scale-110 mb-6"
-                style={{
-                  backgroundColor: "var(--landing-accent-teal-light)",
-                  color: "var(--landing-accent-teal)",
-                }}
-              >
-                <c.icon className="h-5 w-5 stroke-[1.5]" />
+              <div className="mb-5 transition-transform duration-300 group-hover:-translate-y-1">
+                <img 
+                  src={c.iconUrl} 
+                  alt={c.name} 
+                  className="h-10 w-10 object-contain drop-shadow-sm opacity-90 group-hover:opacity-100 transition-opacity" 
+                />
               </div>
 
               <div

@@ -197,8 +197,16 @@ export default async function MarketplacePage(props: { searchParams: Promise<{ q
  {/* Footer */}
  <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
  <div>
+ {agent.pricingModel === "usage_based" ? (
+ <span className="text-[17px] font-semibold text-slate-800">Usage based</span>
+ ) : price === 0 ? (
+ <span className="text-xl font-semibold text-emerald-600">Free</span>
+ ) : (
+ <>
  <span className="text-xl font-semibold text-slate-800">${price}</span>
  <span className="text-[12px] text-slate-400 ml-0.5">/mo</span>
+ </>
+ )}
  </div>
  <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-teal-600 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
  Details <ArrowRight className="h-3.5 w-3.5" />

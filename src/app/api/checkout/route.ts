@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { withAuth } from "@/backend/lib/api";
 import { stripe, getCheckoutParams, getLocalizedPaymentMethods } from "@/backend/lib/stripe";
 import { db } from "@/backend/db";
-import { agents, users } from "@/backend/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
-import { getActiveSubscription } from "@/backend/lib/subscriptions";
+import { agents, users, subscriptions } from "@/backend/db/schema";
+import { getActiveSubscription, invalidateSubscriptionCache } from "@/backend/lib/subscriptions";
 
 export const POST = withAuth(async ({ userId, req }) => {
   try {
@@ -101,7 +101,26 @@ export const POST = withAuth(async ({ userId, req }) => {
         : (agent.monthlyPriceCents || 0);
 
       if (unitAmount === 0) {
-        return NextResponse.json({ error: { code: "INVALID_PRICE", message: "Pricing not configured for this agent." } }, { status: 400 });
+        // Automatically provision free subscription without Stripe
+        const futureDate = new Date();
+        futureDate.setFullYear(futureDate.getFullYear() + 100);
+        
+        await db.insert(subscriptions).values({
+          buyerId: userId,
+          agentId: agentId,
+          planType: planType,
+          status: "active",
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: futureDate,
+        });
+
+        await invalidateSubscriptionCache(userId, agentId);
+
+        const redirectUrl = new URL(`/tools/${agentId}`, req.url);
+        if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
+          return NextResponse.redirect(redirectUrl, { status: 303 });
+        }
+        return NextResponse.json({ url: redirectUrl.toString() });
       }
 
       lineItemConfig = {
@@ -139,7 +158,26 @@ export const POST = withAuth(async ({ userId, req }) => {
       mode = "payment";
       unitAmount = agent.monthlyPriceCents || 0; // Using monthly price for one_time as a fallback
       if (unitAmount === 0) {
-        return NextResponse.json({ error: { code: "INVALID_PRICE", message: "Pricing not configured for this agent." } }, { status: 400 });
+        // Automatically provision free payment without Stripe
+        const futureDate = new Date();
+        futureDate.setFullYear(futureDate.getFullYear() + 100);
+        
+        await db.insert(subscriptions).values({
+          buyerId: userId,
+          agentId: agentId,
+          planType: planType,
+          status: "active",
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: futureDate,
+        });
+
+        await invalidateSubscriptionCache(userId, agentId);
+
+        const redirectUrl = new URL(`/tools/${agentId}`, req.url);
+        if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
+          return NextResponse.redirect(redirectUrl, { status: 303 });
+        }
+        return NextResponse.json({ url: redirectUrl.toString() });
       }
 
       lineItemConfig = {

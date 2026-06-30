@@ -5,10 +5,14 @@ import { Button } from "@/frontend/components/ui/button";
 
 export function CheckoutButton({ 
   agentId, 
-  isLoggedIn 
+  isLoggedIn,
+  isFree = false,
+  isUsageBased = false
 }: { 
   agentId: string; 
   isLoggedIn: boolean;
+  isFree?: boolean;
+  isUsageBased?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -49,7 +53,7 @@ export function CheckoutButton({
       size="lg" 
       className="w-full rounded-2xl h-14 text-lg font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all"
     >
-      {loading ? "Redirecting..." : (isLoggedIn ? "Subscribe Now" : "Sign in to Subscribe")}
+      {loading ? "Processing..." : (isUsageBased ? (isLoggedIn ? "Setup Usage Billing" : "Sign in to Setup") : isFree ? (isLoggedIn ? "Get for Free" : "Sign in to Get Access") : (isLoggedIn ? "Subscribe Now" : "Sign in to Subscribe"))}
     </Button>
   );
 }

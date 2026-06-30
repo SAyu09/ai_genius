@@ -56,6 +56,29 @@ export const verificationTokens = pgTable(
 );
 
 // ─────────────────────────────────────────────────────────────
+// 1b. API KEYS — Bearer-token auth for headless / B2B access
+// ─────────────────────────────────────────────────────────────
+export const apiKeys = pgTable("api_keys", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  keyHash: text("key_hash").notNull(),           // SHA-256 hex digest — raw key is NEVER stored
+  prefix: text("prefix").notNull(),               // e.g. "aig_live_a1b2c3d4" (for UI display)
+  name: text("name").notNull(),                   // e.g. "Production Key"
+  lastUsedAt: timestamp("last_used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+  user: one(users, {
+    fields: [apiKeys.userId],
+    references: [users.id],
+  }),
+}));
+
+// ─────────────────────────────────────────────────────────────
 // 2. USERS — Buyers, Sellers, Admins
 // ─────────────────────────────────────────────────────────────
 export const users = pgTable("users", {
@@ -85,6 +108,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   purchases: many(purchases),
   subscriptions: many(subscriptions),
   reviews: many(reviews),
+  apiKeys: many(apiKeys),
   sellerProfile: one(sellerProfiles, {
     fields: [users.id],
     references: [sellerProfiles.userId],

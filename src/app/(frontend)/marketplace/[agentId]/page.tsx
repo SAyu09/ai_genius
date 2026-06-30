@@ -146,8 +146,16 @@ export default async function AgentDetailPage(props: { params: Promise<{ agentId
  <div className="mb-6 pb-6 border-b border-slate-100">
  <div className="text-[11px] font-bold text-teal-600 uppercase tracking-wider mb-2">Subscription</div>
  <div className="flex items-end gap-1.5">
+ {agent.pricingModel === "usage_based" ? (
+ <span className="text-3xl font-bold text-slate-800 tracking-tight leading-none">Usage based</span>
+ ) : price === 0 ? (
+ <span className="text-4xl font-bold text-emerald-600 tracking-tight leading-none">Free</span>
+ ) : (
+ <>
  <span className="text-4xl font-bold text-slate-800 tracking-tight leading-none">${price}</span>
  <span className="text-[14px] text-slate-400 mb-0.5">/ mo</span>
+ </>
+ )}
  </div>
  </div>
 
@@ -164,7 +172,7 @@ export default async function AgentDetailPage(props: { params: Promise<{ agentId
  </div>
 
  <div className="pt-2">
- <CheckoutButton agentId={agent.id} isLoggedIn={!!session?.user} />
+ <CheckoutButton agentId={agent.id} isLoggedIn={!!session?.user} isFree={price === 0 && agent.pricingModel !== "usage_based"} isUsageBased={agent.pricingModel === "usage_based"} />
  </div>
 
  <div className="mt-5 flex items-center justify-center gap-2 text-xs font-medium text-gray-400">
