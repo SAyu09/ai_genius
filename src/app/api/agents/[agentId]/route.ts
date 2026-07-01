@@ -124,3 +124,38 @@ export async function PATCH(req: NextRequest, { params }: Props) {
 
   return NextResponse.json({ agent: updatedAgent }, { status: 200 });
 }
+
+/**
+ * DELETE /api/agents/[agentId]
+ * Delete an agent listing.
+ */
+export async function DELETE(req: NextRequest, { params }: Props) {
+  const { auth } = await import("@/backend/lib/auth");
+  const session = await auth();
+  
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { agentId } = await params;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(agentId);
+
+  // Check ownership
+  const [existingAgent] = await db
+    .select({ id: agents.id, sellerId: agents.sellerId })
+    .from(agents)
+    .where(isUuid ? eq(agents.id, agentId) : eq(agents.slug, agentId))
+    .limit(1);
+
+  if (!existingAgent) {
+    return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+  }
+
+  if (existingAgent.sellerId !== session.user.id && session.user.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden: You don't own this agent" }, { status: 403 });
+  }
+
+  await db.delete(agents).where(eq(agents.id, existingAgent.id));
+
+  return NextResponse.json({ success: true }, { status: 200 });
+}

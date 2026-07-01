@@ -2,7 +2,7 @@
 
 import { Button } from "@/frontend/components/ui/button";
 import Link from "next/link";
-import { BarChart2, Edit2, Rocket, AlertCircle, RotateCw } from "lucide-react";
+import { BarChart2, Edit2, Rocket, AlertCircle, RotateCw, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -43,6 +43,26 @@ export function ActionButtons({ agentId, status, isKycVerified }: { agentId: str
     setKycModalOpen(false);
     toast.success("Settlement details saved! Submitting agent for review...");
     handlePublish();
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this agent? This action cannot be undone.")) return;
+    
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/agents/${agentId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Agent deleted successfully!");
+        router.refresh();
+      } else {
+        toast.error(data.error || "Failed to delete agent");
+      }
+    } catch {
+      toast.error("Failed to connect to server");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -98,6 +118,16 @@ export function ActionButtons({ agentId, status, isKycVerified }: { agentId: str
           <BarChart2 className="h-4 w-4 text-gray-500" />
           View Stats
         </Link>
+      </Button>
+      <Button 
+        size="sm" 
+        variant="ghost" 
+        onClick={handleDelete}
+        disabled={loading}
+        className="w-full justify-start h-8 rounded-md text-sm gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+      >
+        <Trash2 className="h-4 w-4 text-red-500" />
+        {loading ? "Processing..." : "Delete"}
       </Button>
     </>
   );
